@@ -5,6 +5,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -24,9 +25,11 @@ public class PostHashtagEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@JoinColumn(nullable = false, name = "post_id")
 	@ManyToOne(fetch = FetchType.LAZY)
 	PostEntity post;
 
+	@JoinColumn(nullable = false, name = "hashtag_id")
 	@ManyToOne(fetch = FetchType.LAZY)
-	HashTagEntity hashTag;
+	HashtagEntity hashtag;
 }

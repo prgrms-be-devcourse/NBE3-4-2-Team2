@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Table(name = "hashtag")
-public class HashTagEntity {
+public class HashtagEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

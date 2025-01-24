@@ -3,6 +3,7 @@ package com.example.backend.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -22,6 +23,7 @@ public class PostEntity extends BaseEntity {
 	@Lob
 	private String content;
 
+	@JoinColumn(nullable = false, name = "member_id")
 	@ManyToOne(fetch = FetchType.LAZY)
 	private MemberEntity member;
 }
