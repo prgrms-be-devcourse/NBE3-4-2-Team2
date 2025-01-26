@@ -4,6 +4,10 @@ import com.example.backend.global.error.ErrorCodeIfs;
 
 import lombok.Getter;
 
+/**
+ * @author kwak
+ */
+
 @Getter
 public class GlobalException extends RuntimeException implements BackendExceptionIfs {
 

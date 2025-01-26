@@ -5,6 +5,10 @@ import org.springframework.http.HttpStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * @author kwak
+ */
+
 @Getter
 @AllArgsConstructor
 public enum GlobalErrorCode implements ErrorCodeIfs {
