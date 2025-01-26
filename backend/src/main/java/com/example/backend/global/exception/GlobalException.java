@@ -35,5 +35,4 @@ public class GlobalException extends RuntimeException implements BackendExceptio
 		this.errorDescription = errorDescription;
 	}
 
-
 }

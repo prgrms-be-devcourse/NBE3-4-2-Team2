@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum GlobalErrorCode implements ErrorCodeIfs{
+public enum GlobalErrorCode implements ErrorCodeIfs {
 
 	VALIDATION_FAILED(HttpStatus.BAD_REQUEST, 400, "유효성 검증에 실패하였습니다.");
 
