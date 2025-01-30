@@ -5,11 +5,8 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,7 +48,7 @@ public class MemberEntity extends BaseEntity {
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
-	private List<LikeEntity> likeList = new ArrayList<>();
+	private List<LikesEntity> likeList = new ArrayList<>();
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
