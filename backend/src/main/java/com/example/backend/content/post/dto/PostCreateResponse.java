@@ -8,8 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 게시물 생성 DTO
- * 게시물 생성 후 발생하는 요청 관련 DTO
+ * 게시물 관련 DTO
+ * 게시물 관련 발생하는 응답 관련 DTO
  *
  * @author joonaeng
  * @since 2025-01-31
@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostResponse {
+public class PostCreateResponse {
 
 	private Long id;
 	private String content;
@@ -32,8 +32,8 @@ public class PostResponse {
 	 * @return PostCreateResponse 객체
 	 */
 
-	public static PostResponse fromEntity(PostEntity post) {
-		return PostResponse.builder()
+	public static PostCreateResponse fromEntity(PostEntity post) {
+		return PostCreateResponse.builder()
 			.id(post.getId())
 			.content(post.getContent())
 			.memberId(post.getMember().getId())
