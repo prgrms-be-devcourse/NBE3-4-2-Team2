@@ -3,8 +3,8 @@ package com.example.backend.content.post.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend.content.post.dto.PostCreateRequest;
-import com.example.backend.content.post.dto.PostCreateResponse;
+import com.example.backend.content.post.dto.PostRequest;
+import com.example.backend.content.post.dto.PostResponse;
 import com.example.backend.content.post.exception.PostErrorCode;
 import com.example.backend.content.post.exception.PostException;
 import com.example.backend.entity.MemberEntity;
@@ -35,7 +35,7 @@ public class PostService {
 	 * @throws IllegalArgumentException 존재하지 않는 회원일 경우 예외 발생
 	 */
 	@Transactional
-	public PostCreateResponse createPost(PostCreateRequest request) {
+	public PostResponse createPost(PostRequest request) {
 		MemberEntity memberEntity = memberRepository.findById(request.getMemberId())
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
@@ -43,7 +43,7 @@ public class PostService {
 
 		PostEntity savedPost = postRepository.save(postEntity);
 
-		return PostCreateResponse.fromEntity(savedPost);
+		return PostResponse.fromEntity(savedPost);
 	}
 
 }

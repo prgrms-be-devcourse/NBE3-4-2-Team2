@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostCreateResponse {
+public class PostResponse {
 
 	private Long id;
 	private String content;
@@ -32,8 +32,8 @@ public class PostCreateResponse {
 	 * @return PostCreateResponse 객체
 	 */
 
-	public static PostCreateResponse fromEntity(PostEntity post) {
-		return PostCreateResponse.builder()
+	public static PostResponse fromEntity(PostEntity post) {
+		return PostResponse.builder()
 			.id(post.getId())
 			.content(post.getContent())
 			.memberId(post.getMember().getId())
