@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
 
-import com.example.backend.social.reaction.likes.dto.LikesResponse;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -42,19 +40,9 @@ public class LikesEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	MemberEntity member;
 
-	public LikesEntity(MemberEntity member, PostEntity post, LocalDateTime now) {
+	public LikesEntity(MemberEntity member, PostEntity post) {
 		this.member = member;
 		this.post = post;
-		this.createDate = now;
-	}
-
-	// DTO 변환 메서드
-	public LikesResponse from(LikesEntity likes) {
-		return LikesResponse.builder()
-			.id(this.id)
-			.memberId(this.member.getId())
-			.postId(this.post.getId())
-			.createDate(this.createDate)
-			.build();
+		this.createDate = LocalDateTime.now();
 	}
 }
