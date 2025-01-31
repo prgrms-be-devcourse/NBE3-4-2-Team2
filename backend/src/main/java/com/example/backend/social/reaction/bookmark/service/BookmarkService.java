@@ -12,6 +12,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.social.reaction.bookmark.dto.BookmarkResponse;
 import com.example.backend.social.reaction.bookmark.exception.BookmarkErrorCode;
 import com.example.backend.social.reaction.bookmark.exception.BookmarkException;
 
@@ -41,17 +42,24 @@ public class BookmarkService {
 	 *
 	 * @param memberId
 	 * @param postId
-	 * @return BookmarkEntity
+	 * @return BookmarkResponse (DTO)
 	 */
 	@Transactional
-	public BookmarkEntity createBookmark(Long memberId, Long postId) {
+	public BookmarkResponse createBookmark(Long memberId, Long postId) {
 		MemberEntity member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.MEMBER_NOT_FOUND));
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.POST_NOT_FOUND));
 
-		BookmarkEntity bookmark = new BookmarkEntity(member, post, LocalDateTime.now());
-		return bookmarkRepository.save(bookmark);
+		BookmarkEntity bookmark = BookmarkEntity.builder()
+				.member(member)
+				.post(post)
+				.createDate(LocalDateTime.now())
+				.build();
+
+		bookmarkRepository.save(bookmark);
+
+		return BookmarkResponse.toResponse(bookmark);
 	}
 
 	/**
@@ -65,6 +73,7 @@ public class BookmarkService {
 	public void deleteBookmark(Long memberId, Long postId) {
 		BookmarkEntity bookmark = bookmarkRepository.findByMemberIdAndPostId(memberId, postId)
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.BOOKMARK_NOT_FOUND));
+
 		bookmarkRepository.deleteByMemberIdAndPostId(memberId, postId);
 	}
 }
