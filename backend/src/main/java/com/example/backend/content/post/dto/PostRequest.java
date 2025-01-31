@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostCreateRequest {
+public class PostRequest {
 
 	private Long memberId;
 	private String content;
