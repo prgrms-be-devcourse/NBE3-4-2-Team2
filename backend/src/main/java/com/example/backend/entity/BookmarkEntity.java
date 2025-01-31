@@ -22,7 +22,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @Table(name = "bookmark")
 public class BookmarkEntity {
 	@Id
@@ -40,9 +39,10 @@ public class BookmarkEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	MemberEntity member;
 
-	public BookmarkEntity(MemberEntity member, PostEntity post, LocalDateTime now) {
+	@Builder
+	public BookmarkEntity(MemberEntity member, PostEntity post) {
 		this.member = member;
 		this.post = post;
-		this.createDate = now;
+		this.createDate = LocalDateTime.now();
 	}
 }

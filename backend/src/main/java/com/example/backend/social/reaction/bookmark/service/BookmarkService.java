@@ -1,7 +1,5 @@
 package com.example.backend.social.reaction.bookmark.service;
 
-import java.time.LocalDateTime;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +52,6 @@ public class BookmarkService {
 		BookmarkEntity bookmark = BookmarkEntity.builder()
 				.member(member)
 				.post(post)
-				.createDate(LocalDateTime.now())
 				.build();
 
 		bookmarkRepository.save(bookmark);
