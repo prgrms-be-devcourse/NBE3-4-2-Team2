@@ -3,6 +3,8 @@ package com.example.backend.social.feed.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.backend.social.feed.Feed;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,4 +29,18 @@ public class FeedResponse {
 
 	// 헤시태그 정보
 	private List<String> hashTagList;
+
+	public static FeedResponse toResponse(Feed feed) {
+		return FeedResponse.builder()
+			.authorId(feed.getAuthor().getId())
+			.authorName(feed.getAuthor().getUsername())
+			.imgUrlList(feed.getImageUrlList())
+			.postId(feed.getPost().getId())
+			.content(feed.getPost().getContent())
+			.likesCount(feed.getLikeCount())
+			.commentCount(feed.getCommentCount())
+			.createdDate(feed.getPost().getCreateDate())
+			.hashTagList(feed.getHashTagList())
+			.build();
+	}
 }
