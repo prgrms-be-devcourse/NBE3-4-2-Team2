@@ -1,7 +1,5 @@
 package com.example.backend.content.post.exception;
 
-import org.springframework.http.HttpStatus;
-
 import lombok.Getter;
 
 /**
@@ -26,9 +24,5 @@ public class PostException extends RuntimeException {
 
 	public String getErrorCode() {
 		return postErrorCode.getCode();
-	}
-
-	public HttpStatus getHttpStatus() {
-		return postErrorCode.getHttpStatus();
 	}
 }
