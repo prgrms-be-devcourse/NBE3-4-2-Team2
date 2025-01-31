@@ -2,7 +2,6 @@ package com.example.backend.social.feed;
 
 import java.util.List;
 
-import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.PostEntity;
 
 import lombok.Data;
@@ -15,7 +14,6 @@ import lombok.Data;
  */
 @Data
 public class Feed {
-	private MemberEntity author;
 	private PostEntity post;
 	private List<String> hashTagList;
 	private List<String> imageUrlList;

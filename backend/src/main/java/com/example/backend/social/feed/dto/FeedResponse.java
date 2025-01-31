@@ -32,8 +32,8 @@ public class FeedResponse {
 
 	public static FeedResponse toResponse(Feed feed) {
 		return FeedResponse.builder()
-			.authorId(feed.getAuthor().getId())
-			.authorName(feed.getAuthor().getUsername())
+			.authorId(feed.getPost().getMember().getId())
+			.authorName(feed.getPost().getMember().getUsername())
 			.imgUrlList(feed.getImageUrlList())
 			.postId(feed.getPost().getId())
 			.content(feed.getPost().getContent())
