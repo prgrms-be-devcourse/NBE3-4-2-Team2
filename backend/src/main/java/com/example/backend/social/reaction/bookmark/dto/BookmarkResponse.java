@@ -31,7 +31,7 @@ public class BookmarkResponse {
 	 * @param bookmark (변환할 BookmarkEntity 객체)
 	 * @return BookmarkResponse
 	 */
-	public static BookmarkResponse fromEntity(BookmarkEntity bookmark) {
+	public static BookmarkResponse toResponse(BookmarkEntity bookmark) {
 		return BookmarkResponse.builder()
 			.id(bookmark.getId())
 			.memberId(bookmark.getMember().getId())
