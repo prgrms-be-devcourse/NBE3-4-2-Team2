@@ -1,14 +1,14 @@
 package com.example.backend.content.post.controller;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.backend.content.post.dto.PostRequest;
-import com.example.backend.content.post.dto.PostResponse;
+import com.example.backend.content.post.dto.PostCreateRequest;
+import com.example.backend.content.post.dto.PostCreateResponse;
 import com.example.backend.content.post.service.PostService;
 
 import jakarta.validation.Valid;
@@ -33,9 +33,9 @@ public class PostController {
 	 * @param request 게시물 생성 요청 객체
 	 * @return 생성된 게시물 정보를 담은 응답 DTO
 	 */
+	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	public ResponseEntity<PostResponse> createPost(@RequestBody @Valid PostRequest request) {
-		PostResponse response = postService.createPost(request);
-		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	public PostCreateResponse createPost(@RequestBody @Valid PostCreateRequest request) {
+		return postService.createPost(request);
 	}
 }

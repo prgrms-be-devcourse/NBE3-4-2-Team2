@@ -1,11 +1,11 @@
 package com.example.backend.content.post.service;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend.content.post.dto.PostRequest;
-import com.example.backend.content.post.dto.PostResponse;
-import com.example.backend.content.post.exception.PostErrorCode;
+import com.example.backend.content.post.dto.PostCreateRequest;
+import com.example.backend.content.post.dto.PostCreateResponse;
 import com.example.backend.content.post.exception.PostException;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
@@ -32,18 +32,18 @@ public class PostService {
 	 *
 	 * @param request 게시물 생성 요청 객체
 	 * @return PostCreateResponse 객체
-	 * @throws IllegalArgumentException 존재하지 않는 회원일 경우 예외 발생
+	 * @throws PostException 존재하지 않는 회원일 경우 예외 발생
 	 */
 	@Transactional
-	public PostResponse createPost(PostRequest request) {
+	public PostCreateResponse createPost(PostCreateRequest request) {
 		MemberEntity memberEntity = memberRepository.findById(request.getMemberId())
-			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
-
+			.orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다."));
+		//MEMBER 클래스 EXCEPTION 으로 변경 예정
 		PostEntity postEntity = request.toEntity(memberEntity);
 
 		PostEntity savedPost = postRepository.save(postEntity);
 
-		return PostResponse.fromEntity(savedPost);
+		return PostCreateResponse.fromEntity(savedPost);
 	}
 
 }
