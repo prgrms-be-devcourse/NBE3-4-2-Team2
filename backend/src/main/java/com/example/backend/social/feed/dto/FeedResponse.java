@@ -23,8 +23,8 @@ public class FeedResponse {
 	private Long postId;
 	private List<String> imgUrlList;
 	private String content;
-	private int likesCount;
-	private int commentCount;
+	private Long likesCount;
+	private Long commentCount;
 	private LocalDateTime createdDate;
 
 	// 헤시태그 정보
