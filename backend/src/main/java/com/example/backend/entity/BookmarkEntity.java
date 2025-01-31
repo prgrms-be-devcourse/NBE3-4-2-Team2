@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
 
-import com.example.backend.social.reaction.bookmark.dto.BookmarkResponse;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -46,22 +44,5 @@ public class BookmarkEntity {
 		this.member = member;
 		this.post = post;
 		this.createDate = now;
-	}
-
-	/**
-	 * 북마크 DTO 변환 메서드
-	 * BookmarkEntity 객체를 BookmarkResponse DTO 변환
-	 *
-	 * @param bookmark (변환할 BookmarkEntity 객체)
-	 *
-	 * @return BookmarkResponse
-	 */
-	public BookmarkResponse from(BookmarkEntity bookmark) {
-		return BookmarkResponse.builder()
-			.id(this.id)
-			.memberId(this.member.getId())
-			.postId(this.post.getId())
-			.createDate(this.createDate)
-			.build();
 	}
 }
