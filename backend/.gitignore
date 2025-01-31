@@ -228,3 +228,7 @@ gradle-app.setting
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/java,gradle,intellij,macos,windows
+
+### Custom ###
+db_dev.mv.db
+db_dev.trace.db
