@@ -5,12 +5,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
+import com.example.backend.content.post.exception.PostErrorCode;
+import com.example.backend.content.post.exception.PostException;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
-import com.example.backend.global.error.GlobalErrorCode;
-import com.example.backend.global.exception.GlobalException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,7 +37,7 @@ public class PostService {
 	@Transactional
 	public PostCreateResponse createPost(PostCreateRequest request) {
 		MemberEntity memberEntity = memberRepository.findById(request.getMemberId())
-			.orElseThrow(() -> new GlobalException(GlobalErrorCode.VALIDATION_FAILED));
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
 		PostEntity postEntity = request.toEntity(memberEntity);
 
