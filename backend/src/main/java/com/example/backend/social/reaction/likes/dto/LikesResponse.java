@@ -31,7 +31,7 @@ public class LikesResponse {
 	 * @param likes (변환할 LikesEntity 객체)
 	 * @return LikesResponse
 	 */
-	public static LikesResponse fromEntity(LikesEntity likes) {
+	public static LikesResponse toResponse(LikesEntity likes) {
 		return LikesResponse.builder()
 			.id(likes.getId())
 			.memberId(likes.getMember().getId())
