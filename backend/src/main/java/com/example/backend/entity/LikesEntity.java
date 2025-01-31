@@ -22,7 +22,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @Table(name = "likes")
 public class LikesEntity {
 	@Id
@@ -40,6 +39,7 @@ public class LikesEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	MemberEntity member;
 
+	@Builder
 	public LikesEntity(MemberEntity member, PostEntity post) {
 		this.member = member;
 		this.post = post;

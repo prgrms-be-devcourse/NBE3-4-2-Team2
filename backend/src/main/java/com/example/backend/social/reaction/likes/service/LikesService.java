@@ -1,7 +1,5 @@
 package com.example.backend.social.reaction.likes.service;
 
-import java.time.LocalDateTime;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +40,7 @@ public class LikesService {
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new LikesException(LikesErrorCode.POST_NOT_FOUND));
 
-		LikesEntity like = new LikesEntity(member, post, LocalDateTime.now());
+		LikesEntity like = new LikesEntity(member, post);
 		return likesRepository.save(like);
 	}
 
