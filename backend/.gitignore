@@ -227,6 +227,10 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
+### Custon ###
+db_dev.mv.db
+db_dev.trace.db
+
 # End of https://www.toptal.com/developers/gitignore/api/java,gradle,intellij,macos,windows
 
 ### Custom ###
