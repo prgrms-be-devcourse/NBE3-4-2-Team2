@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -23,7 +22,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @Table(name = "bookmark")
 public class BookmarkEntity {
 	@Id
@@ -40,4 +38,11 @@ public class BookmarkEntity {
 	@JoinColumn(nullable = false, name = "member_id")
 	@ManyToOne(fetch = FetchType.LAZY)
 	MemberEntity member;
+
+	@Builder
+	public BookmarkEntity(MemberEntity member, PostEntity post) {
+		this.member = member;
+		this.post = post;
+		this.createDate = LocalDateTime.now();
+	}
 }
