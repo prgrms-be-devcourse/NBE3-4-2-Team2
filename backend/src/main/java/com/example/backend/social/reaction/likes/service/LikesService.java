@@ -49,6 +49,10 @@ public class LikesService {
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new LikesException(LikesErrorCode.POST_NOT_FOUND));
 
+		if (likesRepository.findByMemberIdAndPostId(memberId, postId).isPresent()) {
+			throw new LikesException(LikesErrorCode.ALREADY_LIKE);
+		}
+
 		LikesEntity like = LikesEntity.builder()
 			.member(member)
 			.post(post)
