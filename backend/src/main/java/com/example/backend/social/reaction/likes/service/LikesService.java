@@ -75,6 +75,6 @@ public class LikesService {
 		LikesEntity like = likesRepository.findByMemberIdAndPostId(memberId, postId)
 				.orElseThrow(() -> new LikesException(LikesErrorCode.LIKE_NOT_FOUND));
 
-		likesRepository.deleteByMemberIdAndPostId(memberId, postId);
+		likesRepository.delete(like);
 	}
 }
