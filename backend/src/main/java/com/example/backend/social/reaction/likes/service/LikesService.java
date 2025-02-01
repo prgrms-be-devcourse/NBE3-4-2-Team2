@@ -71,10 +71,12 @@ public class LikesService {
 	 * @param postId
 	 */
 	@Transactional
-	public void deleteLike(Long memberId, Long postId) {
+	public LikesResponse deleteLike(Long memberId, Long postId) {
 		LikesEntity like = likesRepository.findByMemberIdAndPostId(memberId, postId)
 				.orElseThrow(() -> new LikesException(LikesErrorCode.LIKE_NOT_FOUND));
 
 		likesRepository.delete(like);
+
+		return LikesResponse.toResponse(like);
 	}
 }
