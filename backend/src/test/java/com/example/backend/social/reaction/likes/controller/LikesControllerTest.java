@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.example.backend.entity.LikesRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
@@ -34,11 +35,18 @@ public class LikesControllerTest {
 	@Autowired
 	private PostRepository postRepository;
 
+	@Autowired
+	private LikesRepository likesRepository;
+
+	private MemberEntity testMember;
+	private PostEntity testPost;
+
 	@BeforeEach
 	public void setup() {
 		// 테스트 전에 데이터 초기화
-		memberRepository.deleteAll();
+		likesRepository.deleteAll();
 		postRepository.deleteAll();
+		memberRepository.deleteAll();
 
 		// 테스트용 멤버 추가 (id는 설정하지 않음)
 		MemberEntity member = MemberEntity.builder()
@@ -46,20 +54,20 @@ public class LikesControllerTest {
 			.email("test@gmail.com")
 			.password("testPassword")
 			.build();
-		memberRepository.save(member);
+		testMember = memberRepository.save(member);
 
 		// 테스트용 포스트 추가 (id는 설정하지 않음)
 		PostEntity post = PostEntity.builder()
 			.content("testContent")
 			.member(member)
 			.build();
-		postRepository.save(post);
+		testPost = postRepository.save(post);
 	}
 
 	@Test
 	public void testLikePost() throws Exception {
 
-		LikesRequest likesRequest = new LikesRequest(1L, 1L);
+		LikesRequest likesRequest = new LikesRequest(testMember.getId(), testPost.getId());
 
 		mockMvc.perform(post("/api-v1/likes")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -73,7 +81,16 @@ public class LikesControllerTest {
 
 	@Test
 	public void testUnlikePost() throws Exception {
-		LikesRequest likesRequest = new LikesRequest(1L, 1L);
+		LikesRequest likesRequest = new LikesRequest(testMember.getId(), testPost.getId());
+
+		mockMvc.perform(post("/api-v1/likes")
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(likesRequest)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.isSuccess").value(true))
+			.andExpect(jsonPath("$.message").value("좋아요가 성공적으로 적용되었습니다."))
+			.andExpect(jsonPath("$.data").exists());
 
 		mockMvc.perform(delete("/api-v1/likes")
 				.contentType(MediaType.APPLICATION_JSON)
