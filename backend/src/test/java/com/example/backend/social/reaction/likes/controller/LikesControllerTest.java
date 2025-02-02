@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -65,7 +66,8 @@ public class LikesControllerTest {
 	}
 
 	@Test
-	public void testLikePost() throws Exception {
+	@DisplayName("좋아요 적용 테스트")
+	public void t001() throws Exception {
 
 		LikesRequest likesRequest = new LikesRequest(testMember.getId(), testPost.getId());
 
@@ -80,7 +82,8 @@ public class LikesControllerTest {
 	}
 
 	@Test
-	public void testUnlikePost() throws Exception {
+	@DisplayName("좋아요 취소 테스트")
+	public void t002() throws Exception {
 		LikesRequest likesRequest = new LikesRequest(testMember.getId(), testPost.getId());
 
 		mockMvc.perform(post("/api-v1/likes")
