@@ -12,7 +12,11 @@ import com.example.backend.entity.PostHashtagEntity;
 import com.example.backend.entity.PostHashtagRepository;
 
 import lombok.RequiredArgsConstructor;
-
+/**
+ * hashtag 와 post 의 연결 담당하는 클래스
+ * @author kwak
+ * @since 2025-02-03
+ */
 @Service
 @RequiredArgsConstructor
 public class PostHashtagService {

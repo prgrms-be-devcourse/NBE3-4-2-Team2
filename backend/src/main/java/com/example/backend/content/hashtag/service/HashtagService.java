@@ -13,7 +13,10 @@ import com.example.backend.entity.HashtagEntity;
 import com.example.backend.entity.HashtagRepository;
 
 import lombok.RequiredArgsConstructor;
-
+/**
+ * @author kwak
+ * @since 2025-02-03
+ */
 @Service
 @RequiredArgsConstructor
 public class HashtagService {

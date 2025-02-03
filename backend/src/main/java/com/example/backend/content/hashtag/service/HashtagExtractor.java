@@ -6,7 +6,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
-
+/**
+ * #으로 시작되는 해시태그를 추출할 수 있는 클래스
+ * @author kwak
+ * @since 2025-02-03
+ */
 @Component
 public class HashtagExtractor {
 
