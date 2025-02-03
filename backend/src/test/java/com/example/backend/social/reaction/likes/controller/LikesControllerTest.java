@@ -76,7 +76,7 @@ public class LikesControllerTest {
 				.accept(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(likesRequest)))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.isSuccess").value(true))
+			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.message").value("좋아요가 성공적으로 적용되었습니다."))
 			.andExpect(jsonPath("$.data").exists());
 	}
@@ -91,7 +91,7 @@ public class LikesControllerTest {
 				.accept(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(likesRequest)))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.isSuccess").value(true))
+			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.message").value("좋아요가 성공적으로 적용되었습니다."))
 			.andExpect(jsonPath("$.data").exists());
 
@@ -99,7 +99,7 @@ public class LikesControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(likesRequest)))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.isSuccess").value(true))
+			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.message").value("좋아요가 성공적으로 취소되었습니다."))
 			.andExpect(jsonPath("$.data").exists());
 	}
@@ -114,7 +114,7 @@ public class LikesControllerTest {
 				.accept(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(likesRequest)))
 			.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.isSuccess").value(false))
+			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value("멤버 정보를 찾을 수 없습니다."))
 			.andExpect(jsonPath("$.data").isEmpty());
 	}
@@ -129,7 +129,7 @@ public class LikesControllerTest {
 				.accept(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(likesRequest)))
 			.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.isSuccess").value(false))
+			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value("게시물 정보를 찾을 수 없습니다."))
 			.andExpect(jsonPath("$.data").isEmpty());
 	}
@@ -144,14 +144,14 @@ public class LikesControllerTest {
 				.accept(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(likesRequest)))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.isSuccess").value(true));
+			.andExpect(jsonPath("$.success").value(true));
 
 		mockMvc.perform(post("/api-v1/likes")
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(likesRequest)))
 			.andExpect(status().isConflict())
-			.andExpect(jsonPath("$.isSuccess").value(false))
+			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value("이미 좋아요를 눌렀습니다."))
 			.andExpect(jsonPath("$.data").isEmpty());
 	}
@@ -166,7 +166,7 @@ public class LikesControllerTest {
 				.accept(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(likesRequest)))
 			.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.isSuccess").value(false))
+			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value("좋아요 정보를 찾을 수 없습니다."))
 			.andExpect(jsonPath("$.data").isEmpty());
 	}

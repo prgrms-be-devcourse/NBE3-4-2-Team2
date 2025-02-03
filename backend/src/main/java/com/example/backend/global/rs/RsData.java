@@ -2,8 +2,6 @@ package com.example.backend.global.rs;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +18,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class RsData<T> {
 	private final LocalDateTime time;
-	@JsonProperty("isSuccess")
 	private final boolean isSuccess;
 	private final String message;
 	private final T data;
