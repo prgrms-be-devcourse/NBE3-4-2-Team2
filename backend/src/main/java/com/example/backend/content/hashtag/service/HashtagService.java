@@ -1,10 +1,5 @@
 package com.example.backend.content.hashtag.service;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.springframework.stereotype.Service;
 
 import com.example.backend.content.hashtag.exception.HashtagErrorCode;
@@ -22,14 +17,17 @@ import lombok.RequiredArgsConstructor;
 public class HashtagService {
 
 	private final HashtagRepository hashtagRepository;
+	private final HashtagUsageCollector collector;
 
 	public HashtagEntity createIfNotExists(String content) {
-		return hashtagRepository.findByContent(content)
+		HashtagEntity hashtag = hashtagRepository.findByContent(content)
 			.orElseGet(() -> hashtagRepository.save(
 				HashtagEntity.builder()
 					.content(content)
 					.build()
 			));
+		collector.addUsageStorage(hashtag.getId());
+		return hashtag;
 	}
 
 	public HashtagEntity findByContent(String content) {
