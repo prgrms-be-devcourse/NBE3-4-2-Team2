@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
+
 @Table(name = "hashtag")
 public class HashtagEntity {
 
@@ -34,6 +34,7 @@ public class HashtagEntity {
 	@Column(unique = true, nullable = false)
 	private String content;
 
+	@Builder
 	public HashtagEntity(String content) {
 		validateContent(content);
 		this.content = content;
