@@ -18,7 +18,7 @@ public class FeedConstants {
 	 *  FOLLOWING_FEED_RATE
 	 *  요청 게시물에서 팔로잉 게시물의 비율
 	 */
-	public static final float FOLLOWING_FEED_RATE = 0.7f;
+	public static final float FOLLOWING_FEED_RATE = 0.5f;
 
 	/**
 	 *  RECOMMEND_FEED_RATE
@@ -30,5 +30,11 @@ public class FeedConstants {
 	 * RECOMMEND_SEARCH_DATE_RANGE
 	 * 추천 게시물만 내보내는 경우 탐색 범위로 지정하는 날짜 범위 (일 단위)
 	 */
-	public static final long RECOMMEND_SEARCH_DATE_RANGE = 7;
+	public static final long RECOMMEND_SEARCH_DATE_RANGE = 1;
+
+	/**
+	 * FAVORITE_HASHTAG_COUNT
+	 * 인기 해시태그를 선정하는 개수
+	 */
+	public static final long FAVORITE_HASHTAG_COUNT = 10;
 }
