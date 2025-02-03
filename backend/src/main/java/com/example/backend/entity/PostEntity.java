@@ -48,9 +48,10 @@ public class PostEntity extends BaseEntity {
 	 * @param content 변경할 게시물 내용
 	 */
 	@Column(nullable = false)
-	private Boolean postStatus = true; // true : 활성, false : 삭제
+	private Boolean isDeleted = false; // true : 삭제, false : 활성
 
 	public void deleteContent() {
-		this.postStatus = false;
+		this.isDeleted = true;
 	}
+
 }

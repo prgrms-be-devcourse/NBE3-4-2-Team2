@@ -66,7 +66,7 @@ public class PostService {
 
 	@Transactional
 	public PostDeleteResponse deletePost(Long postId, Long memberId) {
-		PostEntity postEntity = postRepository.findByIdAndPostStatusIsTrue(postId)
+		PostEntity postEntity = postRepository.findByIdAndIsDeletedFalse(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
 		if (!postEntity.getMember().getId().equals(memberId)) {

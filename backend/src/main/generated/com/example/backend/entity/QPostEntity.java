@@ -14,7 +14,8 @@ import com.querydsl.core.types.dsl.PathInits;
  * QPostEntity is a Querydsl query type for PostEntity
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QPostEntity extends EntityPathBase<PostEntity> {
+public class
+QPostEntity extends EntityPathBase<PostEntity> {
 
     private static final long serialVersionUID = -1822505437L;
 
@@ -32,12 +33,12 @@ public class QPostEntity extends EntityPathBase<PostEntity> {
     //inherited
     public final NumberPath<Long> id = _super.id;
 
+    public final BooleanPath isDeleted = createBoolean("isDeleted");
+
     public final QMemberEntity member;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifyDate = _super.modifyDate;
-
-    public final BooleanPath postStatus = createBoolean("postStatus");
 
     public QPostEntity(String variable) {
         this(PostEntity.class, forVariable(variable), INITS);
