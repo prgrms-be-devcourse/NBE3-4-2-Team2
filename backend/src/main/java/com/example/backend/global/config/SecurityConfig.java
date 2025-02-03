@@ -73,37 +73,37 @@ public class SecurityConfig {
 			.cors(
 				cors->corsConfigurationSource()
 			)
-			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-			.exceptionHandling(
-				exceptionHandling -> exceptionHandling
-					.authenticationEntryPoint(
-						(request, response, authException) -> {
-							response.setContentType("application/json;charset=UTF-8");
-
-							response.setStatus(401);
-							response.getWriter().write(
-								Ut.json.toString(
-									// new RsData("401-1", "사용자 인증정보가 올바르지 않습니다.")
-									RsData.error(
-										"사용자 인증정보가 올바르지 않습니다.")
-								)
-							);
-						}
-					)
-					.accessDeniedHandler(
-						(request, response, accessDeniedException) -> {
-							response.setContentType("application/json;charset=UTF-8");
-
-							response.setStatus(403);
-							response.getWriter().write(
-								Ut.json.toString(
-									// new RsData("403-1", "권한이 없습니다.")
-									RsData.error(null, "권한이 없습니다.")
-								)
-							);
-						}
-					)
-			);
+			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+			// .exceptionHandling(
+			// 	exceptionHandling -> exceptionHandling
+			// 		.authenticationEntryPoint(
+			// 			(request, response, authException) -> {
+			// 				response.setContentType("application/json;charset=UTF-8");
+			//
+			// 				response.setStatus(401);
+			// 				response.getWriter().write(
+			// 					Ut.json.toString(
+			// 						// new RsData("401-1", "사용자 인증정보가 올바르지 않습니다.")
+			// 						RsData.error(
+			// 							"사용자 인증정보가 올바르지 않습니다.")
+			// 					)
+			// 				);
+			// 			}
+			// 		)
+			// 		.accessDeniedHandler(
+			// 			(request, response, accessDeniedException) -> {
+			// 				response.setContentType("application/json;charset=UTF-8");
+			//
+			// 				response.setStatus(403);
+			// 				response.getWriter().write(
+			// 					Ut.json.toString(
+			// 						// new RsData("403-1", "권한이 없습니다.")
+			// 						RsData.error(null, "권한이 없습니다.")
+			// 					)
+			// 				);
+			// 			}
+			// 		)
+			// );
 
 		return http.build();
 	}
