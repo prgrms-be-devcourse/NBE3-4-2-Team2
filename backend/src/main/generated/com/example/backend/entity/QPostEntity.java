@@ -14,8 +14,7 @@ import com.querydsl.core.types.dsl.PathInits;
  * QPostEntity is a Querydsl query type for PostEntity
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class
-QPostEntity extends EntityPathBase<PostEntity> {
+public class QPostEntity extends EntityPathBase<PostEntity> {
 
     private static final long serialVersionUID = -1822505437L;
 
