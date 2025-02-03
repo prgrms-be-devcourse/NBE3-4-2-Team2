@@ -12,7 +12,7 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class FeedListResponse {
-	private List<FeedResponse> feeds;
+	private List<FeedInfoResponse> feedList;
 	private LocalDateTime lastTimestamp;    // 마지막 피드의 timestamp
 	private Long lastPostId;                // 마지막 피드의 id
 }

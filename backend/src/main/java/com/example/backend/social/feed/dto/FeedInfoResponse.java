@@ -13,7 +13,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class FeedResponse {
+public class FeedInfoResponse {
 
 	// 작성자 정보
 	private Long authorId;
@@ -30,8 +30,8 @@ public class FeedResponse {
 	// 헤시태그 정보
 	private List<String> hashTagList;
 
-	public static FeedResponse toResponse(Feed feed) {
-		return FeedResponse.builder()
+	public static FeedInfoResponse toResponse(Feed feed) {
+		return FeedInfoResponse.builder()
 			.authorId(feed.getPost().getMember().getId())
 			.authorName(feed.getPost().getMember().getUsername())
 			.imgUrlList(feed.getImageUrlList())
