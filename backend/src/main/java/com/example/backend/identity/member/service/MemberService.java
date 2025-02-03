@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
-import com.example.backend.global.error.GlobalErrorCode;
 import com.example.backend.global.exception.GlobalException;
+import com.example.backend.identity.member.exception.MemberErrorCode;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,7 +28,7 @@ public class MemberService {
 			.findByUsername(username)
 			.ifPresent(member -> {
 				throw new GlobalException(
-					GlobalErrorCode.CONFLICT_RESOURCE,
+					MemberErrorCode.CONFLICT_RESOURCE,
 					"해당 username은 이미 사용중입니다."
 				);
 			});
@@ -36,7 +36,7 @@ public class MemberService {
 			.findByEmail(email)
 			.ifPresent(member -> {
 				throw new GlobalException(
-					GlobalErrorCode.CONFLICT_RESOURCE,
+					MemberErrorCode.CONFLICT_RESOURCE,
 					"해당 email은 이미 사용중입니다."
 				);
 			});
