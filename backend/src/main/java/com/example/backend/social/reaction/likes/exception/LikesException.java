@@ -20,8 +20,4 @@ public class LikesException extends RuntimeException {
 	public HttpStatus getStatus() {
 		return likesErrorCode.httpStatus;
 	}
-
-	public String getCode() {
-		return likesErrorCode.getCode();
-	}
 }

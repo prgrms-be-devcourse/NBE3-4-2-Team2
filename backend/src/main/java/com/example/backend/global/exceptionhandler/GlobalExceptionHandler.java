@@ -15,8 +15,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.example.backend.global.error.GlobalErrorCode;
 import com.example.backend.global.exception.GlobalException;
-import com.example.backend.global.rs.RsData;
 import com.example.backend.global.rs.ErrorRs;
+import com.example.backend.global.rs.RsData;
+import com.example.backend.social.reaction.likes.exception.LikesException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
@@ -106,5 +107,13 @@ public class GlobalExceptionHandler {
 				.code(ex.getErrorCodeIfs().getCode())
 				.message(ex.getErrorDescription())
 				.build()));
+	}
+
+	@ExceptionHandler(LikesException.class)
+	public ResponseEntity<RsData<?>> handleLikesException(LikesException ex) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getStatus())
+			.body(response);
 	}
 }

@@ -2,9 +2,8 @@ package com.example.backend.global.rs;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,12 +13,13 @@ import lombok.Getter;
  * 정상 응답 케이스 success
  * 에러 케이스 error
  */
+
 @Getter
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@AllArgsConstructor
 public class RsData<T> {
 	private final LocalDateTime time;
-	private boolean isSuccess;
-	private String message;
+	private final boolean isSuccess;
+	private final String message;
 	private final T data;
 
 	@Builder(access = AccessLevel.PRIVATE)
