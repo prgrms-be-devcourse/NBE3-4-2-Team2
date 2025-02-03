@@ -1,5 +1,8 @@
 package com.example.backend.content.hashtag.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.example.backend.content.hashtag.exception.HashtagErrorCode;
@@ -8,6 +11,7 @@ import com.example.backend.entity.HashtagEntity;
 import com.example.backend.entity.HashtagRepository;
 
 import lombok.RequiredArgsConstructor;
+
 /**
  * @author kwak
  * @since 2025-02-03
@@ -35,4 +39,11 @@ public class HashtagService {
 			.orElseThrow(() -> new HashtagException(HashtagErrorCode.NOT_FOUND));
 	}
 
+	public void deleteOldHashtag(List<Long> oldHashtagIds) {
+		hashtagRepository.bulkDeleteByIds(oldHashtagIds);
+	}
+
+	public List<Long> findOldHashtags() {
+		return hashtagRepository.findOldHashtags(LocalDateTime.now().minusMonths(3));
+	}
 }
