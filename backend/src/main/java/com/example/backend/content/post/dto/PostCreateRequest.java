@@ -34,6 +34,7 @@ public class PostCreateRequest {
 		return PostEntity.builder()
 			.content(content)
 			.member(memberEntity)
+			.isDeleted(false)
 			.build();
 	}
 }

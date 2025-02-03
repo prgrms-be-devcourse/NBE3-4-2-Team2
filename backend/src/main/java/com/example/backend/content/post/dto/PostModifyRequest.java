@@ -27,4 +27,10 @@ public class PostModifyRequest {
 
 	@NotNull
 	private Long memberId;
+
+	// 추가된 생성자
+	public PostModifyRequest(Long postId, String content) {
+		this.postId = postId;
+		this.content = content;
+	}
 }
