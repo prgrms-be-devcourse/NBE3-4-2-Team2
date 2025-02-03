@@ -40,5 +40,7 @@ public class PostHashtagService {
 		return postHashtagRepository.saveAll(postHashtags);
 
 	}
+	//todo posthashtag delete 로직
+
 
 }
