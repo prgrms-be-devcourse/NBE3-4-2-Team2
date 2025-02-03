@@ -1,5 +1,6 @@
 package com.example.backend.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -38,5 +39,18 @@ public class PostEntity extends BaseEntity {
 	 */
 	public void modifyContent(@NotNull String content) {
 		this.content = content;
+	}
+
+	/**
+	 * 게시물 내용 삭제 메소드
+	 * Soft Delete를 위해 삭제 여부를 변경하는 메소드 추가
+	 *
+	 * @param content 변경할 게시물 내용
+	 */
+	@Column(nullable = false)
+	private Boolean postStatus = true; // true : 활성, false : 삭제
+
+	public void deleteContent() {
+		this.postStatus = false;
 	}
 }

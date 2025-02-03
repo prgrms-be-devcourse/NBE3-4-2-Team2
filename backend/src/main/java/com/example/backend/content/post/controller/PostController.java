@@ -3,17 +3,22 @@ package com.example.backend.content.post.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
+import com.example.backend.content.post.dto.PostDeleteResponse;
 import com.example.backend.content.post.dto.PostModifyRequest;
 import com.example.backend.content.post.dto.PostModifyResponse;
+import com.example.backend.content.post.exception.PostException;
 import com.example.backend.content.post.service.PostService;
 
 import jakarta.validation.Valid;
@@ -48,6 +53,13 @@ public class PostController {
 		}
 	}
 
+	/**
+	 * 게시물 수정 메서드
+	 *
+	 * @param postId 수정할 게시물의 ID
+	 * @param request 게시물 수정 요청 객체
+	 * @return 수정된 게시물 정보를 담은 응답 DTO
+	 */
 	@PutMapping("/modify/{postId}")
 	public ResponseEntity<PostModifyResponse> modifyPost(
 		@PathVariable Long postId,
@@ -56,4 +68,32 @@ public class PostController {
 		PostModifyResponse response = postService.modifyPost(postId, request);
 		return ResponseEntity.ok(response);
 	}
+
+	/**
+	 * 게시물 삭제 메서드
+	 *
+	 * @param postId 삭제할 게시물의 ID
+	 * @return 게시물 삭제 여부 정보를 담은 응답 DTO
+	 */
+	@DeleteMapping("/delete/{postId}")
+	public ResponseEntity<PostDeleteResponse> deletePost(
+		@PathVariable Long postId,
+		@RequestParam Long memberId
+	) {
+		PostDeleteResponse response = postService.deletePost(postId, memberId);
+		return ResponseEntity.ok(response);
+	}
+
+	/**
+	 * PostException 예외 처리 (현재는 post 디렉토리 내부의 예외만 처리)
+	 *
+	 * @param ex 발생한 PostException
+	 * @return 에러 메시지를 포함한 ResponseEntity
+	 */
+	@ExceptionHandler(PostException.class)
+	public ResponseEntity<String> handlePostException(PostException ex) {
+		return ResponseEntity.status(ex.getHttpStatus())
+			.body(ex.getMessage());
+	}
+
 }
