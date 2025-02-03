@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.social.feed.Feed;
+import com.example.backend.social.feed.schedular.FeedScheduler;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -39,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 public class FeedSelector {
 
 	private final JPAQueryFactory queryFactory;
+	private final FeedScheduler scheduler;
 
 	/***
 	 * 팔로워가 팔로우중인 Member 들의 게시물을 얻는다.
@@ -91,9 +93,12 @@ public class FeedSelector {
 				Expressions.numberTemplate(Double.class,
 						"(select count(*) * 3 from LikesEntity l where l.post.id = {0}) + "
 							+ "(select count(*) * 2 from FollowEntity f where f.receiver.id = {1}) + "
-							+ "(select count(*) from CommentEntity c where c.post.id = {0})",
+							+ "(select count(*) from CommentEntity c where c.post.id = {0}) + "
+							+ "(select case when count(*) > 0 then 3 else 0 end "
+							+ "from PostHashtagEntity ph where ph.post.id = {0} and ph.hashtag.id in ({2}))",
 						postEntity.id,
-						postEntity.member.id)
+						postEntity.member.id,
+						scheduler.getFavoriteHashtagList())
 					.desc())
 			.limit(limit * RECOMMEND_RANDOM_POOL_MULTIPLIER)
 			.fetch();
