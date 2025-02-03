@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 
-import com.example.backend.global.exception.GlobalException;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.exception.FeedErrorCode;
+import com.example.backend.social.feed.exception.FeedException;
 
 /***
  * FeedValidator
@@ -26,17 +26,17 @@ public class FeedValidator {
 		// 1. 요청 시간 ( RequestTime )
 		// - 요청시간이 현재 시간보다 큰 경우
 		LocalDateTime requestTime = request.getTimestamp();
-		if (requestTime.isAfter(LocalDateTime.now())) {
-			throw new GlobalException(FeedErrorCode.WRONG_TIMESTAMP_REQUEST);
+		if (requestTime == null || requestTime.isAfter(LocalDateTime.now())) {
+			throw new FeedException(FeedErrorCode.WRONG_TIMESTAMP_REQUEST);
 		}
 
 		// 2. 요청 최대 개수
 		// - 0개 이하의 개수를 요청하는 경우
 		// - 20개 초과의 개수를 요청하는 경우
 		Integer maxSize = request.getMaxSize();
-		if (maxSize <= 0 || maxSize > 20) {
-			throw new GlobalException(FeedErrorCode.WRONG_MAXSIZE_REQUEST);
+		if (maxSize == null || maxSize <= 0 || maxSize > 20) {
+			throw new FeedException(FeedErrorCode.WRONG_MAXSIZE_REQUEST);
 		}
-		
+
 	}
 }
