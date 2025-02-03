@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
+import com.example.backend.content.post.dto.PostDeleteResponse;
 import com.example.backend.content.post.dto.PostModifyRequest;
 import com.example.backend.content.post.dto.PostModifyResponse;
 import com.example.backend.content.post.exception.PostErrorCode;
@@ -61,6 +62,20 @@ public class PostService {
 		postEntity.modifyContent(request.getContent());
 
 		return PostModifyResponse.fromEntity(postEntity);
+	}
+
+	@Transactional
+	public PostDeleteResponse deletePost(Long postId, Long memberId) {
+		PostEntity postEntity = postRepository.findByIdAndPostStatusIsTrue(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
+
+		if (!postEntity.getMember().getId().equals(memberId)) {
+			throw new PostException(PostErrorCode.POST_DELETE_FORBIDDEN);
+		}
+
+		postEntity.deleteContent();
+
+		return PostDeleteResponse.fromEntity(postId);
 	}
 
 }

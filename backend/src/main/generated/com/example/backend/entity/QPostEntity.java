@@ -37,6 +37,8 @@ public class QPostEntity extends EntityPathBase<PostEntity> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifyDate = _super.modifyDate;
 
+    public final BooleanPath postStatus = createBoolean("postStatus");
+
     public QPostEntity(String variable) {
         this(PostEntity.class, forVariable(variable), INITS);
     }
