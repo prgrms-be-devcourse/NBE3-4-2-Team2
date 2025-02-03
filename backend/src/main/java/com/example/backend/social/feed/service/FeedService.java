@@ -12,13 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.social.feed.Feed;
+import com.example.backend.social.feed.dto.FeedInfoResponse;
+import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedRequest;
-import com.example.backend.social.feed.dto.FeedResponse;
 import com.example.backend.social.feed.exception.FeedSampleException;
 import com.example.backend.social.feed.implement.FeedSelector;
 import com.example.backend.social.feed.implement.FeedValidator;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /***
  * FeedService
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
  * @author ChoiHyunSan
  * @since 2025-01-31
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FeedService {
@@ -41,7 +44,7 @@ public class FeedService {
 	 * @return Feed 객체를 클라이언트 요청 정보를 Response 형태로 매핑한 리스트
 	 */
 	@Transactional(readOnly = true)
-	public List<FeedResponse> findList(FeedRequest request, Long userId) {
+	public FeedListResponse findList(FeedRequest request, Long userId) {
 
 		feedValidator.validateRequest(request);
 
@@ -61,6 +64,10 @@ public class FeedService {
 			? request.getTimestamp().plusDays(RECOMMEND_SEARCH_DATE_RANGE)
 			: feedList.getLast().getPost().getCreateDate();
 
+		Long lastPostId = feedList.isEmpty()
+			? request.getLastPostId()
+			: feedList.getLast().getPost().getId();
+
 		// 2. 추천 게시물 피드 검색
 		// - 팔로잉 게시물의 개수에 따라 추천 게시물 요청 개수를 조정
 		//   ( 요청 개수의 30% ) + ( 팔로우 게시물 요청 개수 - 실제 검색된 게시글 개수 )
@@ -73,10 +80,16 @@ public class FeedService {
 		// 3. 조회한 게시글 취합해서 Response 로 반환
 		feedList.addAll(recommendFeedList);
 
-		// 4. 게시물들을 CreateDate 순서로 재정렬하여 반환
-		return feedList.stream()
+		// 4. 게시물들을 CreateDate 순서로 재정렬
+		List<FeedInfoResponse> feedDtoList = feedList.stream()
 			.sorted(Comparator.comparing(feed -> feed.getPost().getCreateDate()))
-			.map(FeedResponse::toResponse)
+			.map(FeedInfoResponse::toResponse)
 			.toList();
+
+		return FeedListResponse.builder()
+			.feedList(feedDtoList)
+			.lastPostId(lastPostId)
+			.lastTimestamp(lastTime)
+			.build();
 	}
 }
