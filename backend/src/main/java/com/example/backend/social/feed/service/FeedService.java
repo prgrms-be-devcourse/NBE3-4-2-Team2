@@ -1,5 +1,7 @@
 package com.example.backend.social.feed.service;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -49,18 +51,28 @@ public class FeedService {
 		// 1. 팔로잉 중인 유저들의 피드 검색
 		// - 요청된 최대 개수의 70% 를 우선적으로 검색
 		int followingCount = request.getMaxSize() * 100 / 70;
-		List<Feed> feedList = feedFinder.findByFollower(member, request.getTimestamp(), followingCount);
+		List<Feed> feedList = feedFinder.findByFollower(member, request.getTimestamp(), request.getLastPostId(),
+			followingCount);
+
+		// 기본적으로 팔로잉 게시물과 시간대를 맞추지만, 더 이상 팔로잉 게시물이 없다면 그 이후로 일정 기간을 잡는다.
+		LocalDateTime lastTime = feedList.isEmpty()
+			? request.getTimestamp().plusDays(7) : feedList.getLast().getPost().getCreateDate();
 
 		// 2. 추천 게시물 피드 검색
 		// - 팔로잉 게시물의 개수에 따라 추천 게시물 요청 개수를 조정
 		//   ( 요청 개수의 30% ) + ( 팔로우 게시물 요청 개수 - 실제 검색된 게시글 개수 )
 		int recommendCount = (request.getMaxSize() * 100 / 30) + (followingCount - feedList.size());
-		List<Feed> recommendFeedList = feedFinder.findRecommendFinder(request.getTimestamp(), recommendCount);
+		List<Feed> recommendFeedList = feedFinder.findRecommendFinder(
+			member,
+			request.getTimestamp(),
+			lastTime, recommendCount);
 
 		// 3. 조회한 게시글 취합해서 Response 로 반환
 		feedList.addAll(recommendFeedList);
 
+		// 4. 게시물들을 CreateDate 순서로 재정렬하여 반환
 		return feedList.stream()
+			.sorted(Comparator.comparing(feed -> feed.getPost().getCreateDate()))
 			.map(FeedResponse::toResponse)
 			.toList();
 	}
