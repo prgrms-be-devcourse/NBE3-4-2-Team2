@@ -67,10 +67,12 @@ public class BookmarkService {
 	 * @param postId
 	 */
 	@Transactional
-	public void deleteBookmark(Long memberId, Long postId) {
+	public BookmarkResponse deleteBookmark(Long memberId, Long postId) {
 		BookmarkEntity bookmark = bookmarkRepository.findByMemberIdAndPostId(memberId, postId)
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.BOOKMARK_NOT_FOUND));
 
-		bookmarkRepository.deleteByMemberIdAndPostId(memberId, postId);
+		bookmarkRepository.delete(bookmark);
+
+		return BookmarkResponse.toResponse(bookmark);
 	}
 }
