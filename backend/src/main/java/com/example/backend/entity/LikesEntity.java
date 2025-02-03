@@ -33,11 +33,11 @@ public class LikesEntity {
 
 	@JoinColumn(nullable = false, name = "post_id")
 	@ManyToOne(fetch = FetchType.LAZY)
-	PostEntity post;
+	private PostEntity post;
 
 	@JoinColumn(nullable = false, name = "member_id")
 	@ManyToOne(fetch = FetchType.LAZY)
-	MemberEntity member;
+	private MemberEntity member;
 
 	@Builder
 	public LikesEntity(MemberEntity member, PostEntity post) {

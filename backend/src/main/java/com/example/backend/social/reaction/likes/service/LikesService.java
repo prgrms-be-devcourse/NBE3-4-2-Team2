@@ -49,6 +49,10 @@ public class LikesService {
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new LikesException(LikesErrorCode.POST_NOT_FOUND));
 
+		if (likesRepository.findByMemberIdAndPostId(memberId, postId).isPresent()) {
+			throw new LikesException(LikesErrorCode.ALREADY_LIKED);
+		}
+
 		LikesEntity like = LikesEntity.builder()
 			.member(member)
 			.post(post)
@@ -67,10 +71,12 @@ public class LikesService {
 	 * @param postId
 	 */
 	@Transactional
-	public void deleteLike(Long memberId, Long postId) {
+	public LikesResponse deleteLike(Long memberId, Long postId) {
 		LikesEntity like = likesRepository.findByMemberIdAndPostId(memberId, postId)
 				.orElseThrow(() -> new LikesException(LikesErrorCode.LIKE_NOT_FOUND));
 
-		likesRepository.deleteByMemberIdAndPostId(memberId, postId);
+		likesRepository.delete(like);
+
+		return LikesResponse.toResponse(like);
 	}
 }
