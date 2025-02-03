@@ -8,8 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 게시물 관련 DTO
- * 게시물 관련 발생하는 응답 관련 DTO
+ * 게시물 생성 관련 DTO
+ * 게시물 생성에서 발생하는 응답 관련 DTO
  *
  * @author joonaeng
  * @since 2025-01-31

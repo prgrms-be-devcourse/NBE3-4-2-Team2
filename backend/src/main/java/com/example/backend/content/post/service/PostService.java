@@ -6,6 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
+import com.example.backend.content.post.dto.PostModifyRequest;
+import com.example.backend.content.post.dto.PostModifyResponse;
+import com.example.backend.content.post.exception.PostErrorCode;
 import com.example.backend.content.post.exception.PostException;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
@@ -44,6 +47,20 @@ public class PostService {
 		PostEntity savedPost = postRepository.save(postEntity);
 
 		return PostCreateResponse.fromEntity(savedPost);
+	}
+
+	@Transactional
+	public PostModifyResponse modifyPost(Long postId, PostModifyRequest request) {
+		PostEntity postEntity = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
+
+		if (!postEntity.getMember().getId().equals(request.getMemberId())) {
+			throw new PostException(PostErrorCode.POST_UPDATE_FORBIDDEN);
+		}
+
+		postEntity.modifyContent(request.getContent());
+
+		return PostModifyResponse.fromEntity(postEntity);
 	}
 
 }
