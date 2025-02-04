@@ -1,6 +1,5 @@
 package com.example.backend.social.feed.implement;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,10 +69,10 @@ public class FeedTestHelper {
 
 		// 2. 해시태그 생성 (20개)
 		List<HashtagEntity> hashtags = Arrays.asList(
-				"#Java", "#Spring", "#Coding", "#Algorithm", "#JPA",
-				"#QueryDSL", "#Database", "#Test", "#SpringBoot", "#WebDev",
-				"#Backend", "#Frontend", "#FullStack", "#Cloud", "#AWS",
-				"#DevOps", "#MSA", "#Security", "#Docker", "#Kubernetes"
+				"Java", "Spring", "Coding", "Algorithm", "JPA",
+				"QueryDSL", "Database", "Test", "SpringBoot", "WebDev",
+				"Backend", "Frontend", "FullStack", "Cloud", "AWS",
+				"DevOps", "MSA", "Security", "Docker", "Kubernetes"
 			).stream()
 			.map(content -> HashtagEntity.builder().content(content).build())
 			.collect(Collectors.toList());
@@ -83,7 +82,7 @@ public class FeedTestHelper {
 		// 3. 팔로우 관계 생성 (user1이 모든 사용자를 팔로우)
 		List<FollowEntity> follows = new ArrayList<>();
 		MemberEntity user1 = members.get(0);
-		for (int i = 1; i < members.size(); i++) {
+		for (int i = 1; i < members.size() / 2; i++) {
 			FollowEntity follow = FollowEntity.builder()
 				.sender(user1)
 				.receiver(members.get(i))
@@ -146,7 +145,7 @@ public class FeedTestHelper {
 		List<LikesEntity> likes = new ArrayList<>();
 		for (PostEntity post : posts) {
 			for (int i = 0; i < 5; i++) {
-				likes.add(new LikesEntity(members.get(i), post, LocalDateTime.now()));
+				likes.add(new LikesEntity(members.get(i), post));
 			}
 		}
 		likesRepository.saveAll(likes);

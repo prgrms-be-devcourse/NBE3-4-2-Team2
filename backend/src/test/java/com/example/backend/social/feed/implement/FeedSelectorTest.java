@@ -44,21 +44,19 @@ class FeedSelectorTest {
 		Assertions.assertTrue(memberOpt.isPresent());
 
 		MemberEntity member = memberOpt.get();
-		log.info("Name : {}, Id : {}", member.getUsername(), member.getId());
 		Assertions.assertNotEquals(0, member.getFollowingList().size());
 
-		List<Feed> byFollower = feedSelector.findByFollower(member, LocalDateTime.now().plusDays(1), 10);
+		List<Feed> byFollower = feedSelector.findByFollower(member, LocalDateTime.now().plusDays(1), null, 10);
 		Assertions.assertNotNull(byFollower);
 		Assertions.assertFalse(byFollower.isEmpty());
 		Assertions.assertEquals(10, byFollower.size());
 
 		Feed latestFeed = byFollower.get(0);
-		log.info("Latest feed: {}", latestFeed.getPost().getMember().getId());
-		Assertions.assertEquals(20L, latestFeed.getPost().getMember().getId());
+		Assertions.assertEquals(10L, latestFeed.getPost().getMember().getId());
 
 		Assertions.assertNotNull(latestFeed);
 		Assertions.assertNotNull(latestFeed.getPost().getId());
-		Assertions.assertEquals(20L, latestFeed.getPost().getMember().getId());
+		Assertions.assertEquals(10L, latestFeed.getPost().getMember().getId());
 		Assertions.assertEquals(3L, latestFeed.getCommentCount());
 		Assertions.assertEquals(5L, latestFeed.getLikeCount());
 
@@ -67,5 +65,12 @@ class FeedSelectorTest {
 
 		Assertions.assertNotNull(latestFeed.getImageUrlList());
 		Assertions.assertEquals(2, latestFeed.getImageUrlList().size());
+	}
+
+	@Test
+	@DisplayName("팔로잉 게시물들은 시간 순으로 정렬되어 반환된다")
+	void t2() {
+		Optional<MemberEntity> memberOpt = memberRepository.findById(1L);
+
 	}
 }
