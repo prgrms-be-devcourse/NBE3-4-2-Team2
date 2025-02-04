@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.HashtagEntity;
@@ -23,6 +24,7 @@ import com.example.backend.entity.PostHashtagRepository;
 import com.example.backend.entity.PostRepository;
 
 @SpringBootTest
+@DirtiesContext
 @Transactional
 class FeedSchedulerTest {
 
@@ -68,6 +70,7 @@ class FeedSchedulerTest {
 	}
 
 	private void clearRepositories() {
+		memberRepository.deleteAll();
 		postRepository.deleteAll();
 		hashtagRepository.deleteAll();
 		postHashtagRepository.deleteAll();

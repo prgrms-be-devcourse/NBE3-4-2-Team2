@@ -1,5 +1,6 @@
 package com.example.backend.social.feed.service;
 
+import static com.example.backend.entity.QMemberEntity.*;
 import static com.example.backend.social.feed.constant.FeedConstants.*;
 
 import java.time.LocalDateTime;
@@ -10,14 +11,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.entity.MemberEntity;
 import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.exception.FeedException;
 import com.example.backend.social.feed.implement.FeedTestHelper;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 
 @SpringBootTest
+@DirtiesContext
 @Transactional
 class FeedServiceTest {
 
@@ -25,11 +30,20 @@ class FeedServiceTest {
 	private FeedService feedService;
 
 	@Autowired
-	FeedTestHelper feedTestHelper;
+	private FeedTestHelper feedTestHelper;
+
+	@Autowired
+	private JPAQueryFactory queryFactory;
+
+	private MemberEntity member;
 
 	@BeforeEach
 	void setUp() {
 		feedTestHelper.setData();
+
+		member = queryFactory.selectFrom(memberEntity)
+			.where(memberEntity.username.eq("user1"))
+			.fetchOne();
 	}
 
 	@Test
@@ -54,15 +68,15 @@ class FeedServiceTest {
 			.build();
 
 		Assertions.assertThrows(FeedException.class, () -> {
-			feedService.findList(nullTimestamp, 1L);
+			feedService.findList(nullTimestamp, member.getId());
 		});
 
 		Assertions.assertThrows(FeedException.class, () -> {
-			feedService.findList(afterTimestamp, 1L);
+			feedService.findList(afterTimestamp, member.getId());
 		});
 
 		Assertions.assertThrows(FeedException.class, () -> {
-			feedService.findList(overMaxSize, 1L);
+			feedService.findList(overMaxSize, member.getId());
 		});
 	}
 
@@ -75,9 +89,8 @@ class FeedServiceTest {
 			.timestamp(LocalDateTime.now())
 			.build();
 
-		FeedListResponse response = feedService.findList(request, 1L);
+		FeedListResponse response = feedService.findList(request, member.getId());
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals(REQUEST_FEED_MAX_SIZE, response.getFeedList().size());
 	}
-
 }
