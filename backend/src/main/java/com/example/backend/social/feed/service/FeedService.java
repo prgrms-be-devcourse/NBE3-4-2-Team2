@@ -61,7 +61,7 @@ public class FeedService {
 
 		// 기본적으로 팔로잉 게시물과 시간대를 맞추지만, 더 이상 팔로잉 게시물이 없다면 그 이후로 일정 기간을 잡는다.
 		LocalDateTime lastTime = feedList.isEmpty()
-			? request.getTimestamp().plusDays(RECOMMEND_SEARCH_DATE_RANGE)
+			? request.getTimestamp().minusDays(RECOMMEND_SEARCH_DATE_RANGE)
 			: feedList.getLast().getPost().getCreateDate();
 
 		Long lastPostId = feedList.isEmpty()
