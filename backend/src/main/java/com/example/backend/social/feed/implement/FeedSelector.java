@@ -149,7 +149,7 @@ public class FeedSelector {
 
 	private BooleanExpression cursor(LocalDateTime timestamp, Long lastPostId) {
 		if (lastPostId == null) {
-			return null;
+			return postEntity.createDate.before(timestamp);
 		}
 
 		return postEntity.createDate.eq(timestamp)
