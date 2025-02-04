@@ -48,18 +48,14 @@ public class FeedService {
 
 		feedValidator.validateRequest(request);
 
-		// Member 검색.
 		// 멤버 요청 건에 대한 예외 처리는 다른 도메인에서도 자주 사용될 것으로 예상되므로 우선 샘플 예외로 처리 후 수정
 		MemberEntity member = memberRepository.findById(userId)
 			.orElseThrow(() -> new FeedSampleException("Not Found"));
 
-		// 1. 팔로잉 중인 유저들의 피드 검색
-		// - 요청된 최대 개수의 70% 를 우선적으로 검색
 		int followingCount = (int)(request.getMaxSize() * FOLLOWING_FEED_RATE);
 		List<Feed> feedList = feedFinder.findByFollower(member, request.getTimestamp(), request.getLastPostId(),
 			followingCount);
 
-		// 기본적으로 팔로잉 게시물과 시간대를 맞추지만, 더 이상 팔로잉 게시물이 없다면 그 이후로 일정 기간을 잡는다.
 		LocalDateTime lastTime = feedList.isEmpty()
 			? request.getTimestamp().minusDays(RECOMMEND_SEARCH_DATE_RANGE)
 			: feedList.getLast().getPost().getCreateDate();
@@ -68,21 +64,16 @@ public class FeedService {
 			? request.getLastPostId()
 			: feedList.getLast().getPost().getId();
 
-		// 2. 추천 게시물 피드 검색
-		// - 팔로잉 게시물의 개수에 따라 추천 게시물 요청 개수를 조정
-		//   ( 요청 개수의 30% ) + ( 팔로우 게시물 요청 개수 - 실제 검색된 게시글 개수 )
 		int recommendCount = (int)(request.getMaxSize() * RECOMMEND_FEED_RATE) + (followingCount - feedList.size());
 		List<Feed> recommendFeedList = feedFinder.findRecommendFinder(
 			member,
 			request.getTimestamp(),
 			lastTime, recommendCount);
 
-		// 3. 조회한 게시글 취합해서 Response 로 반환
 		feedList.addAll(recommendFeedList);
 
-		// 4. 게시물들을 CreateDate 순서로 재정렬
 		List<FeedInfoResponse> feedDtoList = feedList.stream()
-			.sorted(Comparator.comparing(feed -> feed.getPost().getCreateDate()))
+			.sorted(Comparator.comparing((Feed feed) -> feed.getPost().getCreateDate()).reversed())
 			.map(FeedInfoResponse::toResponse)
 			.toList();
 
