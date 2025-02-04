@@ -65,6 +65,7 @@ public class FeedSelector {
 			.join(followEntity)
 			.on(followEntity.sender.eq(member).and(followEntity.receiver.eq(postEntity.member)))
 			.where(cursor(timestamp, lastPostId))
+			.groupBy(postEntity)
 			.orderBy(postEntity.createDate.desc())
 			.limit(limit)
 			.fetch();
