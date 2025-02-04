@@ -1,11 +1,6 @@
 package com.example.backend.social.reaction.likes.dto;
 
-import java.time.LocalDateTime;
-
-import com.example.backend.entity.LikesEntity;
-import com.example.backend.entity.MemberEntity;
-import com.example.backend.entity.PostEntity;
-
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,17 +16,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class LikesRequest {
+	@NotNull(message = "Member Id는 필수 항목입니다.")
 	private Long memberId;
-	private Long postId;
 
-	/**
-	 * LikesRequest DTO 를 LikesEntity 객체로 변환
-	 *
-	 * @param member (memberEntity 객체)
-	 * @param post (postEntity 객체)
-	 * @return LikesEntity
-	 */
-	public LikesEntity toEntity(MemberEntity member, PostEntity post) {
-		return new LikesEntity(member, post, LocalDateTime.now());
-	}
+	@NotNull(message = "Post Id는 필수 항목입니다.")
+	private Long postId;
 }

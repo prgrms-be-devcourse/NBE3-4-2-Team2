@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
 
-import com.example.backend.social.reaction.likes.dto.LikesResponse;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -24,7 +22,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @Table(name = "likes")
 public class LikesEntity {
 	@Id
@@ -36,25 +33,16 @@ public class LikesEntity {
 
 	@JoinColumn(nullable = false, name = "post_id")
 	@ManyToOne(fetch = FetchType.LAZY)
-	PostEntity post;
+	private PostEntity post;
 
 	@JoinColumn(nullable = false, name = "member_id")
 	@ManyToOne(fetch = FetchType.LAZY)
-	MemberEntity member;
+	private MemberEntity member;
 
-	public LikesEntity(MemberEntity member, PostEntity post, LocalDateTime now) {
+	@Builder
+	public LikesEntity(MemberEntity member, PostEntity post) {
 		this.member = member;
 		this.post = post;
-		this.createDate = now;
-	}
-
-	// DTO 변환 메서드
-	public LikesResponse from(LikesEntity likes) {
-		return LikesResponse.builder()
-			.id(this.id)
-			.memberId(this.member.getId())
-			.postId(this.post.getId())
-			.createDate(this.createDate)
-			.build();
+		this.createDate = LocalDateTime.now();
 	}
 }
