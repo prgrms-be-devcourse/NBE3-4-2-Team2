@@ -119,6 +119,6 @@ public class GlobalExceptionHandler {
 				.target(request.getRequestURI())
 				.code(ex.getErrorCodeIfs().getCode())
 				.message(ex.getErrorDescription())
-				.build()));
+				.build(), ex.getErrorDescription()));
 	}
 }

@@ -83,7 +83,8 @@ public class FeedSelector {
 			.from(postEntity)
 			.join(postEntity.member)
 			.fetchJoin()
-			.where(postEntity.createDate.before(timestamp).and(postEntity.createDate.after(lastTime))
+			.where((postEntity.createDate.before(timestamp).and(postEntity.createDate.after(lastTime))
+				.or(postEntity.createDate.before(timestamp).and(postEntity.createDate.eq(lastTime))))
 				.and(postEntity.member.id.notIn(
 					JPAExpressions.select(followEntity.receiver.id)
 						.from(followEntity)
@@ -152,8 +153,7 @@ public class FeedSelector {
 			return postEntity.createDate.before(timestamp);
 		}
 
-		return postEntity.createDate.eq(timestamp)
-			.and(postEntity.id.lt(lastPostId))
-			.or(postEntity.createDate.before(timestamp));
+		return postEntity.createDate.loe(timestamp)
+			.and(postEntity.id.lt(lastPostId));
 	}
 }
