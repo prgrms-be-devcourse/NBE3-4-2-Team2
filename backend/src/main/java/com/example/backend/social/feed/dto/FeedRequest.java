@@ -21,4 +21,5 @@ public class FeedRequest {
 	private LocalDateTime timestamp;
 	private Long lastPostId;
 	private Integer maxSize;
+	private String username;
 }

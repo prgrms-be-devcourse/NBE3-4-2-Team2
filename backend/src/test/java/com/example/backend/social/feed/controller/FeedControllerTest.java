@@ -53,6 +53,7 @@ class FeedControllerTest {
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(null)
 			.timestamp(LocalDateTime.now())
+			.username("user1")
 			.build();
 
 		mockMvc.perform(get("/api-v1/feed")
@@ -72,18 +73,21 @@ class FeedControllerTest {
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(null)
 			.timestamp(null)
+			.username("user1")
 			.build();
 
 		FeedRequest afterTimestamp = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(null)
 			.timestamp(LocalDateTime.now().plusDays(1))
+			.username("user1")
 			.build();
 
 		FeedRequest overMaxSize = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE + 1)
 			.lastPostId(null)
 			.timestamp(LocalDateTime.now().minusDays(1))
+			.username("user1")
 			.build();
 
 		mockMvc.perform(get("/api-v1/feed")
@@ -121,6 +125,7 @@ class FeedControllerTest {
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(null)
 			.timestamp(LocalDateTime.now().minusDays(1))
+			.username("user1")
 			.build();
 
 		ResultActions resultActions = mockMvc.perform(get("/api-v1/feed")
@@ -141,6 +146,7 @@ class FeedControllerTest {
 			.maxSize(2)
 			.lastPostId(null)
 			.timestamp(LocalDateTime.now())
+			.username("user1")
 			.build();
 
 		ResultActions resultActions = mockMvc.perform(get("/api-v1/feed")
@@ -167,6 +173,7 @@ class FeedControllerTest {
 			.maxSize(2)
 			.lastPostId(lastPostId1.longValue())
 			.timestamp(lastTime1)
+			.username("user1")
 			.build();
 
 		resultActions = mockMvc.perform(get("/api-v1/feed")

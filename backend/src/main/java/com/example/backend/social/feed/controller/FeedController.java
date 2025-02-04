@@ -38,8 +38,9 @@ public class FeedController {
 		@RequestBody FeedRequest request
 	) {
 		Long userId = Objects.requireNonNull(
-			queryFactory.selectFrom(memberEntity).where(memberEntity.username.eq("user1")).fetchOne()).getId();
-		
+				queryFactory.selectFrom(memberEntity).where(memberEntity.username.eq(request.getUsername())).fetchOne())
+			.getId();
+
 		return ResponseEntity.ok()
 			.body(
 				RsData.success(feedService.findList(request, userId), "피드를 성공적으로 반환했습니다.")
