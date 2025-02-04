@@ -54,9 +54,8 @@ class PostHashtagServiceTest {
 		Set<String> contents = Set.of("고양이", "강아지");
 
 		List<PostHashtagEntity> postHashtagEntities = postHashtagService.create(post, contents);
-		assertThat(postHashtagEntities.size()).isEqualTo(2);
-		assertThat(postHashtagEntities.get(0).getHashtag().getContent()).isEqualTo("고양이");
-		assertThat(postHashtagEntities.get(1).getHashtag().getContent()).isEqualTo("강아지");
-
+		assertThat(postHashtagEntities)
+			.extracting(postHashtag -> postHashtag.getHashtag().getContent())
+			.containsExactlyInAnyOrder("고양이", "강아지");
 	}
 }

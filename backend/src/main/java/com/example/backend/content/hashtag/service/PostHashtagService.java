@@ -12,6 +12,7 @@ import com.example.backend.entity.PostHashtagEntity;
 import com.example.backend.entity.PostHashtagRepository;
 
 import lombok.RequiredArgsConstructor;
+
 /**
  * hashtag 와 post 의 연결 담당하는 클래스
  * @author kwak
@@ -41,4 +42,16 @@ public class PostHashtagService {
 
 	}
 
+	public void deleteByHashtagIds(List<Long> oldHashtagIds) {
+		postHashtagRepository.bulkDeleteByHashtagIds(oldHashtagIds);
+	}
+
+	/**
+	 * post 삭제시 연관된 postHashtag 를 삭제하는 기능
+	 * @author kwak
+	 * @since 2025-02-04
+	 */
+	public void deleteByPostId(Long postId) {
+		postHashtagRepository.deleteByPostId(postId);
+	}
 }

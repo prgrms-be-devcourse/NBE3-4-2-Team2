@@ -1,5 +1,6 @@
 package com.example.backend.entity;
 
+import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
 import com.example.backend.content.hashtag.exception.HashtagErrorCode;
@@ -21,7 +22,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-
 @Table(name = "hashtag")
 public class HashtagEntity {
 
@@ -34,10 +34,17 @@ public class HashtagEntity {
 	@Column(unique = true, nullable = false)
 	private String content;
 
+	@Column(nullable = false)
+	private LocalDateTime lastUsedAt;
+
+	@Column(nullable = false)
+	private boolean isDeleted;
+
 	@Builder
 	public HashtagEntity(String content) {
 		validateContent(content);
 		this.content = content;
+		this.lastUsedAt = LocalDateTime.now();
 	}
 
 	private void validateContent(String content) {

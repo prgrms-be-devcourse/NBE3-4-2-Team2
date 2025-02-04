@@ -24,6 +24,9 @@ class HashtagServiceTest {
 	@InjectMocks
 	private HashtagService hashtagService;
 
+	@Mock
+	private HashtagUsageCollector collector;
+
 	@Test
 	@DisplayName("db에 존재하면 저장이 되지 않아야 함")
 	void createIfNotExists() {
