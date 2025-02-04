@@ -34,7 +34,4 @@ public class PostHashtagEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	HashtagEntity hashtag;
 
-	@Column(nullable = false)
-	private boolean isDeleted;
-
 }
