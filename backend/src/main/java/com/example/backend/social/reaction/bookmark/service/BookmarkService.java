@@ -53,10 +53,7 @@ public class BookmarkService {
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.POST_NOT_FOUND));
 
 		// 3. id 및 생성 날짜를 포함하기 위해 build
-		BookmarkEntity bookmark = BookmarkEntity.builder()
-				.member(member)
-				.post(post)
-				.build();
+		BookmarkEntity bookmark = new BookmarkEntity(member, post);
 
 		// 생성 로직
 		bookmarkRepository.save(bookmark);

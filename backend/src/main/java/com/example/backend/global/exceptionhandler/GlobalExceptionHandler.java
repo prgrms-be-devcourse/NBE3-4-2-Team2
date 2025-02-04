@@ -113,7 +113,7 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(BookmarkException.class)
-	public ResponseEntity<RsData<?>> handleBookmarkException(LikesException ex) {
+	public ResponseEntity<RsData<?>> handleBookmarkException(BookmarkException ex) {
 		RsData<?> response = RsData.error(null, ex.getMessage());
 		return ResponseEntity
 			.status(ex.getStatus())
