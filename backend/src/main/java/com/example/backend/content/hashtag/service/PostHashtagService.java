@@ -52,6 +52,6 @@ public class PostHashtagService {
 	 * @since 2025-02-04
 	 */
 	public void deleteByPostId(Long postId) {
-		postHashtagRepository.deleteByPostId();
+		postHashtagRepository.deleteByPostId(postId);
 	}
 }
