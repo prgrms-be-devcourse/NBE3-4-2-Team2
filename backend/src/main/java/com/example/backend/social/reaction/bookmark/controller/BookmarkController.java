@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkRequest;
-import com.example.backend.social.reaction.bookmark.dto.BookmarkResponse;
+import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.service.BookmarkService;
 
 import jakarta.validation.Valid;
@@ -30,20 +30,20 @@ public class BookmarkController {
 	private final BookmarkService bookmarkService;
 
 	@PostMapping
-	public ResponseEntity<RsData<BookmarkResponse>> addBookmarkPost(@Valid @RequestBody CreateBookmarkRequest createBookmarkRequest) {
-		BookmarkResponse bookmarkResponse = bookmarkService.createBookmark(createBookmarkRequest.getMemberId(), createBookmarkRequest.getPostId());
+	public ResponseEntity<RsData<CreateBookmarkResponse>> addBookmarkPost(@Valid @RequestBody CreateBookmarkRequest createBookmarkRequest) {
+		CreateBookmarkResponse createBookmarkResponse = bookmarkService.createBookmark(createBookmarkRequest.getMemberId(), createBookmarkRequest.getPostId());
 		return ResponseEntity.ok()
 			.body(
-				RsData.success(bookmarkResponse, "북마크가 성공적으로 추가되었습니다.")
+				RsData.success(createBookmarkResponse, "북마크가 성공적으로 추가되었습니다.")
 			);
 	}
 
 	@DeleteMapping
-	public ResponseEntity<RsData<BookmarkResponse>> removeBookmarkPost(@Valid @RequestBody CreateBookmarkRequest createBookmarkRequest) {
-		BookmarkResponse bookmarkResponse = bookmarkService.deleteBookmark(createBookmarkRequest.getMemberId(), createBookmarkRequest.getPostId());
+	public ResponseEntity<RsData<CreateBookmarkResponse>> removeBookmarkPost(@Valid @RequestBody CreateBookmarkRequest createBookmarkRequest) {
+		CreateBookmarkResponse createBookmarkResponse = bookmarkService.deleteBookmark(createBookmarkRequest.getMemberId(), createBookmarkRequest.getPostId());
 		return ResponseEntity.ok()
 			.body(
-				RsData.success(bookmarkResponse, "북마크가 성공적으로 제거되었습니다.")
+				RsData.success(createBookmarkResponse, "북마크가 성공적으로 제거되었습니다.")
 			);
 	}
 }

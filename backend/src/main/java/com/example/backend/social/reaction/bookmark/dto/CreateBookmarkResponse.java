@@ -18,7 +18,7 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class BookmarkResponse {
+public class CreateBookmarkResponse {
 	private Long id;
 	private Long memberId;
 	private Long postId;
@@ -31,8 +31,8 @@ public class BookmarkResponse {
 	 * @param bookmark (변환할 BookmarkEntity 객체)
 	 * @return BookmarkResponse
 	 */
-	public static BookmarkResponse toResponse(BookmarkEntity bookmark) {
-		return BookmarkResponse.builder()
+	public static CreateBookmarkResponse toResponse(BookmarkEntity bookmark) {
+		return CreateBookmarkResponse.builder()
 			.id(bookmark.getId())
 			.memberId(bookmark.getMember().getId())
 			.postId(bookmark.getPost().getId())
