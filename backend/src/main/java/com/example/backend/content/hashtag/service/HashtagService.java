@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.content.hashtag.exception.HashtagErrorCode;
@@ -21,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class HashtagService {
+
+	private static final long OLD_HASHTAG_MONTH = 3;
 
 	private final HashtagRepository hashtagRepository;
 	private final HashtagUsageCollector collector;
@@ -46,7 +47,8 @@ public class HashtagService {
 	}
 
 	public List<Long> findOldHashtags() {
-		return hashtagRepository.findOldHashtags(LocalDateTime.now().minusMonths(3));
+		return hashtagRepository.findOldHashtags(LocalDateTime.now()
+			.minusMonths(OLD_HASHTAG_MONTH));
 	}
 
 	public void bulkLastUsedAt(Set<Long> hashtagUsageData, LocalDateTime now) {
