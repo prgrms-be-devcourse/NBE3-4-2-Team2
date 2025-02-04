@@ -45,4 +45,13 @@ public class PostHashtagService {
 	public void deleteByHashtagIds(List<Long> oldHashtagIds) {
 		postHashtagRepository.bulkDeleteByHashtagIds(oldHashtagIds);
 	}
+
+	/**
+	 * post 삭제시 연관된 postHashtag 를 삭제하는 기능
+	 * @author kwak
+	 * @since 2025-02-04
+	 */
+	public void deleteByPostId(Long postId) {
+		postHashtagRepository.deleteByPostId();
+	}
 }

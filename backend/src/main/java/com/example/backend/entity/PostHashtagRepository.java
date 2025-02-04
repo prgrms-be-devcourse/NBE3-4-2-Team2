@@ -22,4 +22,7 @@ public interface PostHashtagRepository extends JpaRepository<PostHashtagEntity, 
 		WHERE ph.hashtag.id IN :hashtagIds
 		""")
 	void bulkDeleteByHashtagIds(@Param("hashtagIds") List<Long> hashtagIds);
+
+	@Query("DELETE FROM PostHashtagEntity ph WHERE ph.post.id = :postId")
+	void deleteByPostId(@Param("postId") Long postId);
 }
