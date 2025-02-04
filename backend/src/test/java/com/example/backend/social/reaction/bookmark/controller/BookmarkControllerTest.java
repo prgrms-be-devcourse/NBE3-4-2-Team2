@@ -74,7 +74,7 @@ public class BookmarkControllerTest {
 			.build();
 		testMember = memberRepository.save(member);
 
-		// 테스트용 포스트 추가
+		// 테스트용 게시물 추가
 		PostEntity post = PostEntity.builder()
 			.content("testContent")
 			.member(member)
