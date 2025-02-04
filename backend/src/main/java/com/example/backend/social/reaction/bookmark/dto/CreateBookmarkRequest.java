@@ -6,11 +6,11 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * 북마크 요청 DTO
- * "/bookmark" 로 들어오는 요청 관련 DTO
+ * 북마크 생성 Request DTO
+ * "/bookmark" 로 들어오는 생성 요청 관련 DTO
  *
  * @author Metronon
- * @since 2025-01-31
+ * @since 2025-02-04
  */
 @Builder
 @Getter

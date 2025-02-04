@@ -5,6 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+/**
+ * 북마크 삭제 Request DTO
+ * "/bookmark" 로 들어오는 삭제 요청 관련 DTO
+ *
+ * @author Metronon
+ * @since 2025-02-04
+ */
 @Builder
 @Getter
 @AllArgsConstructor
