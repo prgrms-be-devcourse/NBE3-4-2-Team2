@@ -2,9 +2,7 @@ package com.example.backend.content.post.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,7 +16,6 @@ import com.example.backend.content.post.dto.PostCreateResponse;
 import com.example.backend.content.post.dto.PostDeleteResponse;
 import com.example.backend.content.post.dto.PostModifyRequest;
 import com.example.backend.content.post.dto.PostModifyResponse;
-import com.example.backend.content.post.exception.PostException;
 import com.example.backend.content.post.service.PostService;
 
 import jakarta.validation.Valid;
@@ -45,12 +42,8 @@ public class PostController {
 	 */
 	@PostMapping
 	public ResponseEntity<PostCreateResponse> createPost(@RequestBody @Valid PostCreateRequest request) {
-		try {
-			PostCreateResponse response = postService.createPost(request);
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
-		} catch (UsernameNotFoundException ex) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-		}
+		PostCreateResponse response = postService.createPost(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
 	/**
@@ -82,18 +75,6 @@ public class PostController {
 	) {
 		PostDeleteResponse response = postService.deletePost(postId, memberId);
 		return ResponseEntity.ok(response);
-	}
-
-	/**
-	 * PostException 예외 처리 (현재는 post 디렉토리 내부의 예외만 처리)
-	 *
-	 * @param ex 발생한 PostException
-	 * @return 에러 메시지를 포함한 ResponseEntity
-	 */
-	@ExceptionHandler(PostException.class)
-	public ResponseEntity<String> handlePostException(PostException ex) {
-		return ResponseEntity.status(ex.getHttpStatus())
-			.body(ex.getMessage());
 	}
 
 }

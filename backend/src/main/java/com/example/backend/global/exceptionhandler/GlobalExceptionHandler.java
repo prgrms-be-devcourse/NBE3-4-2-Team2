@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.example.backend.content.post.exception.PostException;
 import com.example.backend.global.error.GlobalErrorCode;
 import com.example.backend.global.exception.GlobalException;
 import com.example.backend.global.rs.ErrorRs;
@@ -109,5 +112,25 @@ public class GlobalExceptionHandler {
 		return ResponseEntity
 			.status(ex.getStatus())
 			.body(response);
+	}
+
+	@ExceptionHandler(PostException.class)
+	public ResponseEntity<String> handlePostException(PostException ex) {
+		return ResponseEntity.status(ex.getHttpStatus())
+			.body(ex.getMessage());
+	}
+
+	@ExceptionHandler(UsernameNotFoundException.class)
+	public ResponseEntity<RsData<ErrorRs>> handleUsernameNotFoundException(
+		UsernameNotFoundException ex, HttpServletRequest request) {
+
+		log.error("UsernameNotFoundException: {}", ex.getMessage());
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+			.body(RsData.error(ErrorRs.builder()
+				.target(request.getRequestURI()) // 에러 발생한 URL
+				.code(HttpStatus.NOT_FOUND.value()) // 404 상태 코드
+				.message(ex.getMessage()) // 예외 메시지
+				.build()));
 	}
 }

@@ -32,6 +32,8 @@ public class QPostEntity extends EntityPathBase<PostEntity> {
     //inherited
     public final NumberPath<Long> id = _super.id;
 
+    public final ListPath<ImageEntity, QImageEntity> images = this.<ImageEntity, QImageEntity>createList("images", ImageEntity.class, QImageEntity.class, PathInits.DIRECT2);
+
     public final BooleanPath isDeleted = createBoolean("isDeleted");
 
     public final QMemberEntity member;
