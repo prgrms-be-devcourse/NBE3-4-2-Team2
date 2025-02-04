@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 /**
  * 사용된 hashtag 의 데이터를 수집하고 처리
  * @author kwak
- * 2025/02/03
+ * @since 2025-02-03
  */
 @Component
 public class HashtagUsageCollector {
