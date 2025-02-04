@@ -10,7 +10,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
-import com.example.backend.social.reaction.likes.dto.LikesResponse;
+import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
 import com.example.backend.social.reaction.likes.exception.LikesErrorCode;
 import com.example.backend.social.reaction.likes.exception.LikesException;
 
@@ -43,7 +43,7 @@ public class LikesService {
 	 * @return LikesResponse (DTO)
 	 */
 	@Transactional
-	public LikesResponse createLike(Long memberId, Long postId) {
+	public CreateLikeResponse createLike(Long memberId, Long postId) {
 		MemberEntity member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new LikesException(LikesErrorCode.MEMBER_NOT_FOUND));
 		PostEntity post = postRepository.findById(postId)
@@ -56,7 +56,7 @@ public class LikesService {
 
 		likesRepository.save(like);
 
-		return LikesResponse.toResponse(like);
+		return CreateLikeResponse.toResponse(like);
 	}
 
 	/**
