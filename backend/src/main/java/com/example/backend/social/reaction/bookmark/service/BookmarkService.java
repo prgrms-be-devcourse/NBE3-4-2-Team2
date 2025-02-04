@@ -52,7 +52,12 @@ public class BookmarkService {
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.POST_NOT_FOUND));
 
-		// 3. id 및 생성 날짜를 포함하기 위해 build
+		// 3. 이미 등록된 북마크인지 검증
+		if (bookmarkRepository.findByMemberIdAndPostId(memberId, postId).isPresent()) {
+			throw new BookmarkException(BookmarkErrorCode.ALREADY_BOOKMARKED);
+		}
+
+		// 4. id 및 생성 날짜를 포함하기 위해 build
 		BookmarkEntity bookmark = new BookmarkEntity(member, post);
 
 		// 생성 로직

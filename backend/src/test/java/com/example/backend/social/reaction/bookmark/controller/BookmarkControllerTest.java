@@ -19,6 +19,7 @@ import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkRequest;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkRequest;
+import com.example.backend.social.reaction.likes.dto.LikesRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
@@ -158,19 +159,19 @@ public class BookmarkControllerTest {
 	}
 }
 
-// 	@Test
-// 	@DisplayName("6. 좋아요가 없는 게시물에 좋아요 취소 테스트")
-// 	public void t006() throws Exception {
-// 		LikesRequest likesRequest = new LikesRequest(testMember.getId(), testPost.getId());
-//
-// 		mockMvc.perform(delete("/api-v1/bookmark")
-// 				.contentType(MediaType.APPLICATION_JSON)
-// 				.accept(MediaType.APPLICATION_JSON)
-// 				.content(objectMapper.writeValueAsString(likesRequest)))
-// 			.andExpect(status().isNotFound())
-// 			.andExpect(jsonPath("$.success").value(false))
-// 			.andExpect(jsonPath("$.message").value("좋아요 정보를 찾을 수 없습니다."))
-// 			.andExpect(jsonPath("$.data").isEmpty());
-// 	}
-// }
+	@Test
+	@DisplayName("6. 좋아요가 없는 게시물에 좋아요 취소 테스트")
+	public void t006() throws Exception {
+		LikesRequest likesRequest = new LikesRequest(testMember.getId(), testPost.getId());
+
+		mockMvc.perform(delete("/api-v1/bookmark")
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(likesRequest)))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.message").value("좋아요 정보를 찾을 수 없습니다."))
+			.andExpect(jsonPath("$.data").isEmpty());
+	}
+}
 
