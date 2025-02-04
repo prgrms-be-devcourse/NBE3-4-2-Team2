@@ -2,7 +2,9 @@ package com.example.backend.content.hashtag.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.content.hashtag.exception.HashtagErrorCode;
@@ -45,5 +47,9 @@ public class HashtagService {
 
 	public List<Long> findOldHashtags() {
 		return hashtagRepository.findOldHashtags(LocalDateTime.now().minusMonths(3));
+	}
+
+	public void bulkLastUsedAt(Set<Long> hashtagUsageData, LocalDateTime now) {
+		hashtagRepository.bulkLastUsedAt(hashtagUsageData, now);
 	}
 }

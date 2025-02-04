@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 public class HashtagScheduler {
 
 	private final HashtagUsageCollector hashtagUsageCollector;
-	private final HashtagRepository hashtagRepository;
 	private final PostHashtagService postHashtagService;
 	private final HashtagService hashtagService;
 
@@ -44,7 +43,7 @@ public class HashtagScheduler {
 			log.info("Not Exist hashtag Usage Data");
 			return;
 		}
-		hashtagRepository.bulkLastUsedAt(hashtagUsageData, LocalDateTime.now());
+		hashtagService.bulkLastUsedAt(hashtagUsageData, LocalDateTime.now());
 	}
 
 	/**
