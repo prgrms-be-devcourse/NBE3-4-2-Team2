@@ -2,6 +2,8 @@ package com.example.backend.social.feed.dto;
 
 import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 /**
@@ -13,6 +15,8 @@ import lombok.Getter;
  * @since 2025-01-31
  */
 @Getter
+@Builder
+@AllArgsConstructor
 public class FeedRequest {
 	private LocalDateTime timestamp;
 	private Long lastPostId;
