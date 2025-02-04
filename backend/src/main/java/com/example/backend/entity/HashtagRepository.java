@@ -33,14 +33,21 @@ public interface HashtagRepository extends JpaRepository<HashtagEntity, Long> {
 	 * @since 2025-02-03
 	 */
 	@Modifying(clearAutomatically = true)
-	@Query("DELETE FROM HashtagEntity h WHERE h.id IN :ids")
-	int bulkDeleteByIds(@Param("ids") List<Long> ids);
+	@Query("""
+		DELETE FROM HashtagEntity h
+		WHERE h.id IN :ids
+		""")
+	void bulkDeleteByIds(@Param("ids") List<Long> ids);
 
 	/**
 	 * 사용한지 3개월 이상 된 hashtag Id 조회
 	 * @author kwak
 	 * @since 2025-02-03
 	 */
-	@Query("SELECT h.id FROM HashtagEntity h WHERE h.lastUsedAt < :date")
+	@Query("""
+		SELECT h.id
+		FROM HashtagEntity h
+		WHERE h.lastUsedAt < :date
+		""")
 	List<Long> findOldHashtags(@Param("targetDate") LocalDateTime targetDate);
 }
