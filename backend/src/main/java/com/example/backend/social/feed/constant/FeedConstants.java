@@ -37,4 +37,10 @@ public class FeedConstants {
 	 * 인기 해시태그를 선정하는 개수
 	 */
 	public static final long POPULAR_HASHTAG_COUNT = 10;
+
+	/**
+	 * REQUEST_FEED_MAX_SIZE
+	 * 피드 요청 시 최대로 요청할 수 있는 개수
+	 */
+	public static final int REQUEST_FEED_MAX_SIZE = 20;
 }

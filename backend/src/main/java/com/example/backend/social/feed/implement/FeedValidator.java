@@ -1,5 +1,7 @@
 package com.example.backend.social.feed.implement;
 
+import static com.example.backend.social.feed.constant.FeedConstants.*;
+
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
@@ -34,7 +36,7 @@ public class FeedValidator {
 		// - 0개 이하의 개수를 요청하는 경우
 		// - 20개 초과의 개수를 요청하는 경우
 		Integer maxSize = request.getMaxSize();
-		if (maxSize == null || maxSize <= 0 || maxSize > 20) {
+		if (maxSize == null || maxSize <= 0 || maxSize > REQUEST_FEED_MAX_SIZE) {
 			throw new FeedException(FeedErrorCode.WRONG_MAXSIZE_REQUEST);
 		}
 
