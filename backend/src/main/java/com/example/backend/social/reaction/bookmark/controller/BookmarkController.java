@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.backend.global.rs.RsData;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkRequest;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
+import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkRequest;
+import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.service.BookmarkService;
 
 import jakarta.validation.Valid;
@@ -39,11 +41,11 @@ public class BookmarkController {
 	}
 
 	@DeleteMapping
-	public ResponseEntity<RsData<CreateBookmarkResponse>> removeBookmarkPost(@Valid @RequestBody CreateBookmarkRequest createBookmarkRequest) {
-		CreateBookmarkResponse createBookmarkResponse = bookmarkService.deleteBookmark(createBookmarkRequest.getMemberId(), createBookmarkRequest.getPostId());
+	public ResponseEntity<RsData<DeleteBookmarkResponse>> removeBookmarkPost(@Valid @RequestBody DeleteBookmarkRequest deleteBookmarkRequest) {
+		DeleteBookmarkResponse deleteBookmarkResponse = bookmarkService.deleteBookmark(deleteBookmarkRequest.getId(), deleteBookmarkRequest.getMemberId(), deleteBookmarkRequest.getPostId());
 		return ResponseEntity.ok()
 			.body(
-				RsData.success(createBookmarkResponse, "북마크가 성공적으로 제거되었습니다.")
+				RsData.success(deleteBookmarkResponse, "북마크가 성공적으로 제거되었습니다.")
 			);
 	}
 }
