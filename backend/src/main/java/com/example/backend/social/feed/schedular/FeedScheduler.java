@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.entity.HashtagEntity;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.Getter;
@@ -28,19 +29,19 @@ public class FeedScheduler {
 	private final JPAQueryFactory queryFactory;
 
 	@Getter
-	private List<Long> favoriteHashtagList = Collections.emptyList();
+	private List<HashtagEntity> popularHashtagList = Collections.emptyList();
 
 	@Scheduled(cron = "0 0 0 * * *")
 	@Transactional(readOnly = true)
-	public void dailyTask() {
+	public void updatePopularHashtag() {
 		// 인기 해시태그를 찾기
-		List<Long> newFavoriteHashtagList = queryFactory.select(postHashtagEntity.hashtag.id)
+		List<HashtagEntity> newPopularHashtagList = queryFactory.select(postHashtagEntity.hashtag)
 			.from(postHashtagEntity)
 			.groupBy(postHashtagEntity.hashtag.id)
 			.orderBy(postHashtagEntity.count().desc())
-			.limit(FAVORITE_HASHTAG_COUNT)
+			.limit(POPULAR_HASHTAG_COUNT)
 			.fetch();
 
-		favoriteHashtagList = Collections.unmodifiableList(newFavoriteHashtagList);
+		popularHashtagList = Collections.unmodifiableList(newPopularHashtagList);
 	}
 }
