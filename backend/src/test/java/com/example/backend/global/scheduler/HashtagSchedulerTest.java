@@ -1,6 +1,5 @@
 package com.example.backend.global.scheduler;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
@@ -13,14 +12,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.example.backend.content.hashtag.scheduler.HashtagScheduler;
 import com.example.backend.content.hashtag.service.HashtagService;
 import com.example.backend.content.hashtag.service.HashtagUsageCollector;
 import com.example.backend.content.hashtag.service.PostHashtagService;
-import com.example.backend.entity.HashtagRepository;
-import com.example.backend.entity.PostHashtagRepository;
 
 /**
  * 각 비즈니스 로직 단위 테스트만 진행하고

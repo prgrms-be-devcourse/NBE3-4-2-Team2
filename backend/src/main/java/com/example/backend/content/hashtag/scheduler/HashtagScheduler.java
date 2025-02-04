@@ -1,4 +1,4 @@
-package com.example.backend.global.scheduler;
+package com.example.backend.content.hashtag.scheduler;
 
 import java.time.LocalDateTime;
 import java.util.List;
