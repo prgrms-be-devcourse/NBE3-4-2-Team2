@@ -33,8 +33,8 @@ public class FeedConstants {
 	public static final long RECOMMEND_SEARCH_DATE_RANGE = 1;
 
 	/**
-	 * FAVORITE_HASHTAG_COUNT
+	 * POPULAR_HASHTAG_COUNT
 	 * 인기 해시태그를 선정하는 개수
 	 */
-	public static final long FAVORITE_HASHTAG_COUNT = 10;
+	public static final long POPULAR_HASHTAG_COUNT = 10;
 }

@@ -98,7 +98,7 @@ public class FeedSelector {
 							+ "from PostHashtagEntity ph where ph.post.id = {0} and ph.hashtag.id in ({2}))",
 						postEntity.id,
 						postEntity.member.id,
-						scheduler.getFavoriteHashtagList())
+						scheduler.getPopularHashtagList())
 					.desc())
 			.limit(limit * RECOMMEND_RANDOM_POOL_MULTIPLIER)
 			.fetch();
