@@ -1,7 +1,5 @@
 package com.example.backend.social.reaction.bookmark.controller;
 
-import java.awt.print.Book;
-
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
-import com.example.backend.social.reaction.bookmark.dto.BookmarkRequest;
+import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkRequest;
 import com.example.backend.social.reaction.bookmark.dto.BookmarkResponse;
 import com.example.backend.social.reaction.bookmark.service.BookmarkService;
 
@@ -32,8 +30,8 @@ public class BookmarkController {
 	private final BookmarkService bookmarkService;
 
 	@PostMapping
-	public ResponseEntity<RsData<BookmarkResponse>> addBookmarkPost(@Valid @RequestBody BookmarkRequest bookmarkRequest) {
-		BookmarkResponse bookmarkResponse = bookmarkService.createBookmark(bookmarkRequest.getMemberId(), bookmarkRequest.getPostId());
+	public ResponseEntity<RsData<BookmarkResponse>> addBookmarkPost(@Valid @RequestBody CreateBookmarkRequest createBookmarkRequest) {
+		BookmarkResponse bookmarkResponse = bookmarkService.createBookmark(createBookmarkRequest.getMemberId(), createBookmarkRequest.getPostId());
 		return ResponseEntity.ok()
 			.body(
 				RsData.success(bookmarkResponse, "북마크가 성공적으로 추가되었습니다.")
@@ -41,8 +39,8 @@ public class BookmarkController {
 	}
 
 	@DeleteMapping
-	public ResponseEntity<RsData<BookmarkResponse>> removeBookmarkPost(@Valid @RequestBody BookmarkRequest bookmarkRequest) {
-		BookmarkResponse bookmarkResponse = bookmarkService.deleteBookmark(bookmarkRequest.getMemberId(), bookmarkRequest.getPostId());
+	public ResponseEntity<RsData<BookmarkResponse>> removeBookmarkPost(@Valid @RequestBody CreateBookmarkRequest createBookmarkRequest) {
+		BookmarkResponse bookmarkResponse = bookmarkService.deleteBookmark(createBookmarkRequest.getMemberId(), createBookmarkRequest.getPostId());
 		return ResponseEntity.ok()
 			.body(
 				RsData.success(bookmarkResponse, "북마크가 성공적으로 제거되었습니다.")
