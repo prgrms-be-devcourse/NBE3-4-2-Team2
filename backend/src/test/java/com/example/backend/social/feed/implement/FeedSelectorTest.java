@@ -47,7 +47,7 @@ class FeedSelectorTest {
 		log.info("Name : {}, Id : {}", member.getUsername(), member.getId());
 		Assertions.assertNotEquals(0, member.getFollowingList().size());
 
-		List<Feed> byFollower = feedSelector.findByFollower(member, LocalDateTime.now().plusDays(1), 10);
+		List<Feed> byFollower = feedSelector.findByFollower(member, LocalDateTime.now().plusDays(1), null, 10);
 		Assertions.assertNotNull(byFollower);
 		Assertions.assertFalse(byFollower.isEmpty());
 		Assertions.assertEquals(10, byFollower.size());

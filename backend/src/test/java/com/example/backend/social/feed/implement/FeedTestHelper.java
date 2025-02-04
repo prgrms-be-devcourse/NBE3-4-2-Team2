@@ -1,6 +1,5 @@
 package com.example.backend.social.feed.implement;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -146,7 +145,7 @@ public class FeedTestHelper {
 		List<LikesEntity> likes = new ArrayList<>();
 		for (PostEntity post : posts) {
 			for (int i = 0; i < 5; i++) {
-				likes.add(new LikesEntity(members.get(i), post, LocalDateTime.now()));
+				likes.add(new LikesEntity(members.get(i), post));
 			}
 		}
 		likesRepository.saveAll(likes);
