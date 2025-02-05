@@ -233,11 +233,16 @@ db_dev.trace.db
 
 # IntelliJ IDEA 설정 파일
 .idea/
+*.iml
 
-# JPA Q클래스 (QueryDSL 자동 생성 파일)
-**/out/
+# QueryDSL 빌드 파일 무시
+/build/
+.gradle/
+querydsl/
 **/generated/
-**/Q*.java
+**/generated-sources/
+**/querydsl/
+
 
 # H2, HSQL, SQLite DB 파일
 *.mv.db
