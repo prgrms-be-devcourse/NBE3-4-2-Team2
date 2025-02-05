@@ -1,11 +1,7 @@
 package com.example.backend.entity;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,15 +30,6 @@ public class MemberEntity extends BaseEntity {
 	@Column(nullable = false)
 	private String password;
 
-	private String profileUrl;
-
-	@Column(unique = true, nullable = false)
-	private String refreshToken;
-
-	private int followerCount;
-
-	private int followingCount;
-
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
 	private List<PostEntity> postList = new ArrayList<>();
@@ -70,26 +57,4 @@ public class MemberEntity extends BaseEntity {
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
 	private List<BookmarkEntity> bookmarkList = new ArrayList<>();
-
-	public MemberEntity(long id, String username) {
-		super();
-		setId(id);
-		this.username = username;
-	}
-
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return getAuthoritiesAsStringList()
-			.stream()
-			.map(SimpleGrantedAuthority::new)
-			.toList();
-	}
-
-	public List<String> getAuthoritiesAsStringList() {
-		List<String> authorities = new ArrayList<>();
-
-		if (username.equals("admin")) // 우선 간단하게 설정
-			authorities.add("ROLE_ADMIN");
-
-		return authorities;
-	}
 }
