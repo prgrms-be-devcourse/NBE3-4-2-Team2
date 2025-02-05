@@ -8,19 +8,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.example.backend.entity.LikesRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
-import com.example.backend.social.reaction.likes.dto.LikesResponse;
+import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
+import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
 import com.example.backend.social.reaction.likes.exception.LikesErrorCode;
 import com.example.backend.social.reaction.likes.exception.LikesException;
 
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Transactional
 public class LikesServiceTest {
+	@Autowired
+	private EntityManager entityManager;
 
 	@Autowired
 	private LikesService likesService;
@@ -44,6 +53,11 @@ public class LikesServiceTest {
 		postRepository.deleteAll();
 		memberRepository.deleteAll();
 
+		// 시퀀스 초기화 (테스트 데이터 재 생성시 아이디 값이 올라가기 때문)
+		entityManager.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate();
+		entityManager.createNativeQuery("ALTER TABLE post ALTER COLUMN id RESTART WITH 1").executeUpdate();
+		entityManager.createNativeQuery("ALTER TABLE likes ALTER COLUMN id RESTART WITH 1").executeUpdate();
+
 		// 테스트용 멤버 추가
 		MemberEntity member = MemberEntity.builder()
 			.username("testMember")
@@ -52,7 +66,7 @@ public class LikesServiceTest {
 			.build();
 		testMember = memberRepository.save(member);
 
-		// 테스트용 포스트 추가
+		// 테스트용 게시물 추가
 		PostEntity post = PostEntity.builder()
 			.content("testContent")
 			.member(member)
@@ -63,59 +77,155 @@ public class LikesServiceTest {
 	@Test
 	@DisplayName("1. 좋아요 적용 테스트")
 	public void t001() {
-		LikesResponse response = likesService.createLike(testMember.getId(), testPost.getId());
-		assertNotNull(response);
-		assertEquals(testMember.getId(), response.getMemberId());
-		assertEquals(testPost.getId(), response.getPostId());
+		// Given
+		Long memberId = testMember.getId();
+		Long postId = testPost.getId();
+
+		// When
+		CreateLikeResponse createResponse = likesService.createLike(memberId, postId);
+
+		// Then
+		assertNotNull(createResponse);
+		assertEquals(memberId, createResponse.getMemberId());
+		assertEquals(postId, createResponse.getPostId());
 	}
 
 	@Test
 	@DisplayName("2. 좋아요 취소 테스트")
 	public void t002() {
-		LikesResponse response = likesService.createLike(testMember.getId(), testPost.getId());
-		assertNotNull(response);
+		// Given First
+		Long firstMemberId = testMember.getId();
+		Long firstPostId = testPost.getId();
 
-		LikesResponse deleteResponse = likesService.deleteLike(testMember.getId(), testPost.getId());
+		// When First
+		CreateLikeResponse createResponse = likesService.createLike(firstMemberId, firstPostId);
+
+		// Then First
+		assertNotNull(createResponse);
+
+		// Given Second
+		Long secondMemberId = createResponse.getMemberId();
+		Long secondPostId = createResponse.getPostId();
+
+		// When Second
+		DeleteLikeResponse deleteResponse = likesService.deleteLike(
+			createResponse.getId(), secondMemberId, secondPostId
+		);
+
+		// Then Second
 		assertNotNull(deleteResponse);
-		assertEquals(testMember.getId(), deleteResponse.getMemberId());
-		assertEquals(testPost.getId(), deleteResponse.getPostId());
+		assertEquals(firstMemberId, deleteResponse.getMemberId());
+		assertEquals(firstPostId, deleteResponse.getPostId());
 	}
 
 	@Test
-	@DisplayName("3. 존재하지 않는 멤버 좋아요 테스트")
+	@DisplayName("3. 존재하지 않는 멤버 좋아요 요청 테스트")
 	public void t003() {
+		// Given
+		Long nonExistMemberId = 99L;
+		Long postId = testPost.getId();
+
+		// When & Then
 		assertThrows(LikesException.class, () -> {
-			likesService.createLike(99L, testPost.getId());
+			likesService.createLike(nonExistMemberId, postId);
 		}, LikesErrorCode.MEMBER_NOT_FOUND.getMessage());
 	}
 
 	@Test
-	@DisplayName("4. 존재하지 않는 게시물 좋아요 테스트")
+	@DisplayName("4. 존재하지 않는 게시물 좋아요 요청 테스트")
 	public void t004() {
+		// Given
+		Long memberId = testMember.getId();
+		Long nonExistPostId = 99L;
+
+		// When & Then
 		assertThrows(LikesException.class, () -> {
-			likesService.createLike(testMember.getId(), 99L);
+			likesService.createLike(memberId, nonExistPostId);
 		}, LikesErrorCode.POST_NOT_FOUND.getMessage());
 	}
 
 	@Test
 	@DisplayName("5. 좋아요 중복 적용 테스트")
 	public void t005() {
-		LikesResponse response = likesService.createLike(testMember.getId(), testPost.getId());
-		assertNotNull(response);
+		// Given First
+		Long firstMemberId = testMember.getId();
+		Long firstPostId = testPost.getId();
 
+		// When First
+		CreateLikeResponse createResponse = likesService.createLike(firstMemberId, firstPostId);
+
+		// Then First
+		assertNotNull(createResponse);
+
+		// Given Second
+		Long secondMemberId = createResponse.getMemberId();
+		Long secondPostId = createResponse.getPostId();
+
+		// When & Then Second
 		assertThrows(LikesException.class, () -> {
-			likesService.createLike(testMember.getId(), testPost.getId());
+			likesService.createLike(secondMemberId, secondPostId);
 		}, LikesErrorCode.ALREADY_LIKED.getMessage());
 	}
 
 	@Test
-	@DisplayName("6. 좋아요가 없는 게시물에 좋아요 취소 테스트")
+	@DisplayName("6. 적용되지 않은 좋아요 취소 테스트")
 	public void t006() {
+		// Given
+		Long nonExistLikeId = 1L;
+		Long memberId = testMember.getId();
+		Long postId = testPost.getId();
+
+		// When & Then
 		assertThrows(LikesException.class, () -> {
-			likesService.deleteLike(testMember.getId(), testPost.getId());
+			likesService.deleteLike(nonExistLikeId, memberId, postId);
 		}, LikesErrorCode.LIKE_NOT_FOUND.getMessage());
 	}
 
+	@Test
+	@DisplayName("7. 좋아요 취소 요청시 다른 유저가 요청하는 테스트")
+	public void t007() {
+		// Given First
+		Long firstMemberId = testMember.getId();
+		Long firstPostid = testPost.getId();
+
+		// When First
+		CreateLikeResponse createResponse = likesService.createLike(firstMemberId, firstPostid);
+
+		// Then First
+		assertNotNull(createResponse);
+
+		// Given Second
+		Long likeId = createResponse.getId();
+		Long anotherMemberId = 5L;
+		Long secondPostId = createResponse.getPostId();
+
+		// When & Then Second
+		assertThrows(LikesException.class, () -> {
+			likesService.deleteLike(likeId, anotherMemberId, secondPostId);
+		}, LikesErrorCode.MEMBER_MISMATCH.getMessage());
+	}
+
+	@Test
+	@DisplayName("8. 다른 게시물 번호의 좋아요 삭제를 요청하는 테스트")
+	public void t008() {
+		// Given First
+		Long firstMemberId = testMember.getId();
+		Long firstPostid = testPost.getId();
+
+		// When First
+		CreateLikeResponse createResponse = likesService.createLike(firstMemberId, firstPostid);
+
+		// Then First
+		assertNotNull(createResponse);
+
+		// Given Second
+		Long likeId = createResponse.getId();
+		Long memberId = createResponse.getMemberId();
+		Long anotherPostId = 5L;
+
+		// When & Then Second
+		assertThrows(LikesException.class, () -> {
+			likesService.deleteLike(likeId, memberId, anotherPostId);
+		}, LikesErrorCode.MEMBER_MISMATCH.getMessage());
+	}
 }
-
-

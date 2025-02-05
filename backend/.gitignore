@@ -233,3 +233,4 @@ gradle-app.setting
 db_dev.mv.db
 db_dev.trace.db
 /src/test/resources/application.yml
+/src/main/resources/application-test.yml
