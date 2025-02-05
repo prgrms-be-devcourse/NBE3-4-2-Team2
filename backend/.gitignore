@@ -227,31 +227,11 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
-### Custon ###
+# End of https://www.toptal.com/developers/gitignore/api/java,gradle,intellij,macos,windows
+
+### Custom ###
 db_dev.mv.db
 db_dev.trace.db
 
-# IntelliJ IDEA 설정 파일
-.idea/
-*.iml
-
-# QueryDSL 빌드 파일 무시
-/build/
-.gradle/
-querydsl/
-**/generated/
-**/generated-sources/
-**/querydsl/
-
-
-# H2, HSQL, SQLite DB 파일
-*.mv.db
-*.h2.db
-*.data.db
-
-# Checkstyle 설정 파일 (필요하면 추가)
-naver-checkstyle-rules.xml
-naver-checkstyle-suppressions.xml
-naver-intellij-formatter.xml
-
 /src/test/resources/application.yml
+/src/main/resources/application-test.yml
