@@ -48,6 +48,4 @@ public class LikesController {
 				RsData.success(deleteLikeResponse, "좋아요가 성공적으로 취소되었습니다.")
 			);
 	}
-
 }
-

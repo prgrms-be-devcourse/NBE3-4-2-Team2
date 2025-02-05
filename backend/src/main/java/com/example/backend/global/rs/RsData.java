@@ -3,7 +3,9 @@ package com.example.backend.global.rs;
 import java.time.LocalDateTime;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 
 /**
  * @author kwak
@@ -12,10 +14,12 @@ import lombok.Builder;
  * 에러 케이스 error
  */
 
+@Getter
+@AllArgsConstructor
 public class RsData<T> {
 	private final LocalDateTime time;
-	private boolean isSuccess;
-	private String message;
+	private final boolean isSuccess;
+	private final String message;
 	private final T data;
 
 	@Builder(access = AccessLevel.PRIVATE)
