@@ -82,6 +82,7 @@ class FeedSchedulerTest {
 			.username("user1")
 			.email("user1@example.com")
 			.password("password")
+			.refreshToken("refresh")
 			.build();
 		memberRepository.save(member);
 
@@ -91,6 +92,7 @@ class FeedSchedulerTest {
 			posts.add(PostEntity.builder()
 				.member(member)
 				.content("Post content" + i)
+				.isDeleted(false)
 				.build());
 		}
 		postRepository.saveAll(posts);

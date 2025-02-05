@@ -22,6 +22,8 @@ public class Feed {
 	private List<String> hashTagList;
 	private List<String> imageUrlList;
 
+	private Long bookmarkId;
+
 	public Feed(PostEntity post, Long likeCount, Long commentCount) {
 		this.post = post;
 		this.likeCount = likeCount;

@@ -11,11 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
+import com.example.backend.global.exception.GlobalException;
+import com.example.backend.identity.member.exception.MemberErrorCode;
 import com.example.backend.social.feed.Feed;
 import com.example.backend.social.feed.dto.FeedInfoResponse;
 import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedRequest;
-import com.example.backend.social.feed.exception.FeedSampleException;
 import com.example.backend.social.feed.implement.FeedSelector;
 import com.example.backend.social.feed.implement.FeedValidator;
 
@@ -47,10 +48,9 @@ public class FeedService {
 	public FeedListResponse findList(FeedRequest request, Long userId) {
 
 		feedValidator.validateRequest(request);
-
-		// 멤버 요청 건에 대한 예외 처리는 다른 도메인에서도 자주 사용될 것으로 예상되므로 우선 샘플 예외로 처리 후 수정
+		
 		MemberEntity member = memberRepository.findById(userId)
-			.orElseThrow(() -> new FeedSampleException("Not Found"));
+			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
 		int followingCount = (int)(request.getMaxSize() * FOLLOWING_FEED_RATE);
 		List<Feed> feedList = feedFinder.findByFollower(member, request.getTimestamp(), request.getLastPostId(),
