@@ -20,8 +20,4 @@ public class BookmarkException extends RuntimeException {
 	public HttpStatus getStatus() {
 		return bookmarkErrorCode.httpStatus;
 	}
-
-	public String getCode() {
-		return bookmarkErrorCode.getCode();
-	}
 }

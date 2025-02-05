@@ -57,5 +57,4 @@ public class MemberEntity extends BaseEntity {
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
 	private List<BookmarkEntity> bookmarkList = new ArrayList<>();
-
 }
