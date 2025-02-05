@@ -10,6 +10,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+/**
+ * 피드 정보 DTO
+ * 요청한 피드에 대한 단건 정보를 담은 객체
+ *
+ * @author ChoiHyunSan
+ * @since 2025-02-03
+ */
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)

@@ -62,9 +62,15 @@ public class FeedSelector {
 			.from(postEntity)
 			.join(postEntity.member)
 			.fetchJoin()
-			.join(followEntity)
+			.leftJoin(followEntity)
 			.on(followEntity.sender.eq(member).and(followEntity.receiver.eq(postEntity.member)))
-			.where(cursor(timestamp, lastPostId))
+			.where(
+				cursor(timestamp, lastPostId)
+					.and(
+						followEntity.id.isNotNull()
+							.or(postEntity.member.eq(member))
+					))
+			.groupBy(postEntity)
 			.orderBy(postEntity.createDate.desc())
 			.limit(limit)
 			.fetch();
@@ -73,6 +79,15 @@ public class FeedSelector {
 		return feeds;
 	}
 
+	/**
+	 * 추천 게시물을 취합하여 반환한다
+	 * 팔로잉 게시물과 member 자신의 게시물은 제외한다
+	 * @param member 요청한 유저의 멤버 Entity 객체
+	 * @param timestamp 가장 최근 받은 게시물의 timestamp
+	 * @param lastTime 추천 게시물을 요청할 범위
+	 * @param limit 추천 게시물 요청 페이징 개수
+	 * @return 피드 리스트
+	 */
 	public List<Feed> findRecommendFinder(final MemberEntity member, final LocalDateTime timestamp,
 		final LocalDateTime lastTime, final int limit) {
 
@@ -83,11 +98,13 @@ public class FeedSelector {
 			.from(postEntity)
 			.join(postEntity.member)
 			.fetchJoin()
-			.where(postEntity.createDate.before(timestamp).and(postEntity.createDate.after(lastTime))
+			.where((postEntity.createDate.before(timestamp).and(postEntity.createDate.after(lastTime))
+				.or(postEntity.createDate.before(timestamp).and(postEntity.createDate.eq(lastTime))))
 				.and(postEntity.member.id.notIn(
 					JPAExpressions.select(followEntity.receiver.id)
 						.from(followEntity)
-						.where(followEntity.sender.eq(member)))))
+						.where(followEntity.sender.eq(member))))
+				.and(postEntity.member.id.notIn(member.getId())))
 			.orderBy(
 				// 좋아요 개수 / 팔로워 수 / 댓글 수에 각각 점수를 매겨서 정렬
 				Expressions.numberTemplate(Double.class,
@@ -113,10 +130,8 @@ public class FeedSelector {
 
 	private void fillFeedData(List<Feed> feeds) {
 
-		// 1. 조회된 Post들의 ID 리스트
 		List<Long> postIds = feeds.stream().map(feed -> feed.getPost().getId()).collect(Collectors.toList());
 
-		// 2. 해시태그 정보 조회
 		Map<Long, List<String>> hashtagsByPostId = queryFactory.select(postHashtagEntity.post.id, hashtagEntity.content)
 			.from(postHashtagEntity)
 			.join(hashtagEntity)
@@ -128,7 +143,6 @@ public class FeedSelector {
 				Collectors.mapping(tuple -> tuple.get(1, String.class),            // content를 리스트로 수집
 					Collectors.toList())));
 
-		// 3. 이미지 URL 정보 조회
 		Map<Long, List<String>> imageUrlsByPostId = queryFactory.select(imageEntity.post.id, imageEntity.imageUrl)
 			.from(imageEntity)
 			.where(imageEntity.post.id.in(postIds))
@@ -138,7 +152,6 @@ public class FeedSelector {
 				Collectors.mapping(tuple -> tuple.get(1, String.class),            // imageUrl을 리스트로 수집
 					Collectors.toList())));
 
-		// 4. Feed 객체에 해시태그와 이미지 URL 정보를 설정
 		feeds.forEach(feed -> {
 			Long postId = feed.getPost().getId();
 			feed.setHashTagList(hashtagsByPostId.getOrDefault(postId, new ArrayList<>()));
@@ -152,8 +165,7 @@ public class FeedSelector {
 			return postEntity.createDate.before(timestamp);
 		}
 
-		return postEntity.createDate.eq(timestamp)
-			.and(postEntity.id.lt(lastPostId))
-			.or(postEntity.createDate.before(timestamp));
+		return postEntity.createDate.loe(timestamp)
+			.and(postEntity.id.lt(lastPostId));
 	}
 }

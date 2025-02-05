@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.HashtagEntity;
@@ -23,6 +24,7 @@ import com.example.backend.entity.PostHashtagRepository;
 import com.example.backend.entity.PostRepository;
 
 @SpringBootTest
+@DirtiesContext
 @Transactional
 class FeedSchedulerTest {
 
@@ -68,6 +70,7 @@ class FeedSchedulerTest {
 	}
 
 	private void clearRepositories() {
+		memberRepository.deleteAll();
 		postRepository.deleteAll();
 		hashtagRepository.deleteAll();
 		postHashtagRepository.deleteAll();
@@ -107,7 +110,7 @@ class FeedSchedulerTest {
 		// 10 ~ 29 해시태그 -> 1번 게시물
 		List<PostHashtagEntity> postHashtags = new ArrayList<>();
 		for (int i = 0; i < 30; i++) {
-			if (i < 5) {
+			if (i < 2) {
 				createPostHashtags(postHashtags, posts, hashtags, i, 3);
 			} else if (i < 10) {
 				createPostHashtags(postHashtags, posts, hashtags, i, 2);
