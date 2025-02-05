@@ -1,5 +1,6 @@
 package com.example.backend.social.feed.implement;
 
+import static com.example.backend.entity.QBookmarkEntity.*;
 import static com.example.backend.entity.QCommentEntity.*;
 import static com.example.backend.entity.QFollowEntity.*;
 import static com.example.backend.entity.QHashtagEntity.*;
@@ -75,7 +76,7 @@ public class FeedSelector {
 			.limit(limit)
 			.fetch();
 
-		fillFeedData(feeds);
+		fillFeedData(feeds, member);
 		return feeds;
 	}
 
@@ -124,11 +125,11 @@ public class FeedSelector {
 		Collections.shuffle(feeds);
 		feeds = feeds.subList(0, Math.min(limit, feeds.size()));
 
-		fillFeedData(feeds);
+		fillFeedData(feeds, member);
 		return feeds;
 	}
 
-	private void fillFeedData(List<Feed> feeds) {
+	private void fillFeedData(List<Feed> feeds, MemberEntity member) {
 
 		List<Long> postIds = feeds.stream().map(feed -> feed.getPost().getId()).collect(Collectors.toList());
 
@@ -152,10 +153,24 @@ public class FeedSelector {
 				Collectors.mapping(tuple -> tuple.get(1, String.class),            // imageUrl을 리스트로 수집
 					Collectors.toList())));
 
+		// TODO : 북마크 ID 추가 (없는 경우에는 -1로 넣는다.)
+		Map<Long, Long> bookmarkByPostId = queryFactory.select(bookmarkEntity.id, bookmarkEntity.post.id)
+			.from(bookmarkEntity)
+			.where(
+				bookmarkEntity.post.id.in(postIds)
+					.and(bookmarkEntity.member.id.eq(member.getId())))
+			.fetch()
+			.stream()
+			.collect(Collectors.toMap(
+				tuple -> tuple.get(bookmarkEntity.post.id),
+				tuple -> tuple.get(bookmarkEntity.id)
+			));
+
 		feeds.forEach(feed -> {
 			Long postId = feed.getPost().getId();
 			feed.setHashTagList(hashtagsByPostId.getOrDefault(postId, new ArrayList<>()));
 			feed.setImageUrlList(imageUrlsByPostId.getOrDefault(postId, new ArrayList<>()));
+			feed.setBookmarkId(bookmarkByPostId.getOrDefault(postId, -1L));
 		});
 
 	}

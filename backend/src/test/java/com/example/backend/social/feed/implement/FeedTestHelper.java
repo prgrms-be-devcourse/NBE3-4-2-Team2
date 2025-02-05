@@ -62,6 +62,7 @@ public class FeedTestHelper {
 				.username("user" + i)
 				.email("user" + i + "@test.com")
 				.password("password" + i)
+				.refreshToken("refresh" + i)
 				.build());
 		}
 		memberRepository.saveAll(members);
@@ -105,6 +106,7 @@ public class FeedTestHelper {
 				posts.add(PostEntity.builder()
 					.content("게시글 " + member.getUsername() + "-" + postIndex)
 					.member(member)
+					.isDeleted(false)
 					.build());
 			}
 		}
