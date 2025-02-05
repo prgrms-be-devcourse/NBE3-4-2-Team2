@@ -37,4 +37,5 @@ public class PostCreateRequest {
 			.isDeleted(false)
 			.build();
 	}
+
 }
