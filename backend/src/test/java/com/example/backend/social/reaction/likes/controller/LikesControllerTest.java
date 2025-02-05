@@ -3,6 +3,8 @@ package com.example.backend.social.reaction.likes.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,6 +73,7 @@ public class LikesControllerTest {
 			.username("testMember")
 			.email("test@gmail.com")
 			.password("testPassword")
+			.refreshToken(UUID.randomUUID().toString())
 			.build();
 		testMember = memberRepository.save(member);
 

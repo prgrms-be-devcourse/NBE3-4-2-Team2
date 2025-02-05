@@ -2,6 +2,8 @@ package com.example.backend.social.reaction.likes.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,6 +65,7 @@ public class LikesServiceTest {
 			.username("testMember")
 			.email("test@gmail.com")
 			.password("testPassword")
+			.refreshToken(UUID.randomUUID().toString())
 			.build();
 		testMember = memberRepository.save(member);
 
