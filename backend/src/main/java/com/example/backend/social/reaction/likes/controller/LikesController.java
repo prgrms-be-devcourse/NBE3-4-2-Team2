@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
-import com.example.backend.social.reaction.likes.dto.LikesRequest;
-import com.example.backend.social.reaction.likes.dto.LikesResponse;
+import com.example.backend.social.reaction.likes.dto.CreateLikeRequest;
+import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
+import com.example.backend.social.reaction.likes.dto.DeleteLikeRequest;
+import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
 import com.example.backend.social.reaction.likes.service.LikesService;
 
 import jakarta.validation.Valid;
@@ -30,21 +32,20 @@ public class LikesController {
 	private final LikesService likesService;
 
 	@PostMapping
-	public ResponseEntity<RsData<LikesResponse>> likePost(@Valid @RequestBody LikesRequest likesRequest) {
-		LikesResponse likesResponse = likesService.createLike(likesRequest.getMemberId(), likesRequest.getPostId());
+	public ResponseEntity<RsData<CreateLikeResponse>> likePost(@Valid @RequestBody CreateLikeRequest createLikeRequest) {
+		CreateLikeResponse createLikeResponse = likesService.createLike(createLikeRequest.getMemberId(), createLikeRequest.getPostId());
 		return ResponseEntity.ok()
 			.body(
-				RsData.success(likesResponse, "좋아요가 성공적으로 적용되었습니다.")
+				RsData.success(createLikeResponse, "좋아요가 성공적으로 적용되었습니다.")
 			);
 	}
 
 	@DeleteMapping
-	public ResponseEntity<RsData<LikesResponse>> unlikePost(@Valid @RequestBody LikesRequest likesRequest) {
-		LikesResponse likesResponse = likesService.deleteLike(likesRequest.getMemberId(), likesRequest.getPostId());
+	public ResponseEntity<RsData<DeleteLikeResponse>> unlikePost(@Valid @RequestBody DeleteLikeRequest deleteLikeRequest) {
+		DeleteLikeResponse deleteLikeResponse = likesService.deleteLike(deleteLikeRequest.getId(), deleteLikeRequest.getMemberId(), deleteLikeRequest.getPostId());
 		return ResponseEntity.ok()
 			.body(
-				RsData.success(likesResponse, "좋아요가 성공적으로 취소되었습니다.")
+				RsData.success(deleteLikeResponse, "좋아요가 성공적으로 취소되었습니다.")
 			);
 	}
-
 }
