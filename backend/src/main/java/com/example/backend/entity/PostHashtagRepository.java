@@ -23,6 +23,40 @@ public interface PostHashtagRepository extends JpaRepository<PostHashtagEntity, 
 		""")
 	void bulkDeleteByHashtagIds(@Param("hashtagIds") List<Long> hashtagIds);
 
-	@Query("DELETE FROM PostHashtagEntity ph WHERE ph.post.id = :postId")
-	void deleteByPostId(@Param("postId") Long postId);
+	/**
+	 * @author kwak
+	 * @since 2025-02-04
+	 */
+	@Query("""
+		SELECT ph FROM PostHashtagEntity ph
+		JOIN FETCH ph.post p
+		JOIN FETCH ph.hashtag h
+		WHERE ph.post.id = :id
+		""")
+	List<PostHashtagEntity> findPostHashtagByPostId(@Param("id") Long postId);
+
+	/**
+	 * @author kwak
+	 * @since 2025-02-04
+	 */
+	@Modifying(clearAutomatically = true)
+	@Query("""
+		DELETE FROM PostHashtagEntity ph
+		WHERE ph.post.id = :postId
+		AND ph.hashtag.content IN :deletedHashtagContents
+		""")
+	void deleteByPostIdAndHashtagContent(
+		@Param("postId") Long postId, @Param("deletedHashtagContents") Set<String> deletedHashtagContents);
+
+	/**
+	 * 연결된 Post 사용할꺼면 추후에 개선 필요
+	 * @author kwak
+	 * @since 2025-02-04
+	 */
+	@Query("""
+		SELECT ph FROM PostHashtagEntity ph
+		JOIN FETCH ph.hashtag h
+		WHERE ph.post.id = :id
+		""")
+	List<PostHashtagEntity> findByPostId(@Param("id") Long id);
 }
