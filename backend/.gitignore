@@ -254,7 +254,4 @@ naver-checkstyle-rules.xml
 naver-checkstyle-suppressions.xml
 naver-intellij-formatter.xml
 
-
-# End of https://www.toptal.com/developers/gitignore/api/java,gradle,intellij,macos,windows
-
 /src/test/resources/application.yml
