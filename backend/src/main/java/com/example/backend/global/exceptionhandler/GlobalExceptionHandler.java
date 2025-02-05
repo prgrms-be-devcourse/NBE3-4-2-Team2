@@ -17,6 +17,7 @@ import com.example.backend.global.error.GlobalErrorCode;
 import com.example.backend.global.exception.GlobalException;
 import com.example.backend.global.rs.ErrorRs;
 import com.example.backend.global.rs.RsData;
+import com.example.backend.social.feed.exception.FeedException;
 import com.example.backend.social.reaction.likes.exception.LikesException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -115,5 +116,15 @@ public class GlobalExceptionHandler {
 		return ResponseEntity
 			.status(ex.getStatus())
 			.body(response);
+	}
+
+	@ExceptionHandler(FeedException.class)
+	public ResponseEntity<RsData<?>> handleFeedException(FeedException ex, HttpServletRequest request) {
+		return ResponseEntity.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(RsData.error(ErrorRs.builder()
+				.target(request.getRequestURI())
+				.code(ex.getErrorCodeIfs().getCode())
+				.message(ex.getErrorDescription())
+				.build()));
 	}
 }
