@@ -37,6 +37,9 @@ public class FeedInfoResponse {
 	// 헤시태그 정보
 	private List<String> hashTagList;
 
+	// 북마크 여부
+	private Long bookmarkId;
+
 	public static FeedInfoResponse toResponse(Feed feed) {
 		return FeedInfoResponse.builder()
 			.authorId(feed.getPost().getMember().getId())
@@ -48,6 +51,7 @@ public class FeedInfoResponse {
 			.commentCount(feed.getCommentCount())
 			.createdDate(feed.getPost().getCreateDate())
 			.hashTagList(feed.getHashTagList())
+			.bookmarkId(feed.getBookmarkId())
 			.build();
 	}
 }
