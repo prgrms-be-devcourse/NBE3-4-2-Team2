@@ -5,6 +5,13 @@ import com.example.backend.global.exception.BackendExceptionIfs;
 
 import lombok.Getter;
 
+/**
+ * FeedException
+ * 피드 관련 예외처리를 담당하는 클래스
+ *
+ * @author ChoiHyunSan
+ * @since 2025-02-03
+ */
 @Getter
 public class FeedException extends RuntimeException implements BackendExceptionIfs {
 

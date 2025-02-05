@@ -21,5 +21,7 @@ public class FeedRequest {
 	private LocalDateTime timestamp;
 	private Long lastPostId;
 	private Integer maxSize;
+
+	// 임시 값
 	private String username;
 }

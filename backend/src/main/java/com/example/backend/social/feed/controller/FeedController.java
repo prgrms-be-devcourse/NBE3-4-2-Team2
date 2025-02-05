@@ -37,6 +37,7 @@ public class FeedController {
 	public ResponseEntity<RsData<FeedListResponse>> findList(
 		@RequestBody FeedRequest request
 	) {
+		// 시큐리티 코드를 병합하기 전에 임시로 사용
 		Long userId = Objects.requireNonNull(
 				queryFactory.selectFrom(memberEntity).where(memberEntity.username.eq(request.getUsername())).fetchOne())
 			.getId();
