@@ -62,9 +62,14 @@ public class FeedSelector {
 			.from(postEntity)
 			.join(postEntity.member)
 			.fetchJoin()
-			.join(followEntity)
+			.leftJoin(followEntity)
 			.on(followEntity.sender.eq(member).and(followEntity.receiver.eq(postEntity.member)))
-			.where(cursor(timestamp, lastPostId))
+			.where(
+				cursor(timestamp, lastPostId)
+					.and(
+						followEntity.id.isNotNull()
+							.or(postEntity.member.eq(member))
+					))
 			.groupBy(postEntity)
 			.orderBy(postEntity.createDate.desc())
 			.limit(limit)
@@ -74,6 +79,15 @@ public class FeedSelector {
 		return feeds;
 	}
 
+	/**
+	 * 추천 게시물을 취합하여 반환한다
+	 * 팔로잉 게시물과 member 자신의 게시물은 제외한다
+	 * @param member
+	 * @param timestamp
+	 * @param lastTime
+	 * @param limit
+	 * @return
+	 */
 	public List<Feed> findRecommendFinder(final MemberEntity member, final LocalDateTime timestamp,
 		final LocalDateTime lastTime, final int limit) {
 
@@ -89,7 +103,8 @@ public class FeedSelector {
 				.and(postEntity.member.id.notIn(
 					JPAExpressions.select(followEntity.receiver.id)
 						.from(followEntity)
-						.where(followEntity.sender.eq(member)))))
+						.where(followEntity.sender.eq(member))))
+				.and(postEntity.member.id.notIn(member.getId())))
 			.orderBy(
 				// 좋아요 개수 / 팔로워 수 / 댓글 수에 각각 점수를 매겨서 정렬
 				Expressions.numberTemplate(Double.class,
