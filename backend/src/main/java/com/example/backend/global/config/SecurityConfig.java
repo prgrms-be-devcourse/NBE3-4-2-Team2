@@ -8,10 +8,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.example.backend.global.rs.RsData;
+import com.example.backend.global.util.Ut;
+import com.example.backend.identity.security.filter.JwtAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  *
@@ -23,7 +30,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 	/**
 	 *
@@ -38,12 +47,64 @@ public class SecurityConfig {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
 			.authorizeHttpRequests((authorizeHttpRequests) ->
-				authorizeHttpRequests.requestMatchers(new AntPathRequestMatcher("/**")).permitAll()
-					.requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll())
+				authorizeHttpRequests
+					.requestMatchers("/h2-console/**")
+					.permitAll()
+					.requestMatchers("/api-v1/members/login", "/api-v1/members/logout", "/api-v1/members/join")
+					.permitAll()
+					.anyRequest()
+					.authenticated()
+			)
 			.csrf((csrf) -> csrf.disable())
 			.headers((headers) ->
 				headers.addHeaderWriter(
-					new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN)));
+					new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN)))
+			.headers(
+				headers ->
+					headers.frameOptions(
+						frameOptions ->
+							frameOptions.sameOrigin()
+					)
+			)
+			.csrf(
+				csrf ->
+					csrf.disable()
+			)
+			.cors(
+				cors->corsConfigurationSource()
+			)
+			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+			// .exceptionHandling(
+			// 	exceptionHandling -> exceptionHandling
+			// 		.authenticationEntryPoint(
+			// 			(request, response, authException) -> {
+			// 				response.setContentType("application/json;charset=UTF-8");
+			//
+			// 				response.setStatus(401);
+			// 				response.getWriter().write(
+			// 					Ut.json.toString(
+			// 						// new RsData("401-1", "사용자 인증정보가 올바르지 않습니다.")
+			// 						RsData.error(
+			// 							"사용자 인증정보가 올바르지 않습니다.")
+			// 					)
+			// 				);
+			// 			}
+			// 		)
+			// 		.accessDeniedHandler(
+			// 			(request, response, accessDeniedException) -> {
+			// 				response.setContentType("application/json;charset=UTF-8");
+			//
+			// 				response.setStatus(403);
+			// 				response.getWriter().write(
+			// 					Ut.json.toString(
+			// 						// new RsData("403-1", "권한이 없습니다.")
+			// 						RsData.error(null, "권한이 없습니다.")
+			// 					)
+			// 				);
+			// 			}
+			// 		)
+			// );
+
 		return http.build();
 	}
 

@@ -19,6 +19,7 @@ import lombok.Setter;
 
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EntityListeners(AuditingEntityListener.class)
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public class BaseEntity {
