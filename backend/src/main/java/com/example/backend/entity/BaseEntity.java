@@ -21,7 +21,6 @@ import lombok.Setter;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @EntityListeners(AuditingEntityListener.class)
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
 public class BaseEntity {
 	@Id
 	@GeneratedValue(strategy = IDENTITY) // AUTO_INCREMENT
