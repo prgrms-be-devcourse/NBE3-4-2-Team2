@@ -84,4 +84,5 @@ public class PostEntity extends BaseEntity {
 	public void addImage(ImageEntity image) {
 		this.images.add(image);
 	}
+
 }
