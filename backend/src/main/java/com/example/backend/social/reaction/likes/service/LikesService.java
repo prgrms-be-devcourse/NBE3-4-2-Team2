@@ -53,7 +53,7 @@ public class LikesService {
 			.orElseThrow(() -> new LikesException(LikesErrorCode.POST_NOT_FOUND));
 
 		// 3. 이미 적용된 좋아요인지 검증
-		if (likesRepository.existByMemberIdAndPostId(memberId, postId)) {
+		if (likesRepository.existsByMemberIdAndPostId(memberId, postId)) {
 			throw new LikesException(LikesErrorCode.ALREADY_LIKED);
 		}
 

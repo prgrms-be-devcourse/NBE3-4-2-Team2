@@ -53,7 +53,7 @@ public class BookmarkService {
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.POST_NOT_FOUND));
 
 		// 3. 이미 등록된 북마크인지 검증
-		if (bookmarkRepository.existByMemberIdAndPostId(memberId, postId)) {
+		if (bookmarkRepository.existsByMemberIdAndPostId(memberId, postId)) {
 			throw new BookmarkException(BookmarkErrorCode.ALREADY_BOOKMARKED);
 		}
 
