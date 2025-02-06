@@ -1,9 +1,7 @@
 package com.example.backend.social.reaction.bookmark.dto;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 
 /**
  * 북마크 생성 Request DTO
@@ -13,12 +11,7 @@ import lombok.Getter;
  * @since 2025-02-04
  */
 @Builder
-@Getter
-@AllArgsConstructor
-public class CreateBookmarkRequest {
-	@NotNull(message = "Member Id는 필수 항목입니다.")
-	private Long memberId;
-
-	@NotNull(message = "Post Id는 필수 항목입니다.")
-	private Long postId;
-}
+public record CreateBookmarkRequest(
+	@NotNull(message = "Member Id는 필수 항목입니다.") Long memberId,
+	@NotNull(message = "Post Id는 필수 항목입니다.") Long postId
+) { }
