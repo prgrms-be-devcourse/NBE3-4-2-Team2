@@ -1,6 +1,7 @@
 package com.example.backend.global.exceptionhandler;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -64,6 +65,12 @@ public class GlobalExceptionHandler {
 				.build();
 
 			errorRsList.add(objectErrorRs);
+		}
+
+		if(errorRsList.size()>1) {
+			errorRsList.sort(Comparator
+				.comparing(ErrorRs::target) // target 기준으로 정렬
+				.thenComparing(ErrorRs::message)); // message 기준으로 정렬
 		}
 
 		return ResponseEntity.badRequest()

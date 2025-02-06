@@ -3,9 +3,7 @@ package com.example.backend.identity;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.aspectj.lang.annotation.Before;
-import org.assertj.core.api.Assertions;
-import org.hamcrest.Matchers;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.global.rs.ErrorRs;
-import com.example.backend.global.rs.RsData;
 import com.example.backend.identity.member.controller.ApiV1MemberController;
-import com.example.backend.identity.member.dto.login.MemberLoginRequest;
 import com.example.backend.identity.member.service.MemberService;
 
 @SpringBootTest
@@ -68,7 +64,7 @@ public class ApiV1MemberControllerTest {
 		resultActions
 			.andExpect(handler().handlerType(ApiV1MemberController.class))
 			.andExpect(handler().methodName("join"))
-			.andExpect(status().isCreated())
+			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getUsername())))
 			.andExpect(jsonPath("$.data").exists())
 			.andExpect(jsonPath("$.data.id").value(member.getId()))
@@ -140,8 +136,7 @@ public class ApiV1MemberControllerTest {
 			.andExpect(handler().handlerType(ApiV1MemberController.class))
 			.andExpect(handler().methodName("join"))
 			.andExpect(status().isConflict())
-			.andExpect(jsonPath("$.data.code").value("409"))
-			.andExpect(jsonPath("$.data.message").value("해당 username은 이미 사용중입니다."))
+			.andExpect(jsonPath("$.message").value("해당 사용자가 이미 존재합니다."))
 			.andExpect(jsonPath("$.success").value(false));
 	}
 
@@ -224,10 +219,9 @@ public class ApiV1MemberControllerTest {
 		resultActions
 			.andExpect(handler().handlerType(ApiV1MemberController.class))
 			.andExpect(handler().methodName("login"))
-			.andExpect(status().isNotFound())
+			.andExpect(status().isUnauthorized())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.data").exists())
-			.andExpect(jsonPath("$.data.message").value("사용자 정보가 존재하지 않습니다."));
+			.andExpect(jsonPath("$.message").value("인증정보가 일치하지 않습니다."));
 	}
 
 	@Test
@@ -252,7 +246,6 @@ public class ApiV1MemberControllerTest {
 			.andExpect(handler().handlerType(ApiV1MemberController.class))
 			.andExpect(handler().methodName("login"))
 			.andExpect(status().isBadRequest())
-			// .andExpect(jsonPath("$.data.code").value(400))
 			.andExpect(jsonPath("$.data[0].message").value("비밀번호를 입력해주세요."))
 			.andExpect(jsonPath("$.success").value(false));
 	}

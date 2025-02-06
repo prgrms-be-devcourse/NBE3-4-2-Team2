@@ -1,7 +1,6 @@
 package com.example.backend.identity.member.controller;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.entity.MemberEntity;
@@ -39,33 +39,25 @@ public class ApiV1MemberController {
 
 	@PostMapping(value = "/join")
 	@Transactional
-	public ResponseEntity<RsData<MemberJoinResponse>> join(
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<MemberJoinResponse> join(
 		@RequestBody @Valid MemberJoinRequest reqBody
 	) {
 		MemberEntity member = memberService.join(reqBody.username(), reqBody.password(), reqBody.email());
 
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(
-					RsData.success(
+		return RsData.success(
 						new MemberJoinResponse(member),
-						"%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getUsername()))
-				);
+						"%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getUsername()));
 	}
 
 
 	@PostMapping("/login")
-	public ResponseEntity<RsData<MemberLoginResponse>> login(
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<MemberLoginResponse> login(
 		@RequestBody @Valid MemberLoginRequest reqBody
 	) {
-		MemberEntity member = memberService.findByUsername(reqBody.username())
-								.orElseThrow(() -> new GlobalException(
-									MemberErrorCode.NOT_FOUND,
-									"사용자 정보가 존재하지 않습니다."
-								));
 
-		if (!memberService.matchPassword(member, reqBody.password()))
-			throw new GlobalException(MemberErrorCode.INVALID_PASSWORD);
-
+		MemberEntity member = memberService.login(reqBody.username(), reqBody.password());
 		String accessToken = memberService.genAccessToken(member);
 
 		rq.setHeader("Authorization", "Bearer " + member.getRefreshToken() + " " + accessToken);
@@ -73,27 +65,28 @@ public class ApiV1MemberController {
 		rq.setCookie("access_token", accessToken);
 		rq.setCookie("refresh_token", member.getRefreshToken());
 
-		return ResponseEntity.ok(RsData.success(
+		return RsData.success(
 			new MemberLoginResponse(member),
 			"%s님 환영합니다.".formatted(member.getUsername())
-		));
+		);
 	}
 
 
 	@DeleteMapping("/logout")
-	public ResponseEntity<RsData<Void>> logout() {
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<Void> logout() {
 		rq.deleteCookie("access_token");
 		rq.deleteCookie("refresh_token");
 
-		return ResponseEntity.ok(RsData.success(
+		return RsData.success(
 			null,
-			"로그아웃 되었습니다."
-		));
+			"로그아웃 되었습니다.");
 	}
 
 
 	@GetMapping("/{id}")
-	public ResponseEntity<RsData<MemberResponse>> publicMemberDetails(@PathVariable("id") long id, @AuthenticationPrincipal SecurityUser securityUser) {
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<MemberResponse> publicMemberDetails(@PathVariable("id") long id, @AuthenticationPrincipal SecurityUser securityUser) {
 		MemberEntity member = memberService.findById(id)
 			.orElseThrow(
 				()-> new GlobalException(
@@ -101,8 +94,7 @@ public class ApiV1MemberController {
 			)
 		);
 
-		return ResponseEntity.ok(
-			RsData.success(
+		return RsData.success(
 				new MemberResponse(
 					member.getId(),
 					member.getUsername(),
@@ -110,8 +102,6 @@ public class ApiV1MemberController {
 					member.getFollowerCount(),
 					member.getFollowingCount()
 				),
-				"%s님의 정보 입니다.".formatted(member.getUsername())
-			)
-		);
+				"%s님의 정보 입니다.".formatted(member.getUsername()));
 	}
 }
