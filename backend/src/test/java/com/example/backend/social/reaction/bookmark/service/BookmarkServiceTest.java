@@ -89,8 +89,8 @@ public class BookmarkServiceTest {
 
 		// Then
 		assertNotNull(createResponse);
-		assertEquals(memberId, createResponse.getMemberId());
-		assertEquals(postId, createResponse.getPostId());
+		assertEquals(memberId, createResponse.memberId());
+		assertEquals(postId, createResponse.postId());
 	}
 
 	@Test
@@ -107,18 +107,18 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long secondMemberId = createResponse.getMemberId();
-		Long secondPostId = createResponse.getPostId();
+		Long secondMemberId = createResponse.memberId();
+		Long secondPostId = createResponse.postId();
 
 		// When Second
 		DeleteBookmarkResponse deleteResponse = bookmarkService.deleteBookmark(
-			createResponse.getId(), secondMemberId, secondPostId
+			createResponse.id(), secondMemberId, secondPostId
 		);
 
 		// Then Second
 		assertNotNull(deleteResponse);
-		assertEquals(firstMemberId, deleteResponse.getMemberId());
-		assertEquals(firstPostId, deleteResponse.getPostId());
+		assertEquals(firstMemberId, deleteResponse.memberId());
+		assertEquals(firstPostId, deleteResponse.postId());
 	}
 
 	@Test
@@ -161,8 +161,8 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long secondMemberId = createResponse.getMemberId();
-		Long secondPostId = createResponse.getPostId();
+		Long secondMemberId = createResponse.memberId();
+		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
 		assertThrows(BookmarkException.class, () -> {
@@ -198,9 +198,9 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long bookmarkId = createResponse.getId();
+		Long bookmarkId = createResponse.id();
 		Long anotherMemberId = 5L;
-		Long secondPostId = createResponse.getPostId();
+		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
 		assertThrows(BookmarkException.class, () -> {
@@ -222,8 +222,8 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long bookmarkId = createResponse.getId();
-		Long memberId = createResponse.getMemberId();
+		Long bookmarkId = createResponse.id();
+		Long memberId = createResponse.memberId();
 		Long anotherPostId = 5L;
 
 		// When & Then Second

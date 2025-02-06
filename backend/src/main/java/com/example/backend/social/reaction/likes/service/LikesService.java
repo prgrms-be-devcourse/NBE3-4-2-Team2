@@ -44,23 +44,23 @@ public class LikesService {
 	 */
 	@Transactional
 	public CreateLikeResponse createLike(Long memberId, Long postId) {
-		// 1. 멤버가 존재하는지 검증
+		// 1. 멤버가 존재하는지 검증하고 엔티티 가져오기
 		MemberEntity member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new LikesException(LikesErrorCode.MEMBER_NOT_FOUND));
 
-		// 2. 게시물이 존재하는지 검증
+		// 2. 게시물이 존재하는지 검증하고 엔티티 가져오기
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new LikesException(LikesErrorCode.POST_NOT_FOUND));
 
 		// 3. 이미 적용된 좋아요인지 검증
-		if (likesRepository.findByMemberIdAndPostId(memberId, postId).isPresent()) {
+		if (likesRepository.existByMemberIdAndPostId(memberId, postId)) {
 			throw new LikesException(LikesErrorCode.ALREADY_LIKED);
 		}
 
 		// 4. id 및 생성 날짜를 포함하기 위해 build
-		LikesEntity like = new LikesEntity(member, post);
+		LikesEntity like = LikesEntity.create(member, post);
 
-		// 생성 로직
+		// 5. 생성 로직
 		likesRepository.save(like);
 
 		return CreateLikeResponse.toResponse(like);
@@ -80,16 +80,16 @@ public class LikesService {
 			.orElseThrow(() -> new LikesException(LikesErrorCode.LIKE_NOT_FOUND));
 
 		// 2. 좋아요의 멤버 ID와 요청한 멤버 ID가 동일한지 검증
-		if (!like.getMember().getId().equals(memberId)) {
+		if (!like.getMemberId().equals(memberId)) {
 			throw new LikesException(LikesErrorCode.MEMBER_MISMATCH);
 		}
 
 		// 3. 좋아요의 게시물 ID와 요청한 게시물 ID가 동일한지 검증
-		if (!like.getPost().getId().equals(postId)) {
+		if (!like.getPostId().equals(postId)) {
 			throw new LikesException(LikesErrorCode.POST_MISMATCH);
 		}
 
-		// 삭제 로직
+		// 4. 삭제 로직
 		likesRepository.delete(like);
 
 		return DeleteLikeResponse.toResponse(like);

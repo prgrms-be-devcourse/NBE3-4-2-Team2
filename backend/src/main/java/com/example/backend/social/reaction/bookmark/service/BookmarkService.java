@@ -44,23 +44,23 @@ public class BookmarkService {
 	 */
 	@Transactional
 	public CreateBookmarkResponse createBookmark(Long memberId, Long postId) {
-		// 1. 멤버가 존재하는지 검증
+		// 1. 멤버가 존재하는지 검증하고 엔티티 가져오기
 		MemberEntity member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.MEMBER_NOT_FOUND));
 
-		// 2. 게시물이 존재하는지 검증
+		// 2. 게시물이 존재하는지 검증하고 엔티티 가져오기
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.POST_NOT_FOUND));
 
 		// 3. 이미 등록된 북마크인지 검증
-		if (bookmarkRepository.findByMemberIdAndPostId(memberId, postId).isPresent()) {
+		if (bookmarkRepository.existByMemberIdAndPostId(memberId, postId)) {
 			throw new BookmarkException(BookmarkErrorCode.ALREADY_BOOKMARKED);
 		}
 
 		// 4. id 및 생성 날짜를 포함하기 위해 build
-		BookmarkEntity bookmark = new BookmarkEntity(member, post);
+		BookmarkEntity bookmark = BookmarkEntity.create(member, post);
 
-		// 생성 로직
+		// 5. 생성 로직
 		bookmarkRepository.save(bookmark);
 
 		return CreateBookmarkResponse.toResponse(bookmark);
@@ -80,16 +80,16 @@ public class BookmarkService {
 			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.BOOKMARK_NOT_FOUND));
 
 		// 2. 북마크의 멤버 ID와 요청한 멤버 ID가 동일한지 검증
-		if (!bookmark.getMember().getId().equals(memberId)) {
+		if (!bookmark.getMemberId().equals(memberId)) {
 			throw new BookmarkException(BookmarkErrorCode.MEMBER_MISMATCH);
 		}
 
 		// 3. 북마크의 게시물 ID와 요청한 게시물 ID가 동일한지 검증
-		if (!bookmark.getPost().getId().equals(postId)) {
+		if (!bookmark.getPostId().equals(postId)) {
 			throw new BookmarkException(BookmarkErrorCode.POST_MISMATCH);
 		}
 
-		// 삭제 로직
+		// 4. 삭제 로직
 		bookmarkRepository.delete(bookmark);
 
 		return DeleteBookmarkResponse.toResponse(bookmark);
