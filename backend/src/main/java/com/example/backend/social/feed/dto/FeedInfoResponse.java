@@ -3,8 +3,6 @@ package com.example.backend.social.feed.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.backend.social.feed.Feed;
-
 import lombok.Builder;
 
 /**
@@ -34,18 +32,4 @@ public record FeedInfoResponse(
 	// 북마크 여부
 	Long bookmarkId
 ) {
-	public static FeedInfoResponse toResponse(Feed feed) {
-		return FeedInfoResponse.builder()
-			.authorId(feed.getPost().getMember().getId())
-			.authorName(feed.getPost().getMember().getUsername())
-			.imgUrlList(feed.getImageUrlList())
-			.postId(feed.getPost().getId())
-			.content(feed.getPost().getContent())
-			.likesCount(feed.getLikeCount())
-			.commentCount(feed.getCommentCount())
-			.createdDate(feed.getPost().getCreateDate())
-			.hashTagList(feed.getHashTagList())
-			.bookmarkId(feed.getBookmarkId())
-			.build();
-	}
 }

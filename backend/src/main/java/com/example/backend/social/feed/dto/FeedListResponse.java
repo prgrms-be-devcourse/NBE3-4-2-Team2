@@ -18,4 +18,13 @@ public record FeedListResponse(
 	LocalDateTime lastTimestamp,    // 마지막 피드의 timestamp
 	Long lastPostId                // 마지막 피드의 id
 ) {
+
+	public static FeedListResponse create(
+		List<FeedInfoResponse> feedList, LocalDateTime lastTimestamp, Long lastPostId) {
+		return FeedListResponse.builder()
+			.feedList(feedList)
+			.lastPostId(lastPostId)
+			.lastTimestamp(lastTimestamp)
+			.build();
+	}
 }

@@ -14,6 +14,7 @@ import com.example.backend.entity.MemberRepository;
 import com.example.backend.global.exception.GlobalException;
 import com.example.backend.identity.member.exception.MemberErrorCode;
 import com.example.backend.social.feed.Feed;
+import com.example.backend.social.feed.converter.FeedConverter;
 import com.example.backend.social.feed.dto.FeedInfoResponse;
 import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedRequest;
@@ -37,6 +38,7 @@ public class FeedService {
 	private final FeedSelector feedFinder;
 	private final MemberRepository memberRepository;
 	private final FeedValidator feedValidator;
+	private final FeedConverter feedConverter;
 
 	/**
 	 * Feed 요청 시에 적절한 게시물을 취합하여 반환하는 메서드
@@ -73,14 +75,16 @@ public class FeedService {
 		feedList.addAll(recommendFeedList);
 
 		List<FeedInfoResponse> feedDtoList = feedList.stream()
-			.sorted(Comparator.comparing((Feed feed) -> feed.getPost().getCreateDate()).reversed())
-			.map(FeedInfoResponse::toResponse)
+			.sorted(Comparator.comparing(
+				(Feed feed) -> feed.getPost().getCreateDate()).reversed()
+			)
+			.map(feedConverter::toFeedInfoResponse)
 			.toList();
 
-		return FeedListResponse.builder()
-			.feedList(feedDtoList)
-			.lastPostId(lastPostId)
-			.lastTimestamp(lastTime)
-			.build();
+		return FeedListResponse.create(
+			feedDtoList,
+			lastTime,
+			lastPostId
+		);
 	}
 }
