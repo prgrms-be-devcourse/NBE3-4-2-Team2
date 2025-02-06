@@ -1,6 +1,6 @@
 package com.example.backend.entity;
 
-import static com.example.backend.entity.QBookmarkEntity.*;
+import static com.example.backend.entity.QLikesEntity.*;
 
 import org.springframework.stereotype.Repository;
 
@@ -17,10 +17,10 @@ public class LikesRepositoryImpl implements LikesRepositoryCustom {
 	@Override
 	public boolean existsByMemberIdAndPostId(Long memberId, Long postId) {
 		Long count = queryFactory
-			.select(bookmarkEntity.count())
-			.from(bookmarkEntity)
-			.where(bookmarkEntity.member.id.eq(memberId)
-				.and(bookmarkEntity.post.id.eq(postId)))
+			.select(likesEntity.count())
+			.from(likesEntity)
+			.where(likesEntity.member.id.eq(memberId)
+				.and(likesEntity.post.id.eq(postId)))
 			.fetchOne();
 
 		return count != null && count > 0;
