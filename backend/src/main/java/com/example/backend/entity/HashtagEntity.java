@@ -37,14 +37,17 @@ public class HashtagEntity {
 	@Column(nullable = false)
 	private LocalDateTime lastUsedAt;
 
-	@Column(nullable = false)
-	private boolean isDeleted;
-
 	@Builder
-	public HashtagEntity(String content) {
+	protected HashtagEntity(String content) {
 		validateContent(content);
 		this.content = content;
 		this.lastUsedAt = LocalDateTime.now();
+	}
+
+	public static HashtagEntity create(String content) {
+		return HashtagEntity.builder()
+			.content(content)
+			.build();
 	}
 
 	private void validateContent(String content) {

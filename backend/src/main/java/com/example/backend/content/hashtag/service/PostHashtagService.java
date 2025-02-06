@@ -25,21 +25,12 @@ public class PostHashtagService {
 	private final HashtagService hashtagService;
 	private final PostHashtagRepository postHashtagRepository;
 
-	public List<PostHashtagEntity> create(PostEntity post, Set<String> contents) {
+	public void create(PostEntity post, Set<String> contents) {
 		List<HashtagEntity> hashtags = contents.stream()
 			.map(hashtagService::createIfNotExists)
-			.collect(Collectors.toList());
+			.toList();
 
-		List<PostHashtagEntity> postHashtags = hashtags.stream()
-			.map(hashtag ->
-				PostHashtagEntity.builder()
-					.post(post)
-					.hashtag(hashtag)
-					.build()
-			).collect(Collectors.toList());
-
-		return postHashtagRepository.saveAll(postHashtags);
-
+		postHashtagRepository.bulkInsert(post, hashtags);
 	}
 
 	public void deleteByHashtagIds(List<Long> oldHashtagIds) {
@@ -78,4 +69,5 @@ public class PostHashtagService {
 			create(post, updatedHashtags);
 		}
 	}
+
 }

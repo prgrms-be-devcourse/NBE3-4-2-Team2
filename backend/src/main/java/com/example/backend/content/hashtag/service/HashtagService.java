@@ -27,13 +27,13 @@ public class HashtagService {
 	private final HashtagUsageCollector collector;
 
 	public HashtagEntity createIfNotExists(String content) {
+
 		HashtagEntity hashtag = hashtagRepository.findByContent(content)
 			.orElseGet(() -> hashtagRepository.save(
-				HashtagEntity.builder()
-					.content(content)
-					.build()
-			));
+				HashtagEntity.create(content)));
+
 		collector.addUsageStorage(hashtag.getId());
+
 		return hashtag;
 	}
 
