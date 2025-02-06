@@ -89,8 +89,8 @@ public class LikesServiceTest {
 
 		// Then
 		assertNotNull(createResponse);
-		assertEquals(memberId, createResponse.getMemberId());
-		assertEquals(postId, createResponse.getPostId());
+		assertEquals(memberId, createResponse.memberId());
+		assertEquals(postId, createResponse.postId());
 	}
 
 	@Test
@@ -107,18 +107,18 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long secondMemberId = createResponse.getMemberId();
-		Long secondPostId = createResponse.getPostId();
+		Long secondMemberId = createResponse.memberId();
+		Long secondPostId = createResponse.postId();
 
 		// When Second
 		DeleteLikeResponse deleteResponse = likesService.deleteLike(
-			createResponse.getId(), secondMemberId, secondPostId
+			createResponse.id(), secondMemberId, secondPostId
 		);
 
 		// Then Second
 		assertNotNull(deleteResponse);
-		assertEquals(firstMemberId, deleteResponse.getMemberId());
-		assertEquals(firstPostId, deleteResponse.getPostId());
+		assertEquals(firstMemberId, deleteResponse.memberId());
+		assertEquals(firstPostId, deleteResponse.postId());
 	}
 
 	@Test
@@ -161,8 +161,8 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long secondMemberId = createResponse.getMemberId();
-		Long secondPostId = createResponse.getPostId();
+		Long secondMemberId = createResponse.memberId();
+		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
 		assertThrows(LikesException.class, () -> {
@@ -198,9 +198,9 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long likeId = createResponse.getId();
+		Long likeId = createResponse.id();
 		Long anotherMemberId = 5L;
-		Long secondPostId = createResponse.getPostId();
+		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
 		assertThrows(LikesException.class, () -> {
@@ -222,8 +222,8 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long likeId = createResponse.getId();
-		Long memberId = createResponse.getMemberId();
+		Long likeId = createResponse.id();
+		Long memberId = createResponse.memberId();
 		Long anotherPostId = 5L;
 
 		// When & Then Second

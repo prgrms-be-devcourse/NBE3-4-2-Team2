@@ -168,9 +168,11 @@ public class FeedSelector {
 
 		feeds.forEach(feed -> {
 			Long postId = feed.getPost().getId();
-			feed.setHashTagList(hashtagsByPostId.getOrDefault(postId, new ArrayList<>()));
-			feed.setImageUrlList(imageUrlsByPostId.getOrDefault(postId, new ArrayList<>()));
-			feed.setBookmarkId(bookmarkByPostId.getOrDefault(postId, -1L));
+			feed.fillData(
+				hashtagsByPostId.getOrDefault(postId, new ArrayList<>()),
+				imageUrlsByPostId.getOrDefault(postId, new ArrayList<>()),
+				bookmarkByPostId.getOrDefault(postId, -1L)
+			);
 		});
 
 	}

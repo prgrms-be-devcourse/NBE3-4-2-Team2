@@ -57,6 +57,9 @@ dependencies {
 
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+	// apache commons
+	implementation 'org.apache.commons:commons-collections4:4.4'
+
 	compileJava.options.encoding = 'UTF-8'
 	compileTestJava.options.encoding = 'UTF-8'
 }

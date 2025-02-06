@@ -18,10 +18,9 @@ import lombok.Getter;
 @Getter
 public enum FeedErrorCode implements ErrorCodeIfs {
 
-	WRONG_TIMESTAMP_REQUEST(HttpStatus.BAD_REQUEST, 400, "유효하지 않은 타임스탬프입니다."),
-	WRONG_MAXSIZE_REQUEST(HttpStatus.BAD_REQUEST, 400, "유효하지 않은 범위의 요청 개수입니다.");
+	INVALID_TIMESTAMP_REQUEST(HttpStatus.BAD_REQUEST, "유효하지 않은 타임스탬프입니다."),
+	INVALID_MAXSIZE_REQUEST(HttpStatus.BAD_REQUEST, "유효하지 않은 범위의 요청 개수입니다.");
 
 	private final HttpStatus httpStatus;
-	private final Integer code;
 	private final String description;
 }

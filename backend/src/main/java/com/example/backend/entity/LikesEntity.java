@@ -14,7 +14,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -39,10 +38,24 @@ public class LikesEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private MemberEntity member;
 
-	@Builder
-	public LikesEntity(MemberEntity member, PostEntity post) {
+	public LikesEntity(
+		MemberEntity member, PostEntity post, LocalDateTime createDate
+	) {
 		this.member = member;
 		this.post = post;
 		this.createDate = LocalDateTime.now();
+	}
+
+	// 정적 팩토리 메서드
+	public static LikesEntity create(MemberEntity member, PostEntity post) {
+		return new LikesEntity(member, post, LocalDateTime.now());
+	}
+
+	public Long getMemberId() {
+		return member.getId();
+	}
+
+	public Long getPostId() {
+		return post.getId();
 	}
 }
