@@ -32,20 +32,24 @@ public class LikesController {
 	private final LikesService likesService;
 
 	@PostMapping
-	public ResponseEntity<RsData<CreateLikeResponse>> likePost(@Valid @RequestBody CreateLikeRequest createLikeRequest) {
-		CreateLikeResponse createLikeResponse = likesService.createLike(createLikeRequest.getMemberId(), createLikeRequest.getPostId());
+	public ResponseEntity<RsData<CreateLikeResponse>> likePost(@Valid @RequestBody CreateLikeRequest createRequest) {
+		CreateLikeResponse createResponse = likesService.createLike(
+			createRequest.memberId(), createRequest.postId()
+		);
 		return ResponseEntity.ok()
 			.body(
-				RsData.success(createLikeResponse, "좋아요가 성공적으로 적용되었습니다.")
+				RsData.success(createResponse, "좋아요가 성공적으로 적용되었습니다.")
 			);
 	}
 
 	@DeleteMapping
-	public ResponseEntity<RsData<DeleteLikeResponse>> unlikePost(@Valid @RequestBody DeleteLikeRequest deleteLikeRequest) {
-		DeleteLikeResponse deleteLikeResponse = likesService.deleteLike(deleteLikeRequest.getId(), deleteLikeRequest.getMemberId(), deleteLikeRequest.getPostId());
+	public ResponseEntity<RsData<DeleteLikeResponse>> unlikePost(@Valid @RequestBody DeleteLikeRequest deleteRequest) {
+		DeleteLikeResponse deleteResponse = likesService.deleteLike(
+			deleteRequest.id(), deleteRequest.memberId(), deleteRequest.postId()
+		);
 		return ResponseEntity.ok()
 			.body(
-				RsData.success(deleteLikeResponse, "좋아요가 성공적으로 취소되었습니다.")
+				RsData.success(deleteResponse, "좋아요가 성공적으로 취소되었습니다.")
 			);
 	}
 }

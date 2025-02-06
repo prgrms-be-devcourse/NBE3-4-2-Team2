@@ -40,9 +40,21 @@ public class LikesEntity {
 	private MemberEntity member;
 
 	@Builder
-	public LikesEntity(MemberEntity member, PostEntity post) {
-		this.member = member;
-		this.post = post;
+	public LikesEntity(Long memberId, Long postId) {
+		this.member = new MemberEntity();
+		this.member.setId(memberId);
+
+		this.post = new PostEntity();
+		this.post.setId(postId);
+
 		this.createDate = LocalDateTime.now();
+	}
+
+	public Long getMemberId() {
+		return member != null ? member.getId() : null;
+	}
+
+	public Long getPostId() {
+		return post != null ? post.getId() : null;
 	}
 }

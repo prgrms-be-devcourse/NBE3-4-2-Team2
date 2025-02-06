@@ -32,20 +32,24 @@ public class BookmarkController {
 	private final BookmarkService bookmarkService;
 
 	@PostMapping
-	public ResponseEntity<RsData<CreateBookmarkResponse>> addBookmarkPost(@Valid @RequestBody CreateBookmarkRequest createBookmarkRequest) {
-		CreateBookmarkResponse createBookmarkResponse = bookmarkService.createBookmark(createBookmarkRequest.getMemberId(), createBookmarkRequest.getPostId());
+	public ResponseEntity<RsData<CreateBookmarkResponse>> addBookmarkPost(@Valid @RequestBody CreateBookmarkRequest createRequest) {
+		CreateBookmarkResponse createResponse = bookmarkService.createBookmark(
+			createRequest.memberId(), createRequest.postId()
+		);
 		return ResponseEntity.ok()
 			.body(
-				RsData.success(createBookmarkResponse, "북마크가 성공적으로 추가되었습니다.")
+				RsData.success(createResponse, "북마크가 성공적으로 추가되었습니다.")
 			);
 	}
 
 	@DeleteMapping
-	public ResponseEntity<RsData<DeleteBookmarkResponse>> removeBookmarkPost(@Valid @RequestBody DeleteBookmarkRequest deleteBookmarkRequest) {
-		DeleteBookmarkResponse deleteBookmarkResponse = bookmarkService.deleteBookmark(deleteBookmarkRequest.getId(), deleteBookmarkRequest.getMemberId(), deleteBookmarkRequest.getPostId());
+	public ResponseEntity<RsData<DeleteBookmarkResponse>> removeBookmarkPost(@Valid @RequestBody DeleteBookmarkRequest deleteRequest) {
+		DeleteBookmarkResponse deleteResponse = bookmarkService.deleteBookmark(
+			deleteRequest.id(), deleteRequest.memberId(), deleteRequest.postId()
+		);
 		return ResponseEntity.ok()
 			.body(
-				RsData.success(deleteBookmarkResponse, "북마크가 성공적으로 제거되었습니다.")
+				RsData.success(deleteResponse, "북마크가 성공적으로 제거되었습니다.")
 			);
 	}
 }
