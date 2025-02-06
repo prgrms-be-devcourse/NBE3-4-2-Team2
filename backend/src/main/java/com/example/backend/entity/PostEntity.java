@@ -58,6 +58,7 @@ public class PostEntity extends BaseEntity {
 	 * @param content 변경할 게시물 내용
 	 */
 	@Column(nullable = false)
+	@Builder.Default
 	private Boolean isDeleted = false; // true : 삭제, false : 활성
 
 	public void deleteContent() {
