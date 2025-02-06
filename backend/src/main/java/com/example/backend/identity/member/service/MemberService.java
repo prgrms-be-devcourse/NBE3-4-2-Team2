@@ -86,7 +86,19 @@ public class MemberService {
 	}
 
 
-	public boolean matchPassword(MemberEntity member, String password) {
-		return passwordEncoder.matches(password, member.getPassword());
+
+	public MemberEntity login(String username, String password) {
+		// Username
+		MemberEntity member = memberRepository.findByUsername(username).orElseThrow(
+			() -> new GlobalException(MemberErrorCode.UNAUTHORIZED)
+		);
+
+		// Password
+		boolean isMatched = passwordEncoder.matches(password, member.getPassword());
+		if(!isMatched) {
+			throw new GlobalException(MemberErrorCode.UNAUTHORIZED);
+		}
+
+		return member;
 	}
 }
