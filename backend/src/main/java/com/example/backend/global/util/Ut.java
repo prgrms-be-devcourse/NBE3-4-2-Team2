@@ -7,6 +7,7 @@ import javax.crypto.SecretKey;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -20,7 +21,7 @@ public class Ut {
 	}
 
 	public static class json {
-		private static final ObjectMapper om = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+		private static final ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule()).setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
 		@SneakyThrows
 		public static String toString(Object obj) {
