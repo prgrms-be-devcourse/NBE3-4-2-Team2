@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
 		BindingResult bindingResult = ex.getBindingResult();
 		List<ErrorRs> errorRsList = new ArrayList<>();
 		String description = GlobalErrorCode.VALIDATION_FAILED.getDescription();
-		Integer code = GlobalErrorCode.VALIDATION_FAILED.getCode();
+		Integer code = GlobalErrorCode.VALIDATION_FAILED.getHttpStatus().value();
 
 		for (FieldError error : bindingResult.getFieldErrors()) {
 			ErrorRs fieldErrorRs = ErrorRs.builder()
@@ -79,7 +79,7 @@ public class GlobalExceptionHandler {
 		Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
 		List<ErrorRs> errorRsList = new ArrayList<>();
 		String description = GlobalErrorCode.VALIDATION_FAILED.getDescription();
-		Integer code = GlobalErrorCode.VALIDATION_FAILED.getCode();
+		Integer code = GlobalErrorCode.VALIDATION_FAILED.getHttpStatus().value();
 
 		for (ConstraintViolation<?> constraintViolation : constraintViolations) {
 			ErrorRs constraintErrorRs = ErrorRs.builder()
@@ -95,17 +95,14 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(GlobalException.class)
-	public ResponseEntity<RsData<ErrorRs>> handleGlobalException(GlobalException ex,
+	public ResponseEntity<RsData<?>> handleGlobalException(GlobalException ex,
 		HttpServletRequest request) {
 
-		log.error("globalException", ex);
+		RsData<?> response = RsData.error(null, ex.getMessage());
 
-		return ResponseEntity.status(ex.getErrorCodeIfs().getHttpStatus())
-			.body(RsData.error(ErrorRs.builder()
-				.target(request.getRequestURI())
-				.code(ex.getErrorCodeIfs().getCode())
-				.message(ex.getErrorDescription())
-				.build()));
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
 	}
 
 	@ExceptionHandler(LikesException.class)
@@ -126,18 +123,18 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(FeedException.class)
 	public ResponseEntity<RsData<?>> handleFeedException(FeedException ex, HttpServletRequest request) {
-		return ResponseEntity.status(ex.getErrorCodeIfs().getHttpStatus())
-			.body(RsData.error(ErrorRs.builder()
-				.target(request.getRequestURI())
-				.code(ex.getErrorCodeIfs().getCode())
-				.message(ex.getErrorDescription())
-				.build(), ex.getErrorDescription()));
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
 	}
 
 	@ExceptionHandler(PostException.class)
-	public ResponseEntity<String> handlePostException(PostException ex) {
-		return ResponseEntity.status(ex.getHttpStatus())
-			.body(ex.getMessage());
+	public ResponseEntity<RsData<?>> handlePostException(PostException ex) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getHttpStatus())
+			.body(response);
 	}
 
 	@ExceptionHandler(UsernameNotFoundException.class)
