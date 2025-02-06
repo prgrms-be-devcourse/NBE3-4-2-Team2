@@ -55,8 +55,8 @@ public class FeedService {
 			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
 		int followingCount = (int)(request.maxSize() * FOLLOWING_FEED_RATE);
-		List<Feed> feedList = feedFinder.findByFollower(member, request.timestamp(), request.lastPostId(),
-			followingCount);
+		List<Feed> feedList = feedFinder.findByFollower(
+			member, request.timestamp(), request.lastPostId(), followingCount);
 
 		LocalDateTime lastTime = feedList.isEmpty()
 			? request.timestamp().minusDays(RECOMMEND_SEARCH_DATE_RANGE)

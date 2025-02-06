@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.social.feed.Feed;
 import com.example.backend.social.feed.schedular.FeedScheduler;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -67,13 +68,10 @@ public class FeedSelector {
 			.join(postEntity.member)
 			.fetchJoin()
 			.leftJoin(followEntity)
-			.on(
-				followEntity.sender.eq(member)
-					.and(followEntity.receiver.eq(postEntity.member)))
+			.on(membersFollowingPost(member))
 			.where(
-				afterLastPost(lastPostId)
-					.and(followEntity.id.isNotNull()
-						.or(postEntity.member.eq(member))))
+				findPostsBeforeId(lastPostId)
+					.and(isFollowingOrOwnPost(member)))
 			.groupBy(postEntity)
 			.orderBy(postEntity.createDate.desc())
 			.limit(limit)
@@ -87,12 +85,12 @@ public class FeedSelector {
 	 * 추천 게시물을 취합하여 반환한다
 	 * 팔로잉 게시물과 member 자신의 게시물은 제외한다
 	 * @param member 요청한 유저의 멤버 Entity 객체
-	 * @param timestamp 가장 최근 받은 게시물의 timestamp
+	 * @param startTime 가장 최근 받은 추천 게시물의 timestamp
 	 * @param lastTime 추천 게시물을 요청할 범위
 	 * @param limit 추천 게시물 요청 페이징 개수
 	 * @return 피드 리스트
 	 */
-	public List<Feed> findRecommendFinder(final MemberEntity member, final LocalDateTime timestamp,
+	public List<Feed> findRecommendFinder(final MemberEntity member, final LocalDateTime startTime,
 		final LocalDateTime lastTime, final int limit) {
 
 		// 이거로 구할 수 있는 것 => 좋아요 개수가 많은 순, 댓글 수가 많은 순으로 구할 수 있다.
@@ -102,25 +100,10 @@ public class FeedSelector {
 			.from(postEntity)
 			.join(postEntity.member)
 			.fetchJoin()
-			.where((postEntity.createDate.before(timestamp).and(postEntity.createDate.after(lastTime))
-				.or(postEntity.createDate.before(timestamp).and(postEntity.createDate.eq(lastTime))))
-				.and(postEntity.member.id.notIn(
-					JPAExpressions.select(followEntity.receiver.id)
-						.from(followEntity)
-						.where(followEntity.sender.eq(member))))
-				.and(postEntity.member.id.notIn(member.getId())))
-			.orderBy(
-				// 좋아요 개수 / 팔로워 수 / 댓글 수에 각각 점수를 매겨서 정렬
-				Expressions.numberTemplate(Double.class,
-						"(select count(*) * 3 from LikesEntity l where l.post.id = {0}) + "
-							+ "(select count(*) * 2 from FollowEntity f where f.receiver.id = {1}) + "
-							+ "(select count(*) from CommentEntity c where c.post.id = {0}) + "
-							+ "(select case when count(*) > 0 then 3 else 0 end "
-							+ "from PostHashtagEntity ph where ph.post.id = {0} and ph.hashtag.id in ({2}))",
-						postEntity.id,
-						postEntity.member.id,
-						scheduler.getPopularHashtagList())
-					.desc())
+			.where(
+				findByDateBetweenExclusiveStart(startTime, lastTime)
+					.and(isRecommendableToMember(member)))
+			.orderBy(calculatePostPopularityScore())
 			.limit(limit * RECOMMEND_RANDOM_POOL_MULTIPLIER)
 			.fetch();
 
@@ -155,7 +138,7 @@ public class FeedSelector {
 			.collect(Collectors.groupingBy(tuple -> tuple.get(0, Long.class),    // postId로 그룹핑
 				Collectors.mapping(tuple -> tuple.get(1, String.class),            // imageUrl을 리스트로 수집
 					Collectors.toList())));
-		
+
 		Map<Long, Long> bookmarkByPostId = queryFactory.select(bookmarkEntity.id, bookmarkEntity.post.id)
 			.from(bookmarkEntity)
 			.where(
@@ -179,6 +162,51 @@ public class FeedSelector {
 
 	}
 
+	// 좋아요 개수 / 팔로워 수 / 댓글 수에 각각 점수를 매겨서 정렬
+	private OrderSpecifier<Double> calculatePostPopularityScore() {
+		return Expressions.numberTemplate(Double.class,
+				"(select count(*) * 3 from LikesEntity l where l.post.id = {0}) + "
+					+ "(select count(*) * 2 from FollowEntity f where f.receiver.id = {1}) + "
+					+ "(select count(*) from CommentEntity c where c.post.id = {0}) + "
+					+ "(select case when count(*) > 0 then 3 else 0 end "
+					+ "from PostHashtagEntity ph where ph.post.id = {0} and ph.hashtag.id in ({2}))",
+				postEntity.id,
+				postEntity.member.id,
+				scheduler.getPopularHashtagList())
+			.desc();
+	}
+
+	private static BooleanExpression findByDateBetweenExclusiveStart(LocalDateTime startTime, LocalDateTime lastTime) {
+		return postEntity.createDate.before(startTime)
+			.and(postEntity.createDate.goe(lastTime));
+	}
+
+	private static BooleanExpression membersFollowingPost(MemberEntity member) {
+		return followEntity.sender.eq(member)
+			.and(followEntity.receiver.eq(postEntity.member));
+	}
+
+	private static BooleanExpression isNotFollowingPostAuthor(MemberEntity member) {
+		return postEntity.member.id.notIn(
+			JPAExpressions.select(followEntity.receiver.id)
+				.from(followEntity)
+				.where(followEntity.sender.eq(member)));
+	}
+
+	private static BooleanExpression isNotAuthorOfPost(MemberEntity member) {
+		return postEntity.member.id.notIn(member.getId());
+	}
+
+	private BooleanExpression isFollowingOrOwnPost(MemberEntity member) {
+		return followEntity.id.isNotNull()
+			.or(postEntity.member.eq(member));
+	}
+
+	private BooleanExpression isRecommendableToMember(MemberEntity member) {
+		return isNotFollowingPostAuthor(member)
+			.and(isNotAuthorOfPost(member));
+	}
+
 	private static JPQLQuery<Long> commentCountByPost() {
 		return JPAExpressions.select(commentEntity.count())
 			.from(commentEntity)
@@ -186,14 +214,15 @@ public class FeedSelector {
 	}
 
 	private static JPQLQuery<Long> likeCountByPost() {
-		return JPAExpressions.select(likesEntity.count()).from(likesEntity).where(likesEntity.post.eq(postEntity));
+		return JPAExpressions.select(likesEntity.count())
+			.from(likesEntity)
+			.where(likesEntity.post.eq(postEntity));
 	}
 
-	private BooleanExpression afterLastPost(Long lastPostId) {
+	private BooleanExpression findPostsBeforeId(Long lastPostId) {
 		if (lastPostId == null) {
 			return postEntity.createDate.before(LocalDateTime.now());
 		}
-
 		return postEntity.id.lt(lastPostId);
 	}
 }
