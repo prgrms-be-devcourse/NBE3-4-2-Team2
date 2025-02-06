@@ -27,7 +27,7 @@ public class FeedValidator {
 
 		// 1. 요청 시간 ( RequestTime )
 		// - 요청시간이 현재 시간보다 큰 경우
-		LocalDateTime requestTime = request.getTimestamp();
+		LocalDateTime requestTime = request.timestamp();
 		if (requestTime == null || requestTime.isAfter(LocalDateTime.now())) {
 			throw new FeedException(FeedErrorCode.WRONG_TIMESTAMP_REQUEST);
 		}
@@ -35,7 +35,7 @@ public class FeedValidator {
 		// 2. 요청 최대 개수
 		// - 0개 이하의 개수를 요청하는 경우
 		// - 20개 초과의 개수를 요청하는 경우
-		Integer maxSize = request.getMaxSize();
+		Integer maxSize = request.maxSize();
 		if (maxSize == null || maxSize <= 0 || maxSize > REQUEST_FEED_MAX_SIZE) {
 			throw new FeedException(FeedErrorCode.WRONG_MAXSIZE_REQUEST);
 		}

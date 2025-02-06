@@ -41,7 +41,7 @@ public class FeedController {
 	) {
 		// 시큐리티 코드를 병합하기 전에 임시로 사용
 		Long userId = Objects.requireNonNull(
-				queryFactory.selectFrom(memberEntity).where(memberEntity.username.eq(request.getUsername())).fetchOne())
+				queryFactory.selectFrom(memberEntity).where(memberEntity.username.eq(request.username())).fetchOne())
 			.getId();
 
 		return RsData.success(feedService.findList(request, userId), "피드를 성공적으로 반환했습니다.");

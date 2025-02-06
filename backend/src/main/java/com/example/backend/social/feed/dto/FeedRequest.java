@@ -2,9 +2,7 @@ package com.example.backend.social.feed.dto;
 
 import java.time.LocalDateTime;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 
 /**
  * 피드 요청 DTO
@@ -14,14 +12,13 @@ import lombok.Getter;
  * @author ChoiHyunSan
  * @since 2025-01-31
  */
-@Getter
 @Builder
-@AllArgsConstructor
-public class FeedRequest {
-	private LocalDateTime timestamp;
-	private Long lastPostId;
-	private Integer maxSize;
+public record FeedRequest(
+	LocalDateTime timestamp,
+	Long lastPostId,
+	Integer maxSize,
 
 	// 임시 값
-	private String username;
+	String username
+) {
 }

@@ -48,26 +48,26 @@ public class FeedService {
 	public FeedListResponse findList(FeedRequest request, Long userId) {
 
 		feedValidator.validateRequest(request);
-		
+
 		MemberEntity member = memberRepository.findById(userId)
 			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
-		int followingCount = (int)(request.getMaxSize() * FOLLOWING_FEED_RATE);
-		List<Feed> feedList = feedFinder.findByFollower(member, request.getTimestamp(), request.getLastPostId(),
+		int followingCount = (int)(request.maxSize() * FOLLOWING_FEED_RATE);
+		List<Feed> feedList = feedFinder.findByFollower(member, request.timestamp(), request.lastPostId(),
 			followingCount);
 
 		LocalDateTime lastTime = feedList.isEmpty()
-			? request.getTimestamp().minusDays(RECOMMEND_SEARCH_DATE_RANGE)
+			? request.timestamp().minusDays(RECOMMEND_SEARCH_DATE_RANGE)
 			: feedList.getLast().getPost().getCreateDate();
 
 		Long lastPostId = feedList.isEmpty()
-			? request.getLastPostId()
+			? request.lastPostId()
 			: feedList.getLast().getPost().getId();
 
-		int recommendCount = (int)(request.getMaxSize() * RECOMMEND_FEED_RATE) + (followingCount - feedList.size());
+		int recommendCount = (int)(request.maxSize() * RECOMMEND_FEED_RATE) + (followingCount - feedList.size());
 		List<Feed> recommendFeedList = feedFinder.findRecommendFinder(
 			member,
-			request.getTimestamp(),
+			request.timestamp(),
 			lastTime, recommendCount);
 
 		feedList.addAll(recommendFeedList);
