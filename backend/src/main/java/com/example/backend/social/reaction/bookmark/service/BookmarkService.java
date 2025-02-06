@@ -10,6 +10,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.social.reaction.bookmark.converter.BookmarkConverter;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.exception.BookmarkErrorCode;
@@ -63,7 +64,7 @@ public class BookmarkService {
 		// 5. 생성 로직
 		bookmarkRepository.save(bookmark);
 
-		return CreateBookmarkResponse.toResponse(bookmark);
+		return BookmarkConverter.toCreateResponse(bookmark);
 	}
 
 	/**
@@ -92,6 +93,6 @@ public class BookmarkService {
 		// 4. 삭제 로직
 		bookmarkRepository.delete(bookmark);
 
-		return DeleteBookmarkResponse.toResponse(bookmark);
+		return BookmarkConverter.toDeleteResponse(bookmark);
 	}
 }

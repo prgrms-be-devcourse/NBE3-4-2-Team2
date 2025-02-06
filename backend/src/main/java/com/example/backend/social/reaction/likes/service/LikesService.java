@@ -10,6 +10,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.social.reaction.likes.converter.LikesConverter;
 import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
 import com.example.backend.social.reaction.likes.exception.LikesErrorCode;
@@ -63,7 +64,7 @@ public class LikesService {
 		// 5. 생성 로직
 		likesRepository.save(like);
 
-		return CreateLikeResponse.toResponse(like);
+		return LikesConverter.toCreateResponse(like);
 	}
 
 	/**
@@ -92,6 +93,6 @@ public class LikesService {
 		// 4. 삭제 로직
 		likesRepository.delete(like);
 
-		return DeleteLikeResponse.toResponse(like);
+		return LikesConverter.toDeleteResponse(like);
 	}
 }
