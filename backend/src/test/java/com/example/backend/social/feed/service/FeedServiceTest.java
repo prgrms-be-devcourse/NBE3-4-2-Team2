@@ -91,6 +91,6 @@ class FeedServiceTest {
 
 		FeedListResponse response = feedService.findList(request, member.getId());
 		Assertions.assertNotNull(response);
-		Assertions.assertEquals(REQUEST_FEED_MAX_SIZE, response.getFeedList().size());
+		Assertions.assertEquals(REQUEST_FEED_MAX_SIZE, response.feedList().size());
 	}
 }

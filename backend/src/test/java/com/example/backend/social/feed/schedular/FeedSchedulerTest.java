@@ -112,7 +112,7 @@ class FeedSchedulerTest {
 		// 10 ~ 29 해시태그 -> 1번 게시물
 		List<PostHashtagEntity> postHashtags = new ArrayList<>();
 		for (int i = 0; i < 30; i++) {
-			if (i < 2) {
+			if (i < 1) {
 				createPostHashtags(postHashtags, posts, hashtags, i, 3);
 			} else if (i < 10) {
 				createPostHashtags(postHashtags, posts, hashtags, i, 2);
