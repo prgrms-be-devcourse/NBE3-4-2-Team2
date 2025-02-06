@@ -38,6 +38,9 @@ public class PostEntity extends BaseEntity {
 	@Builder.Default
 	private List<ImageEntity> images = new ArrayList<>();
 
+	@Column(nullable = false)
+	@Builder.Default
+	private Long likeCount = 0L; // 좋아요 초기 카운트 0 설정
 	/**
 	 * 게시물 내용 수정 메소드
 	 * 내용 수정 시 더티체킹을 사용하지 않고 별도의 메소드 추가
