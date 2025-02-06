@@ -26,6 +26,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -57,20 +58,22 @@ public class FeedSelector {
 		final Long lastPostId, final int limit) {
 
 		// Post 정보와 count 를 조회
-		List<Feed> feeds = queryFactory.select(Projections.constructor(Feed.class, postEntity,
-				JPAExpressions.select(likesEntity.count()).from(likesEntity).where(likesEntity.post.eq(postEntity)),
-				JPAExpressions.select(commentEntity.count()).from(commentEntity).where(commentEntity.post.eq(postEntity))))
+		List<Feed> feeds = queryFactory.select(
+				Projections.constructor(Feed.class,
+					postEntity,
+					likeCountByPost(),
+					commentCountByPost()))
 			.from(postEntity)
 			.join(postEntity.member)
 			.fetchJoin()
 			.leftJoin(followEntity)
-			.on(followEntity.sender.eq(member).and(followEntity.receiver.eq(postEntity.member)))
+			.on(
+				followEntity.sender.eq(member)
+					.and(followEntity.receiver.eq(postEntity.member)))
 			.where(
-				cursor(timestamp, lastPostId)
-					.and(
-						followEntity.id.isNotNull()
-							.or(postEntity.member.eq(member))
-					))
+				afterLastPost(lastPostId)
+					.and(followEntity.id.isNotNull()
+						.or(postEntity.member.eq(member))))
 			.groupBy(postEntity)
 			.orderBy(postEntity.createDate.desc())
 			.limit(limit)
@@ -94,8 +97,8 @@ public class FeedSelector {
 
 		// 이거로 구할 수 있는 것 => 좋아요 개수가 많은 순, 댓글 수가 많은 순으로 구할 수 있다.
 		List<Feed> feeds = queryFactory.select(Projections.constructor(Feed.class, postEntity,
-				JPAExpressions.select(likesEntity.count()).from(likesEntity).where(likesEntity.post.eq(postEntity)),
-				JPAExpressions.select(commentEntity.count()).from(commentEntity).where(commentEntity.post.eq(postEntity))))
+				likeCountByPost(),
+				commentCountByPost()))
 			.from(postEntity)
 			.join(postEntity.member)
 			.fetchJoin()
@@ -152,8 +155,7 @@ public class FeedSelector {
 			.collect(Collectors.groupingBy(tuple -> tuple.get(0, Long.class),    // postId로 그룹핑
 				Collectors.mapping(tuple -> tuple.get(1, String.class),            // imageUrl을 리스트로 수집
 					Collectors.toList())));
-
-		// TODO : 북마크 ID 추가 (없는 경우에는 -1로 넣는다.)
+		
 		Map<Long, Long> bookmarkByPostId = queryFactory.select(bookmarkEntity.id, bookmarkEntity.post.id)
 			.from(bookmarkEntity)
 			.where(
@@ -177,12 +179,21 @@ public class FeedSelector {
 
 	}
 
-	private BooleanExpression cursor(LocalDateTime timestamp, Long lastPostId) {
+	private static JPQLQuery<Long> commentCountByPost() {
+		return JPAExpressions.select(commentEntity.count())
+			.from(commentEntity)
+			.where(commentEntity.post.eq(postEntity));
+	}
+
+	private static JPQLQuery<Long> likeCountByPost() {
+		return JPAExpressions.select(likesEntity.count()).from(likesEntity).where(likesEntity.post.eq(postEntity));
+	}
+
+	private BooleanExpression afterLastPost(Long lastPostId) {
 		if (lastPostId == null) {
-			return postEntity.createDate.before(timestamp);
+			return postEntity.createDate.before(LocalDateTime.now());
 		}
 
-		return postEntity.createDate.loe(timestamp)
-			.and(postEntity.id.lt(lastPostId));
+		return postEntity.id.lt(lastPostId);
 	}
 }
