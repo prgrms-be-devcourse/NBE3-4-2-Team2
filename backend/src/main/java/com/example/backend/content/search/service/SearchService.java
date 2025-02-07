@@ -1,6 +1,7 @@
 package com.example.backend.content.search.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.content.search.dto.SearchPostCursorResponse;
 import com.example.backend.content.search.implement.SearchFinder;
@@ -18,6 +19,7 @@ public class SearchService {
 
 	private final SearchFinder searchFinder;
 
+	@Transactional(readOnly = true)
 	public SearchPostCursorResponse search(SearchType type, String keyword, Long lastPostId, int size) {
 		return searchFinder.findByKeyword(type, keyword, lastPostId, size);
 	}
