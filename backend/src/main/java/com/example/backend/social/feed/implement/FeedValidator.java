@@ -21,25 +21,30 @@ import com.example.backend.social.feed.exception.FeedException;
 public class FeedValidator {
 
 	public void validateRequest(FeedRequest request) {
+		checkTimestamp(request);
+		checkLastPostId(request.lastPostId());
+		checkMaxSize(request.maxSize());
+	}
 
+	public void validateRequest(FeedMemberRequest request) {
+		checkLastPostId(request.lastPostId());
+		checkMaxSize(request.maxSize());
+	}
+
+	private static void checkTimestamp(FeedRequest request) {
 		LocalDateTime requestTime = request.timestamp();
 		if (requestTime == null || requestTime.isAfter(LocalDateTime.now())) {
 			throw new FeedException(FeedErrorCode.INVALID_TIMESTAMP_REQUEST);
 		}
-
-		Integer maxSize = request.maxSize();
-		if (maxSize == null || maxSize <= 0 || maxSize > REQUEST_FEED_MAX_SIZE) {
-			throw new FeedException(FeedErrorCode.INVALID_MAXSIZE_REQUEST);
-		}
 	}
 
-	public void validateRequest(FeedMemberRequest request) {
-		Long lastPostId = request.lastPostId();
+	private static void checkLastPostId(Long lastPostId) {
 		if (lastPostId == null || lastPostId < 0) {
 			throw new FeedException(FeedErrorCode.INVALID_POST_ID_REQUEST);
 		}
+	}
 
-		Integer maxSize = request.maxSize();
+	private static void checkMaxSize(Integer maxSize) {
 		if (maxSize == null || maxSize <= 0 || maxSize > REQUEST_FEED_MAX_SIZE) {
 			throw new FeedException(FeedErrorCode.INVALID_MAXSIZE_REQUEST);
 		}

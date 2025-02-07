@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.social.feed.dto.FeedListResponse;
+import com.example.backend.social.feed.dto.FeedMemberRequest;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.exception.FeedException;
 import com.example.backend.social.feed.implement.FeedTestHelper;
@@ -47,25 +48,25 @@ class FeedServiceTest {
 	}
 
 	@Test
-	@DisplayName("피드요청 validate 테스트")
+	@DisplayName("메인 피드 validate 테스트")
 	void t1() {
 		FeedRequest nullTimestamp = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE)
-			.lastPostId(null)
+			.lastPostId(0L)
 			.timestamp(null)
 			.username("user1")
 			.build();
 
 		FeedRequest afterTimestamp = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE)
-			.lastPostId(null)
+			.lastPostId(0L)
 			.timestamp(LocalDateTime.now().plusDays(1))
 			.username("user1")
 			.build();
 
 		FeedRequest overMaxSize = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE + 1)
-			.lastPostId(null)
+			.lastPostId(0L)
 			.timestamp(LocalDateTime.now().minusDays(1))
 			.username("user1")
 			.build();
@@ -88,7 +89,7 @@ class FeedServiceTest {
 	void t2() {
 		FeedRequest request = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE)
-			.lastPostId(null)
+			.lastPostId(0L)
 			.timestamp(LocalDateTime.now())
 			.username("user1")
 			.build();
@@ -96,5 +97,17 @@ class FeedServiceTest {
 		FeedListResponse response = feedService.findList(request);
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals(REQUEST_FEED_MAX_SIZE, response.feedList().size());
+	}
+
+	@Test
+	@DisplayName("멤버 피드 validate 테스트")
+	void t3() {
+		FeedMemberRequest request = FeedMemberRequest.builder()
+			.username("user1")
+			.lastPostId(0L)
+			.maxSize(2)
+			.build();
+
+		feedService.findMembersList(request);
 	}
 }
