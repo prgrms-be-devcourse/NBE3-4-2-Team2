@@ -21,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.social.feed.Feed;
+import com.example.backend.social.feed.exception.FeedErrorCode;
+import com.example.backend.social.feed.exception.FeedException;
 import com.example.backend.social.feed.schedular.FeedScheduler;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -45,6 +47,23 @@ public class FeedSelector {
 	private final JPAQueryFactory queryFactory;
 	private final FeedScheduler scheduler;
 
+	public Feed findByPostId(Long postId, MemberEntity member) {
+		List<Feed> feedList = queryFactory.select(
+				Projections.constructor(Feed.class,
+					postEntity,
+					commentCountByPost()))
+			.from(postEntity)
+			.where(postEntity.id.eq(postId))
+			.fetch();
+
+		if (feedList.size() != 1) {
+			throw new FeedException(FeedErrorCode.INVALID_POST_REQUEST);
+		}
+
+		fillFeedData(feedList, member);
+		return feedList.getFirst();
+	}
+
 	/***
 	 * 팔로워가 팔로우중인 Member 들의 게시물을 얻는다.
 	 * 파라미터로 넘어오는 timestamp 이전에 등록된 게시물들에 한해서 최대 limit 개수만큼 리스트에 담는다.
@@ -62,7 +81,6 @@ public class FeedSelector {
 		List<Feed> feeds = queryFactory.select(
 				Projections.constructor(Feed.class,
 					postEntity,
-					likeCountByPost(),
 					commentCountByPost()))
 			.from(postEntity)
 			.join(postEntity.member)
@@ -94,8 +112,8 @@ public class FeedSelector {
 		final LocalDateTime lastTime, final int limit) {
 
 		// 이거로 구할 수 있는 것 => 좋아요 개수가 많은 순, 댓글 수가 많은 순으로 구할 수 있다.
-		List<Feed> feeds = queryFactory.select(Projections.constructor(Feed.class, postEntity,
-				likeCountByPost(),
+		List<Feed> feeds = queryFactory.select(Projections.constructor(Feed.class,
+				postEntity,
 				commentCountByPost()))
 			.from(postEntity)
 			.join(postEntity.member)
@@ -161,12 +179,11 @@ public class FeedSelector {
 		});
 
 	}
-
 	// 좋아요 개수 / 팔로워 수 / 댓글 수에 각각 점수를 매겨서 정렬
+
 	private OrderSpecifier<Double> calculatePostPopularityScore() {
 		return Expressions.numberTemplate(Double.class,
-				"(select count(*) * 3 from LikesEntity l where l.post.id = {0}) + "
-					+ "(select count(*) * 2 from FollowEntity f where f.receiver.id = {1}) + "
+				"(select count(*) * 2 from FollowEntity f where f.receiver.id = {1}) + "
 					+ "(select count(*) from CommentEntity c where c.post.id = {0}) + "
 					+ "(select case when count(*) > 0 then 3 else 0 end "
 					+ "from PostHashtagEntity ph where ph.post.id = {0} and ph.hashtag.id in ({2}))",
