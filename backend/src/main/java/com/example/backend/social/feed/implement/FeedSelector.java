@@ -5,7 +5,6 @@ import static com.example.backend.entity.QCommentEntity.*;
 import static com.example.backend.entity.QFollowEntity.*;
 import static com.example.backend.entity.QHashtagEntity.*;
 import static com.example.backend.entity.QImageEntity.*;
-import static com.example.backend.entity.QLikesEntity.*;
 import static com.example.backend.entity.QPostEntity.*;
 import static com.example.backend.entity.QPostHashtagEntity.*;
 import static com.example.backend.social.feed.constant.FeedConstants.*;
@@ -69,12 +68,11 @@ public class FeedSelector {
 	 * 파라미터로 넘어오는 timestamp 이전에 등록된 게시물들에 한해서 최대 limit 개수만큼 리스트에 담는다.
 	 * timestamp 가 동일한 경우에 대비하여 lastPostId를 같이 받아서 처리한다.
 	 * @param member 팔로워 Entity 객체
-	 * @param timestamp 최근 받아간 피드의 시간
 	 * @param lastPostId 최근 받아간 피드 중 가장 마지막 ID
 	 * @param limit 한 번에 받아올 리스트의 최대 크기
 	 * @return 피드 리스트
 	 */
-	public List<Feed> findByFollower(final MemberEntity member, final LocalDateTime timestamp,
+	public List<Feed> findByFollower(final MemberEntity member,
 		final Long lastPostId, final int limit) {
 
 		// Post 정보와 count 를 조회
@@ -228,12 +226,6 @@ public class FeedSelector {
 		return JPAExpressions.select(commentEntity.count())
 			.from(commentEntity)
 			.where(commentEntity.post.eq(postEntity));
-	}
-
-	private static JPQLQuery<Long> likeCountByPost() {
-		return JPAExpressions.select(likesEntity.count())
-			.from(likesEntity)
-			.where(likesEntity.post.eq(postEntity));
 	}
 
 	private BooleanExpression findPostsBeforeId(Long lastPostId) {
