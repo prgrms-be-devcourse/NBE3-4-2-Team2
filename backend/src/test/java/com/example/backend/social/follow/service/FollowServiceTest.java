@@ -283,4 +283,38 @@ public class FollowServiceTest {
 			followService.deleteFollow(followId, correctSenderId, anotherReceiverId);
 		}, FollowErrorCode.RECEIVER_MISMATCH.getMessage());
 	}
+
+	@Test
+	@DisplayName("9. 맞팔로우 적용 확인 테스트")
+	public void t009() {
+		// Given First
+		Long senderId = testSender.getId();
+		Long receiverId = testReceiver.getId();
+
+		// When First
+		followService.createFollow(senderId, receiverId);
+		followService.createFollow(receiverId, senderId);
+
+		MemberEntity sender = memberRepository.findById(senderId)
+			.orElseThrow(() -> new EntityNotFoundException("팔로워를 찾을 수 없습니다."));
+		Long senderFollowerCount = sender.getFollowerCount();
+		Long senderFolloweeCount = sender.getFolloweeCount();
+
+		MemberEntity receiver = memberRepository.findById(receiverId)
+			.orElseThrow(() -> new EntityNotFoundException("팔로위를 찾을 수 없습니다."));
+		Long receiverFollowerCount = receiver.getFollowerCount();
+		Long receiverFolloweeCount = receiver.getFolloweeCount();
+
+		// Then First
+		assertEquals(1L, senderFollowerCount);
+		assertEquals(1L, senderFolloweeCount);
+		assertEquals(1L, receiverFollowerCount);
+		assertEquals(1L, receiverFolloweeCount);
+
+		// When Second
+		boolean isMutualFollow = followService.findMutualFollow(senderId, receiverId);
+
+		// Then Second
+		assertTrue(isMutualFollow);
+	}
 }
