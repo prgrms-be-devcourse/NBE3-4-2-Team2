@@ -17,7 +17,8 @@ import lombok.Getter;
 public enum FollowErrorCode {
 	INVALID_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
 	SELF_FOLLOW(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다."),
-	PERMISSION_DENIED(HttpStatus.FORBIDDEN, "이 작업을 수행할 권한이 없습니다."),
+	SENDER_MISMATCH(HttpStatus.FORBIDDEN, "팔로우를 취소할 권한이 없습니다."),
+	RECEIVER_MISMATCH(HttpStatus.FORBIDDEN, "잘못된 팔로우 취소 요청입니다."),
 	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
 	FOLLOW_NOT_FOUND(HttpStatus.NOT_FOUND, "팔로우 관계를 찾을 수 없습니다."),
 	ALREADY_FOLLOWED(HttpStatus.CONFLICT, "이미 팔로우 상태입니다.");

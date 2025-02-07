@@ -53,4 +53,12 @@ public class FollowEntity{
 	public static FollowEntity create(MemberEntity sender, MemberEntity receiver) {
 		return new FollowEntity(sender, receiver);
 	}
+
+	public Long getSenderId() {
+		return sender.getId();
+	}
+
+	public Long getReceiverId() {
+		return receiver.getId();
+	}
 }
