@@ -17,6 +17,7 @@ import com.example.backend.social.feed.Feed;
 import com.example.backend.social.feed.converter.FeedConverter;
 import com.example.backend.social.feed.dto.FeedInfoResponse;
 import com.example.backend.social.feed.dto.FeedListResponse;
+import com.example.backend.social.feed.dto.FeedMemberRequest;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.implement.FeedSelector;
 import com.example.backend.social.feed.implement.FeedValidator;
@@ -95,5 +96,17 @@ public class FeedService {
 
 		Feed feed = feedSelector.findByPostId(postId, member);
 		return feedConverter.toFeedInfoResponse(feed);
+	}
+
+	public List<FeedInfoResponse> findMembersList(FeedMemberRequest request) {
+
+		feedValidator.validateRequest(request);
+
+		MemberEntity member = memberService.findByUsername(request.username())
+			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
+
+		return feedFinder.findMembers(member, request.lastPostId(), request.maxSize()).stream()
+			.map(feedConverter::toFeedInfoResponse)
+			.toList();
 	}
 }

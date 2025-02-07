@@ -72,11 +72,10 @@ public class FeedSelector {
 	 * @param limit 한 번에 받아올 리스트의 최대 크기
 	 * @return 피드 리스트
 	 */
-	public List<Feed> findByFollower(final MemberEntity member,
-		final Long lastPostId, final int limit) {
+	public List<Feed> findByFollower(final MemberEntity member, final Long lastPostId, final int limit) {
 
 		// Post 정보와 count 를 조회
-		List<Feed> feeds = queryFactory.select(
+		List<Feed> feedList = queryFactory.select(
 				Projections.constructor(Feed.class,
 					postEntity,
 					commentCountByPost()))
@@ -93,8 +92,8 @@ public class FeedSelector {
 			.limit(limit)
 			.fetch();
 
-		fillFeedData(feeds, member);
-		return feeds;
+		fillFeedData(feedList, member);
+		return feedList;
 	}
 
 	/**
@@ -106,11 +105,11 @@ public class FeedSelector {
 	 * @param limit 추천 게시물 요청 페이징 개수
 	 * @return 피드 리스트
 	 */
-	public List<Feed> findRecommendFinder(final MemberEntity member, final LocalDateTime startTime,
-		final LocalDateTime lastTime, final int limit) {
+	public List<Feed> findRecommendFinder(
+		final MemberEntity member, final LocalDateTime startTime, final LocalDateTime lastTime, final int limit) {
 
 		// 이거로 구할 수 있는 것 => 좋아요 개수가 많은 순, 댓글 수가 많은 순으로 구할 수 있다.
-		List<Feed> feeds = queryFactory.select(Projections.constructor(Feed.class,
+		List<Feed> feedList = queryFactory.select(Projections.constructor(Feed.class,
 				postEntity,
 				commentCountByPost()))
 			.from(postEntity)
@@ -124,11 +123,29 @@ public class FeedSelector {
 			.fetch();
 
 		// 랜덤하게 뽑는다
-		Collections.shuffle(feeds);
-		feeds = feeds.subList(0, Math.min(limit, feeds.size()));
+		Collections.shuffle(feedList);
+		feedList = feedList.subList(0, Math.min(limit, feedList.size()));
 
-		fillFeedData(feeds, member);
-		return feeds;
+		fillFeedData(feedList, member);
+		return feedList;
+	}
+
+	public List<Feed> findMembers(final MemberEntity member, final Long lastPostId, final Integer limit) {
+		List<Feed> feedList = queryFactory.select(Projections.constructor(Feed.class,
+				postEntity,
+				commentCountByPost()))
+			.from(postEntity)
+			.join(postEntity.member)
+			.fetchJoin()
+			.where(
+				postEntity.member.id.eq(member.getId())
+					.and(postEntity.id.lt(lastPostId)))
+			.orderBy(postEntity.createDate.desc())
+			.limit(limit)
+			.fetch();
+
+		fillFeedData(feedList, member);
+		return feedList;
 	}
 
 	private void fillFeedData(List<Feed> feeds, MemberEntity member) {
@@ -177,8 +194,8 @@ public class FeedSelector {
 		});
 
 	}
-	// 좋아요 개수 / 팔로워 수 / 댓글 수에 각각 점수를 매겨서 정렬
 
+	// 좋아요 개수 / 팔로워 수 / 댓글 수에 각각 점수를 매겨서 정렬
 	private OrderSpecifier<Double> calculatePostPopularityScore() {
 		return Expressions.numberTemplate(Double.class,
 				"(select count(*) * 2 from FollowEntity f where f.receiver.id = {1}) + "
