@@ -130,6 +130,13 @@ public class FeedSelector {
 		return feedList;
 	}
 
+	/**
+	 * 해당 멤버가 작성한 게시물에 대한 피드를 반환
+	 * @param member 멤버 엔티티 객체
+	 * @param lastPostId 마지막으로 받은 게시물의 ID
+	 * @param limit 페이징 최대 크기
+	 * @return 피드 리스트
+	 */
 	public List<Feed> findMembers(final MemberEntity member, final Long lastPostId, final Integer limit) {
 		List<Feed> feedList = queryFactory.select(Projections.constructor(Feed.class,
 				postEntity,
