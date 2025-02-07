@@ -17,16 +17,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Feed {
 	private PostEntity post;
-	private Long likeCount;
 	private Long commentCount;
 	private List<String> hashTagList;
 	private List<String> imageUrlList;
 
 	private Long bookmarkId;
 
-	public Feed(PostEntity post, Long likeCount, Long commentCount) {
+	public Feed(PostEntity post, Long commentCount) {
 		this.post = post;
-		this.likeCount = likeCount;
 		this.commentCount = commentCount;
 	}
 
