@@ -39,7 +39,7 @@ public class LikesEntity {
 	private MemberEntity member;
 
 	public LikesEntity(
-		MemberEntity member, PostEntity post, LocalDateTime createDate
+		MemberEntity member, PostEntity post
 	) {
 		this.member = member;
 		this.post = post;
@@ -48,7 +48,7 @@ public class LikesEntity {
 
 	// 정적 팩토리 메서드
 	public static LikesEntity create(MemberEntity member, PostEntity post) {
-		return new LikesEntity(member, post, LocalDateTime.now());
+		return new LikesEntity(member, post);
 	}
 
 	public Long getMemberId() {

@@ -61,7 +61,8 @@ public class LikesService {
 		// 4. id 및 생성 날짜를 포함하기 위해 build
 		LikesEntity like = LikesEntity.create(member, post);
 
-		// 5. 생성 로직
+		// 5. 좋아요 생성 및 좋아요 횟수 증가 반영
+		postRepository.incrementLikeCount(postId);
 		likesRepository.save(like);
 
 		return LikesConverter.toCreateResponse(like);
@@ -90,7 +91,8 @@ public class LikesService {
 			throw new LikesException(LikesErrorCode.POST_MISMATCH);
 		}
 
-		// 4. 삭제 로직
+		// 4. 좋아요 취소 및 좋아요 횟수 감소 반영
+		postRepository.decrementLikeCount(postId);
 		likesRepository.delete(like);
 
 		return LikesConverter.toDeleteResponse(like);

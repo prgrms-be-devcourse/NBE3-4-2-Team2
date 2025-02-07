@@ -2,6 +2,7 @@ package com.example.backend.social.reaction.likes.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -80,17 +81,26 @@ public class LikesServiceTest {
 	@Test
 	@DisplayName("1. 좋아요 적용 테스트")
 	public void t001() {
-		// Given
+		// Given First
 		Long memberId = testMember.getId();
 		Long postId = testPost.getId();
 
-		// When
+		// When First
 		CreateLikeResponse createResponse = likesService.createLike(memberId, postId);
+		entityManager.flush();
+		entityManager.clear();
 
-		// Then
+		// Then First
 		assertNotNull(createResponse);
 		assertEquals(memberId, createResponse.memberId());
 		assertEquals(postId, createResponse.postId());
+
+		// When Second
+		Optional<PostEntity> post = postRepository.findById(postId);
+
+		// Then Second
+		assertTrue(post.isPresent());
+		assertEquals(1, post.get().getLikeCount());
 	}
 
 	@Test
@@ -114,18 +124,27 @@ public class LikesServiceTest {
 		DeleteLikeResponse deleteResponse = likesService.deleteLike(
 			createResponse.id(), secondMemberId, secondPostId
 		);
+		entityManager.flush();
+		entityManager.clear();
 
 		// Then Second
 		assertNotNull(deleteResponse);
 		assertEquals(firstMemberId, deleteResponse.memberId());
 		assertEquals(firstPostId, deleteResponse.postId());
+
+		// When Third
+		Optional<PostEntity> post = postRepository.findById(secondPostId);
+
+		// Then Third
+		assertTrue(post.isPresent());
+		assertEquals(0, post.get().getLikeCount());
 	}
 
 	@Test
 	@DisplayName("3. 존재하지 않는 멤버 좋아요 요청 테스트")
 	public void t003() {
 		// Given
-		Long nonExistMemberId = 99L;
+		Long nonExistMemberId = 999L;
 		Long postId = testPost.getId();
 
 		// When & Then
@@ -139,7 +158,7 @@ public class LikesServiceTest {
 	public void t004() {
 		// Given
 		Long memberId = testMember.getId();
-		Long nonExistPostId = 99L;
+		Long nonExistPostId = 999L;
 
 		// When & Then
 		assertThrows(LikesException.class, () -> {
@@ -156,6 +175,8 @@ public class LikesServiceTest {
 
 		// When First
 		CreateLikeResponse createResponse = likesService.createLike(firstMemberId, firstPostId);
+		entityManager.flush();
+		entityManager.clear();
 
 		// Then First
 		assertNotNull(createResponse);
@@ -168,13 +189,20 @@ public class LikesServiceTest {
 		assertThrows(LikesException.class, () -> {
 			likesService.createLike(secondMemberId, secondPostId);
 		}, LikesErrorCode.ALREADY_LIKED.getMessage());
+
+		// When Third
+		Optional<PostEntity> post = postRepository.findById(secondPostId);
+
+		// Then Third
+		assertTrue(post.isPresent());
+		assertEquals(1, post.get().getLikeCount());
 	}
 
 	@Test
 	@DisplayName("6. 적용되지 않은 좋아요 취소 테스트")
 	public void t006() {
 		// Given
-		Long nonExistLikeId = 1L;
+		Long nonExistLikeId = 999L;
 		Long memberId = testMember.getId();
 		Long postId = testPost.getId();
 
@@ -199,7 +227,7 @@ public class LikesServiceTest {
 
 		// Given Second
 		Long likeId = createResponse.id();
-		Long anotherMemberId = 5L;
+		Long anotherMemberId = 999L;
 		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
@@ -224,7 +252,7 @@ public class LikesServiceTest {
 		// Given Second
 		Long likeId = createResponse.id();
 		Long memberId = createResponse.memberId();
-		Long anotherPostId = 5L;
+		Long anotherPostId = 999L;
 
 		// When & Then Second
 		assertThrows(LikesException.class, () -> {
