@@ -45,11 +45,11 @@ public class FollowService {
 	public CreateFollowResponse createFollow(Long senderId, Long receiverId) {
 		// 1. 팔로우 요청측 검증후 엔티티 가져오기
 		MemberEntity sender = memberRepository.findById(senderId)
-			.orElseThrow(() -> new FollowException(FollowErrorCode.USER_NOT_FOUND));
+			.orElseThrow(() -> new FollowException(FollowErrorCode.MEMBER_NOT_FOUND));
 
 		// 2. 팔로위측 검증후 엔티티 가져오기
 		MemberEntity receiver = memberRepository.findById(receiverId)
-			.orElseThrow(() -> new FollowException(FollowErrorCode.USER_NOT_FOUND));
+			.orElseThrow(() -> new FollowException(FollowErrorCode.MEMBER_NOT_FOUND));
 
 		// 3. 이미 팔로우가 되어있는지 검증
 		if (followRepository.existsBySenderIdAndReceiverId(senderId, receiverId)) {
@@ -82,12 +82,12 @@ public class FollowService {
 			.orElseThrow(() -> new FollowException(FollowErrorCode.FOLLOW_NOT_FOUND));
 
 		// 2. 팔로우 취소를 요청한 멤버 ID와 senderId가 일치한지 검증
-		if (!follow.getSender().equals(senderId)) {
+		if (!follow.getSenderId().equals(senderId)) {
 			throw new FollowException(FollowErrorCode.SENDER_MISMATCH);
 		}
 
 		// 3. 팔로우 취소 요청의 상대 멤버 ID와 receiverId가 일치한지 검증
-		if (!follow.getReceiver().equals(receiverId)) {
+		if (!follow.getReceiverId().equals(receiverId)) {
 			throw new FollowException(FollowErrorCode.RECEIVER_MISMATCH);
 		}
 
