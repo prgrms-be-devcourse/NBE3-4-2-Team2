@@ -14,7 +14,7 @@ import lombok.Builder;
 @Builder
 public record CreateFollowResponse (
 	Long id,
-	Long memberId,
-	Long postId,
+	Long senderId,
+	Long receiverId,
 	LocalDateTime createDate
 ) { }
