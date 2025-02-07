@@ -2,7 +2,9 @@ package com.example.backend.social.follow.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,13 +13,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
+import com.example.backend.identity.security.user.SecurityUser;
 import com.example.backend.social.follow.dto.CreateFollowRequest;
 import com.example.backend.social.follow.dto.CreateFollowResponse;
 import com.example.backend.social.follow.dto.DeleteFollowRequest;
 import com.example.backend.social.follow.dto.DeleteFollowResponse;
+import com.example.backend.social.follow.dto.MutualFollowResponse;
 import com.example.backend.social.follow.service.FollowService;
 
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -45,7 +50,7 @@ public class FollowController {
 		return RsData.success(createResponse, "팔로우 등록 요청에 성공했습니다.");
 	}
 
-	@DeleteMapping
+	@DeleteMapping("/{receiverId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<DeleteFollowResponse> unfollowMember(
 		@PathVariable Long receiverId, // TODO: 추후 인증 정보를 가져오며 검증 로직 추가 예정
@@ -56,4 +61,26 @@ public class FollowController {
 		);
 		return RsData.success(deleteResponse, "팔로우 취소 요청에 성공했습니다.");
 	}
+
+	/**
+	 * 상대방과 맞팔로우 상태인지 확인하는 메서드
+	 *
+	 * @param memberId(상대방), securityUser(본인)
+	 * @return MutualFollowResponse
+	 */
+	@GetMapping("/mutual/{memberId}")
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<MutualFollowResponse> isMutualFollow(
+		@PathVariable Long memberId,
+		@AuthenticationPrincipal SecurityUser securityUser
+	) {
+		Long currentMemberId = securityUser.getId();
+
+		boolean isMutualFollow = followService.findMutualFollow(currentMemberId, memberId);
+
+		MutualFollowResponse getResponse = new MutualFollowResponse(isMutualFollow);
+
+		return RsData.success(getResponse, "맞팔로우 여부 조회에 성공했습니다.");
+	}
+
 }
