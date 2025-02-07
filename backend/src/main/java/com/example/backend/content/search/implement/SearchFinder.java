@@ -16,12 +16,14 @@ import com.example.backend.content.search.exception.SearchErrorCode;
 import com.example.backend.content.search.exception.SearchException;
 import com.example.backend.content.search.type.SearchType;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
 
 /**
  * type 에 따라 분기로 처리되는 동적쿼리
+ * 게시글의 첫번째 이미지만 받아서 반환
  * @author kwak
  * 2025-02-06
  */
@@ -44,15 +46,19 @@ public class SearchFinder {
 		List<SearchPostResponse> searchPostResponses = jpaQueryFactory
 			.select(Projections.constructor(
 				SearchPostResponse.class,
-				imageEntity.imageUrl,
-				imageEntity.post.id
-			))
+				imageEntity.post.id,
+				imageEntity.imageUrl))
 			.from(imageEntity)
 			.join(imageEntity.post, postEntity)
 			.join(postEntity.member, memberEntity)
 			.where(
 				lastPostId != null ? imageEntity.post.id.lt(lastPostId) : null,
-				memberEntity.username.eq(keyword))
+				memberEntity.username.eq(keyword),
+				imageEntity.id.eq(
+					JPAExpressions
+						.select(imageEntity.id.min())
+						.from(imageEntity)
+						.where(imageEntity.post.id.eq(postEntity.id))))
 			.orderBy(imageEntity.post.id.desc())
 			.limit(size + 1)
 			.fetch();
@@ -69,16 +75,20 @@ public class SearchFinder {
 		List<SearchPostResponse> searchPostResponses = jpaQueryFactory
 			.select(Projections.constructor(
 				SearchPostResponse.class,
-				imageEntity.imageUrl,
-				imageEntity.post.id))
+				imageEntity.post.id,
+				imageEntity.imageUrl))
 			.from(imageEntity)
 			.join(imageEntity.post, postEntity)
 			.join(postHashtagEntity).on(postHashtagEntity.post.eq(postEntity))
 			.join(postHashtagEntity.hashtag, hashtagEntity)
 			.where(
 				lastPostId != null ? imageEntity.post.id.lt(lastPostId) : null,
-				hashtagEntity.content.containsIgnoreCase(keyword)
-			)
+				hashtagEntity.content.containsIgnoreCase(keyword),
+				imageEntity.id.eq(
+					JPAExpressions
+						.select(imageEntity.id.min())
+						.from(imageEntity)
+						.where(imageEntity.post.id.eq(postEntity.id))))
 			.orderBy(imageEntity.post.id.desc())
 			.limit(size + 1)
 			.fetch();
