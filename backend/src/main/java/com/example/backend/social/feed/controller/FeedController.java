@@ -1,17 +1,15 @@
 package com.example.backend.social.feed.controller;
 
-import static com.example.backend.entity.QMemberEntity.*;
-
-import java.util.Objects;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
+import com.example.backend.social.feed.dto.FeedInfoResponse;
 import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.service.FeedService;
@@ -31,24 +29,36 @@ import lombok.RequiredArgsConstructor;
 public class FeedController {
 
 	private final FeedService feedService;
-
 	private final JPAQueryFactory queryFactory;
 
+	/**
+	 * 팔로잉 게시물과 추천 게시물이 혼합된 피드 리스트 요청
+	 * @param request 요청 정보
+	 * @return 피드 Dto 리스트
+	 */
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
-	public RsData<FeedListResponse> findList(
+	public RsData<FeedListResponse> findFeedList(
 		@RequestBody FeedRequest request
 	) {
-		// 시큐리티 코드를 병합하기 전에 임시로 사용
-		Long userId = Objects.requireNonNull(
-				queryFactory.selectFrom(memberEntity).where(memberEntity.username.eq(request.username())).fetchOne())
-			.getId();
-
-		return RsData.success(feedService.findList(request, userId), "피드를 성공적으로 반환했습니다.");
+		return RsData.success(feedService.findList(request), "피드를 성공적으로 반환했습니다.");
 	}
 
-	// 피드 단건 조회
+	/**
+	 * 단건 게시글에 대한 피드정보 요청
+	 * @param postId 게시글 ID
+	 * @param username 요청하는 유저의 이름 (임시. 삭제 예정)
+	 * @return 피드 Dto
+	 */
+	@GetMapping("/{postId}/{username}")
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<FeedInfoResponse> findFeedInfo(
+		@PathVariable Long postId,
+		@PathVariable String username
+	) {
+		return RsData.success(feedService.findByPostId(postId, username));
+	}
 
 	// 멤버에 대한 조회
-
+	
 }

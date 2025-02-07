@@ -53,30 +53,33 @@ class FeedServiceTest {
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(null)
 			.timestamp(null)
+			.username("user1")
 			.build();
 
 		FeedRequest afterTimestamp = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(null)
 			.timestamp(LocalDateTime.now().plusDays(1))
+			.username("user1")
 			.build();
 
 		FeedRequest overMaxSize = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE + 1)
 			.lastPostId(null)
 			.timestamp(LocalDateTime.now().minusDays(1))
+			.username("user1")
 			.build();
 
 		Assertions.assertThrows(FeedException.class, () -> {
-			feedService.findList(nullTimestamp, member.getId());
+			feedService.findList(nullTimestamp);
 		});
 
 		Assertions.assertThrows(FeedException.class, () -> {
-			feedService.findList(afterTimestamp, member.getId());
+			feedService.findList(afterTimestamp);
 		});
 
 		Assertions.assertThrows(FeedException.class, () -> {
-			feedService.findList(overMaxSize, member.getId());
+			feedService.findList(overMaxSize);
 		});
 	}
 
@@ -87,9 +90,10 @@ class FeedServiceTest {
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(null)
 			.timestamp(LocalDateTime.now())
+			.username("user1")
 			.build();
 
-		FeedListResponse response = feedService.findList(request, member.getId());
+		FeedListResponse response = feedService.findList(request);
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals(REQUEST_FEED_MAX_SIZE, response.feedList().size());
 	}
