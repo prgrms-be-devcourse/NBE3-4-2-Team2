@@ -16,6 +16,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.MemberEntity;
+import com.example.backend.entity.PostEntity;
+import com.example.backend.entity.PostRepository;
 import com.example.backend.social.feed.Feed;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -34,6 +36,9 @@ class FeedSelectorTest {
 	private JPAQueryFactory queryFactory;
 
 	private MemberEntity member;  // 테스트용 멤버 저장
+
+	@Autowired
+	private PostRepository postRepository;
 
 	@BeforeEach
 	void setUp() {
@@ -87,5 +92,41 @@ class FeedSelectorTest {
 
 		Assertions.assertNotNull(recommendFeedList);
 		Assertions.assertEquals(10, recommendFeedList.size());
+	}
+
+	@Test
+	@DisplayName("단건 조회 테스트")
+	void t4() {
+
+		PostEntity post = PostEntity.builder()
+			.member(member)
+			.isDeleted(false)
+			.content("content")
+			.build();
+
+		postRepository.save(post);
+
+		Feed byPostId = feedSelector.findByPostId(post.getId(), member);
+		Assertions.assertNotNull(byPostId);
+		Assertions.assertEquals("content", byPostId.getPost().getContent());
+		Assertions.assertEquals(0, byPostId.getPost().getLikeCount());
+		Assertions.assertEquals(0, byPostId.getCommentCount());
+		Assertions.assertEquals(0, byPostId.getImageUrlList().size());
+		Assertions.assertEquals(0, byPostId.getHashTagList().size());
+	}
+
+	@Test
+	@DisplayName("멤버 게시물 조회 테스트")
+	void t5() {
+		List<Feed> byMember1 = feedSelector.findByMember(member, 0L, 2);
+		Assertions.assertNotNull(byMember1);
+		Assertions.assertEquals(2, byMember1.size());
+		Long lastPostId = byMember1.getLast().getPost().getId();
+
+		List<Feed> byMember2 = feedSelector.findByMember(member, lastPostId, 2);
+		Assertions.assertNotNull(byMember2);
+		Assertions.assertEquals(2, byMember2.size());
+
+		Assertions.assertTrue(byMember2.getFirst().getPost().getId() < lastPostId);
 	}
 }

@@ -46,6 +46,12 @@ public class FeedSelector {
 	private final JPAQueryFactory queryFactory;
 	private final FeedScheduler scheduler;
 
+	/**
+	 * 단건 게시물에 대한 피드를 반환
+	 * @param postId 게시물 ID
+	 * @param member 멤버 엔티티 객체
+	 * @return 피드 단건
+	 */
 	public Feed findByPostId(Long postId, MemberEntity member) {
 		List<Feed> feedList = queryFactory.select(
 				Projections.constructor(Feed.class,
@@ -137,22 +143,27 @@ public class FeedSelector {
 	 * @param limit 페이징 최대 크기
 	 * @return 피드 리스트
 	 */
-	public List<Feed> findMembers(final MemberEntity member, final Long lastPostId, final Integer limit) {
+	public List<Feed> findByMember(final MemberEntity member, final Long lastPostId, final Integer limit) {
 		List<Feed> feedList = queryFactory.select(Projections.constructor(Feed.class,
 				postEntity,
 				commentCountByPost()))
 			.from(postEntity)
 			.join(postEntity.member)
 			.fetchJoin()
-			.where(
-				postEntity.member.id.eq(member.getId())
-					.and(postEntity.id.lt(lastPostId)))
+			.where(findMemberPostAndPaging(member, lastPostId))
 			.orderBy(postEntity.createDate.desc())
 			.limit(limit)
 			.fetch();
 
 		fillFeedData(feedList, member);
 		return feedList;
+	}
+
+	private static BooleanExpression findMemberPostAndPaging(MemberEntity member, Long lastPostId) {
+		if (lastPostId == 0L) {
+			return postEntity.member.id.eq(member.getId());
+		}
+		return postEntity.member.id.eq(member.getId()).and(postEntity.id.lt(lastPostId));
 	}
 
 	private void fillFeedData(List<Feed> feeds, MemberEntity member) {

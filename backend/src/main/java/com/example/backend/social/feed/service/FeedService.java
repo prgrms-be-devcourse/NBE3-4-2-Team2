@@ -105,7 +105,7 @@ public class FeedService {
 		MemberEntity member = memberService.findByUsername(request.username())
 			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
-		return feedFinder.findMembers(member, request.lastPostId(), request.maxSize()).stream()
+		return feedFinder.findByMember(member, request.lastPostId(), request.maxSize()).stream()
 			.map(feedConverter::toFeedInfoResponse)
 			.toList();
 	}

@@ -62,7 +62,11 @@ public class FeedController {
 		return RsData.success(feedService.findByPostId(postId, username));
 	}
 
-	// 멤버에 대한 조회
+	/**
+	 * 특정 멤버가 작성한 게시글에 대한 피드정보 요청
+	 * @param request 요청 정보
+	 * @return 피드 Dto 리스트
+	 */
 	@GetMapping("/member")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<List<FeedInfoResponse>> findMemberFeedList(
