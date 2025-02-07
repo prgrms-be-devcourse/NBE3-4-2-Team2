@@ -100,7 +100,7 @@ public class ApiV1MemberController {
 					member.getUsername(),
 					member.getProfileUrl(),
 					member.getFollowerCount(),
-					member.getFollowingCount()
+					member.getFolloweeCount()
 				),
 				"%s님의 정보 입니다.".formatted(member.getUsername()));
 	}
