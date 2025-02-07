@@ -1,7 +1,5 @@
 package com.example.backend.social.feed.controller;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +12,7 @@ import com.example.backend.global.rs.RsData;
 import com.example.backend.social.feed.dto.FeedInfoResponse;
 import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedMemberRequest;
+import com.example.backend.social.feed.dto.FeedMemberResponse;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.service.FeedService;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -69,7 +68,7 @@ public class FeedController {
 	 */
 	@GetMapping("/member")
 	@ResponseStatus(HttpStatus.OK)
-	public RsData<List<FeedInfoResponse>> findMemberFeedList(
+	public RsData<FeedMemberResponse> findMemberFeedList(
 		@RequestBody FeedMemberRequest request
 	) {
 		return RsData.success(feedService.findMembersList(request));

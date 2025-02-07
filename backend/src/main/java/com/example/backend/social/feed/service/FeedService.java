@@ -18,6 +18,7 @@ import com.example.backend.social.feed.converter.FeedConverter;
 import com.example.backend.social.feed.dto.FeedInfoResponse;
 import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedMemberRequest;
+import com.example.backend.social.feed.dto.FeedMemberResponse;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.implement.FeedSelector;
 import com.example.backend.social.feed.implement.FeedValidator;
@@ -59,19 +60,20 @@ public class FeedService {
 		List<Feed> feedList = feedFinder.findByFollower(
 			member, request.lastPostId(), followingCount);
 
-		LocalDateTime lastTime = feedList.isEmpty()
-			? request.timestamp().minusDays(RECOMMEND_SEARCH_DATE_RANGE)
-			: feedList.getLast().getPost().getCreateDate();
-
 		Long lastPostId = feedList.isEmpty()
 			? request.lastPostId()
 			: feedList.getLast().getPost().getId();
+
+		LocalDateTime lastTime = feedList.isEmpty()
+			? request.timestamp().minusDays(RECOMMEND_SEARCH_DATE_RANGE)
+			: feedList.getLast().getPost().getCreateDate();
 
 		int recommendCount = (int)(request.maxSize() * RECOMMEND_FEED_RATE) + (followingCount - feedList.size());
 		List<Feed> recommendFeedList = feedFinder.findRecommendFinder(
 			member,
 			request.timestamp(),
-			lastTime, recommendCount);
+			lastTime,
+			recommendCount);
 
 		feedList.addAll(recommendFeedList);
 
@@ -98,15 +100,22 @@ public class FeedService {
 		return feedConverter.toFeedInfoResponse(feed);
 	}
 
-	public List<FeedInfoResponse> findMembersList(FeedMemberRequest request) {
+	public FeedMemberResponse findMembersList(FeedMemberRequest request) {
 
 		feedValidator.validateRequest(request);
 
 		MemberEntity member = memberService.findByUsername(request.username())
 			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
-		return feedFinder.findByMember(member, request.lastPostId(), request.maxSize()).stream()
+		List<FeedInfoResponse> feedList = feedFinder.findByMember(member, request.lastPostId(), request.maxSize())
+			.stream()
 			.map(feedConverter::toFeedInfoResponse)
 			.toList();
+
+		Long lastPostId = feedList.isEmpty()
+			? request.lastPostId()
+			: feedList.getLast().postId();
+
+		return FeedMemberResponse.create(feedList, lastPostId);
 	}
 }
