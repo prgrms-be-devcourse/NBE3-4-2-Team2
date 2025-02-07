@@ -15,7 +15,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.example.backend.content.hashtag.exception.HashtagException;
 import com.example.backend.content.post.exception.PostException;
+import com.example.backend.content.search.exception.SearchException;
 import com.example.backend.global.error.GlobalErrorCode;
 import com.example.backend.global.exception.GlobalException;
 import com.example.backend.global.rs.ErrorRs;
@@ -156,5 +158,21 @@ public class GlobalExceptionHandler {
 				.code(HttpStatus.NOT_FOUND.value()) // 404 상태 코드
 				.message(ex.getMessage()) // 예외 메시지
 				.build()));
+	}
+
+	@ExceptionHandler(SearchException.class)
+	public ResponseEntity<RsData<?>> handleSearchException(SearchException ex, HttpServletRequest request) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
+	}
+
+	@ExceptionHandler(HashtagException.class)
+	public ResponseEntity<RsData<?>> handleHashtagException(HashtagException ex, HttpServletRequest request) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
 	}
 }
