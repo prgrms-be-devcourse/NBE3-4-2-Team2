@@ -26,5 +26,23 @@ public class FollowRepositoryImpl implements FollowRepositoryCustom {
 
 		return count != null && count > 0;
 	}
+
+	@Override
+	public int countMutualFollow(Long currentMemberId, Long memberId) {
+		Long count = queryFactory
+			.select(followEntity.count())
+			.from(followEntity)
+			.where(
+				followEntity.sender.id.eq(currentMemberId)
+					.and(followEntity.receiver.id.eq(memberId))
+					.or(
+						followEntity.sender.id.eq(memberId)
+							.and(followEntity.receiver.id.eq(currentMemberId))
+					)
+			)
+			.fetchOne();
+
+		return count != null ? count.intValue() : 0;
+	}
 }
 

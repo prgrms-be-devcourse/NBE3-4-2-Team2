@@ -98,4 +98,9 @@ public class FollowService {
 
 		return FollowConverter.toDeleteResponse(follow);
 	}
+
+	@Transactional
+	public boolean findMutualFollow(Long currentMemberId, Long memberId) {
+		return followRepository.countMutualFollow(currentMemberId, memberId) == 2;
+	}
 }

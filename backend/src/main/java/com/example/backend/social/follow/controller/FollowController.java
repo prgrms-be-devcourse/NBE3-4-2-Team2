@@ -22,7 +22,6 @@ import com.example.backend.social.follow.dto.MutualFollowResponse;
 import com.example.backend.social.follow.service.FollowService;
 
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -82,5 +81,4 @@ public class FollowController {
 
 		return RsData.success(getResponse, "맞팔로우 여부 조회에 성공했습니다.");
 	}
-
 }
