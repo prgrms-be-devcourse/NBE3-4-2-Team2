@@ -4,6 +4,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.content.post.converter.PostConverter;
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
 import com.example.backend.content.post.dto.PostDeleteResponse;
@@ -40,14 +41,14 @@ public class PostService {
 	 */
 	@Transactional
 	public PostCreateResponse createPost(PostCreateRequest request) {
-		MemberEntity memberEntity = memberRepository.findById(request.getMemberId())
+		MemberEntity memberEntity = memberRepository.findById(request.memberId())
 			.orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다."));
 		//MEMBER 클래스 EXCEPTION 으로 변경 예정
-		PostEntity postEntity = request.toEntity(memberEntity);
+		PostEntity postEntity = PostEntity.create(request.content(), memberEntity);
 
 		PostEntity savedPost = postRepository.save(postEntity);
 
-		return PostCreateResponse.fromEntity(savedPost);
+		return PostConverter.toCreateResponse(savedPost);
 	}
 
 	@Transactional
@@ -55,13 +56,13 @@ public class PostService {
 		PostEntity postEntity = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
-		if (!postEntity.getMember().getId().equals(request.getMemberId())) {
+		if (!postEntity.getMember().getId().equals(request.memberId())) {
 			throw new PostException(PostErrorCode.POST_UPDATE_FORBIDDEN);
 		}
 
-		postEntity.modifyContent(request.getContent());
+		postEntity.modifyContent(request.content());
 
-		return PostModifyResponse.fromEntity(postEntity);
+		return PostConverter.toModifyResponse(postEntity);
 	}
 
 	@Transactional
@@ -75,7 +76,7 @@ public class PostService {
 
 		postEntity.deleteContent();
 
-		return PostDeleteResponse.fromEntity(postId);
+		return PostConverter.toDeleteResponse(postId);
 	}
 
 }

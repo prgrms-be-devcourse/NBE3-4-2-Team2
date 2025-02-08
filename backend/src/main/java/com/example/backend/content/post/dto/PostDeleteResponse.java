@@ -1,5 +1,6 @@
 package com.example.backend.content.post.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,23 +14,7 @@ import lombok.NoArgsConstructor;
  * @since 2025-02-03
  */
 @Builder
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public class PostDeleteResponse {
-	private Long postId;
-	private String message;
-
-	/**
-	 * 삭제 성공 응답 생성
-	 *
-	 * @param postId 삭제한 게시물 ID
-	 * @return PostDeleteResponse 객체
-	 */
-	public static PostDeleteResponse fromEntity(Long postId) {
-		return PostDeleteResponse.builder()
-			.postId(postId)
-			.message("게시물 삭제 성공")
-			.build();
-	}
-}
+public record PostDeleteResponse (
+	@NotNull(message = "게시물 ID는 필수 입력 값입니다.") Long postId,
+	@NotNull(message = "메시지는 필수 입력 값입니다.") String message
+) { }
