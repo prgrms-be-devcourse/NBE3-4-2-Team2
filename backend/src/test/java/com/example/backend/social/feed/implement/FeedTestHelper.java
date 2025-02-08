@@ -17,7 +17,6 @@ import com.example.backend.entity.HashtagEntity;
 import com.example.backend.entity.HashtagRepository;
 import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.ImageRepository;
-import com.example.backend.entity.LikesEntity;
 import com.example.backend.entity.LikesRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
@@ -25,6 +24,7 @@ import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostHashtagEntity;
 import com.example.backend.entity.PostHashtagRepository;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.social.reaction.likes.service.LikesService;
 
 @Component
 public class FeedTestHelper {
@@ -52,6 +52,9 @@ public class FeedTestHelper {
 
 	@Autowired
 	private FollowRepository followRepository;
+
+	@Autowired
+	private LikesService likesService;
 
 	@Transactional
 	public void setData() {
@@ -144,14 +147,11 @@ public class FeedTestHelper {
 		imageRepository.flush();
 
 		// 7. 좋아요 추가 (각 게시글에 첫 5명의 사용자가 좋아요)
-		List<LikesEntity> likes = new ArrayList<>();
 		for (PostEntity post : posts) {
 			for (int i = 0; i < 5; i++) {
-				likes.add(new LikesEntity(members.get(i), post));
+				likesService.createLike(members.get(i).getId(), post.getId());
 			}
 		}
-		likesRepository.saveAll(likes);
-		likesRepository.flush();
 
 		// 8. 댓글 추가 (각 게시글에 첫 3명의 사용자가 댓글)
 		List<CommentEntity> comments = new ArrayList<>();

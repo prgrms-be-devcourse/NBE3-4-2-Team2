@@ -16,6 +16,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.MemberEntity;
+import com.example.backend.entity.PostEntity;
+import com.example.backend.entity.PostRepository;
 import com.example.backend.social.feed.Feed;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -35,6 +37,9 @@ class FeedSelectorTest {
 
 	private MemberEntity member;  // 테스트용 멤버 저장
 
+	@Autowired
+	private PostRepository postRepository;
+
 	@BeforeEach
 	void setUp() {
 		feedTestHelper.setData();
@@ -49,7 +54,7 @@ class FeedSelectorTest {
 	void t1() {
 		Assertions.assertNotEquals(0, member.getFollowingList().size());
 
-		List<Feed> byFollower = feedSelector.findByFollower(member, LocalDateTime.now().plusDays(1), null, 10);
+		List<Feed> byFollower = feedSelector.findByFollower(member, null, 10);
 		Assertions.assertNotNull(byFollower);
 		Assertions.assertFalse(byFollower.isEmpty());
 		Assertions.assertEquals(10, byFollower.size());
@@ -58,7 +63,7 @@ class FeedSelectorTest {
 		Assertions.assertNotNull(latestFeed);
 		Assertions.assertNotNull(latestFeed.getPost().getId());
 		Assertions.assertEquals(3L, latestFeed.getCommentCount());
-		Assertions.assertEquals(5L, latestFeed.getLikeCount());
+		Assertions.assertEquals(5L, latestFeed.getPost().getLikeCount());
 
 		Assertions.assertNotNull(latestFeed.getHashTagList());
 		Assertions.assertEquals(3, latestFeed.getHashTagList().size());
@@ -70,7 +75,7 @@ class FeedSelectorTest {
 	@Test
 	@DisplayName("팔로잉 게시물들은 시간 순으로 내림차 정렬되어 반환된다")
 	void t2() {
-		List<Feed> byFollower = feedSelector.findByFollower(member, LocalDateTime.now().plusDays(1), null, 10);
+		List<Feed> byFollower = feedSelector.findByFollower(member, null, 10);
 
 		for (int i = 0; i < byFollower.size() - 1; i++) {
 			LocalDateTime front = byFollower.get(i).getPost().getCreateDate();
@@ -87,5 +92,41 @@ class FeedSelectorTest {
 
 		Assertions.assertNotNull(recommendFeedList);
 		Assertions.assertEquals(10, recommendFeedList.size());
+	}
+
+	@Test
+	@DisplayName("단건 조회 테스트")
+	void t4() {
+
+		PostEntity post = PostEntity.builder()
+			.member(member)
+			.isDeleted(false)
+			.content("content")
+			.build();
+
+		postRepository.save(post);
+
+		Feed byPostId = feedSelector.findByPostId(post.getId(), member);
+		Assertions.assertNotNull(byPostId);
+		Assertions.assertEquals("content", byPostId.getPost().getContent());
+		Assertions.assertEquals(0, byPostId.getPost().getLikeCount());
+		Assertions.assertEquals(0, byPostId.getCommentCount());
+		Assertions.assertEquals(0, byPostId.getImageUrlList().size());
+		Assertions.assertEquals(0, byPostId.getHashTagList().size());
+	}
+
+	@Test
+	@DisplayName("멤버 게시물 조회 테스트")
+	void t5() {
+		List<Feed> byMember1 = feedSelector.findByMember(member, 0L, 2);
+		Assertions.assertNotNull(byMember1);
+		Assertions.assertEquals(2, byMember1.size());
+		Long lastPostId = byMember1.getLast().getPost().getId();
+
+		List<Feed> byMember2 = feedSelector.findByMember(member, lastPostId, 2);
+		Assertions.assertNotNull(byMember2);
+		Assertions.assertEquals(2, byMember2.size());
+
+		Assertions.assertTrue(byMember2.getFirst().getPost().getId() < lastPostId);
 	}
 }

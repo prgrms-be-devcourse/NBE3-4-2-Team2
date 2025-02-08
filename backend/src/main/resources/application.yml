@@ -81,3 +81,6 @@ custom:
     secretKey: ${JWT_SECRET_KEY}
   accessToken:
     expirationSeconds: "#{60*20}"
+
+springdoc:
+  default-produces-media-type: application/json;charset=UTF-8
