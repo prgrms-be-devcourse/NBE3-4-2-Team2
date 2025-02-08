@@ -12,7 +12,7 @@ import lombok.Builder;
  */
 @Builder
 public record CreateLikeRequest(
-	@NotNull(message = "Member Id는 필수 항목입니다.")Long memberId,
+	@NotNull(message = "Member Id는 필수 항목입니다.") Long memberId,
 	@NotNull(message = "Post Id는 필수 항목입니다.") Long postId
 ) { }
 
