@@ -21,7 +21,6 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
-import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkRequest;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
