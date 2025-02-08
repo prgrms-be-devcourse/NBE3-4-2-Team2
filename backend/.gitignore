@@ -238,4 +238,7 @@ db_dev.trace.db
 /src/main/resources/application-dev.yml
 
 # 환경변수 파일
+.env
 .env*
+/backend/.env
+/backend/en
