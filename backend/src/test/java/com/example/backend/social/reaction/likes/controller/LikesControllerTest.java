@@ -3,8 +3,6 @@ package com.example.backend.social.reaction.likes.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +19,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
-import com.example.backend.social.reaction.likes.dto.CreateLikeRequest;
+import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,6 +41,9 @@ public class LikesControllerTest {
 
 	@Autowired
 	private EntityManager entityManager;
+
+	@Autowired
+	private MemberService memberService;
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -69,13 +70,8 @@ public class LikesControllerTest {
 		entityManager.createNativeQuery("ALTER TABLE likes ALTER COLUMN id RESTART WITH 1").executeUpdate();
 
 		// 테스트용 멤버 추가
-		MemberEntity member = MemberEntity.builder()
-			.username("testMember")
-			.email("test@gmail.com")
-			.password("testPassword")
-			.refreshToken(UUID.randomUUID().toString())
-			.build();
-		testMember = memberRepository.save(member);
+		MemberEntity member = memberService.join("testMember", "testpassword", "test@gmail.com");
+		String accessToken = memberService.genAccessToken(member);
 
 		// 테스트용 게시물 추가
 		PostEntity post = PostEntity.builder()
