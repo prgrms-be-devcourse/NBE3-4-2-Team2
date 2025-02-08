@@ -2,6 +2,7 @@ package com.example.backend.social.reaction.likes.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,7 +38,7 @@ public class LikesController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<CreateLikeResponse> likePost(
 		@PathVariable Long postId,
-		SecurityUser securityUser
+		@AuthenticationPrincipal SecurityUser securityUser
 	) {
 		CreateLikeResponse createResponse = likesService.createLike(
 			securityUser.getId(), postId
@@ -50,7 +51,7 @@ public class LikesController {
 	public RsData<DeleteLikeResponse> unlikePost(
 		@PathVariable Long postId,
 		@Valid @RequestBody DeleteLikeRequest deleteRequest,
-		SecurityUser securityUser
+		@AuthenticationPrincipal SecurityUser securityUser
 		) {
 		DeleteLikeResponse deleteResponse = likesService.deleteLike(
 			deleteRequest.id(), securityUser.getId(), postId
