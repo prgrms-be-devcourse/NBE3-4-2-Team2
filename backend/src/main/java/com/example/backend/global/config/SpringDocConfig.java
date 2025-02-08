@@ -18,6 +18,14 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 	scheme = "bearer"
 )
 public class SpringDocConfig {
+
+	public static final String[] SWAGGER_PATHS = {
+		"/swagger-ui/**",
+		"/v3/api-docs/**",
+		"/swagger-resources/**",
+		"/swagger-ui.html"
+	};
+
 	@Bean
 	public GroupedOpenApi groupApiV1() {
 		return GroupedOpenApi.builder()

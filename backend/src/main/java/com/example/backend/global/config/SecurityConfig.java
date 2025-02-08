@@ -1,5 +1,7 @@
 package com.example.backend.global.config;
 
+import static com.example.backend.global.config.SpringDocConfig.*;
+
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collections;
@@ -53,8 +55,8 @@ public class SecurityConfig {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
 
-			.csrf(AbstractHttpConfigurer::disable)		// CSRF 인증 방식 disable
-			.cors(cors->corsConfigurationSource())
+			.csrf(AbstractHttpConfigurer::disable)        // CSRF 인증 방식 disable
+			.cors(cors -> corsConfigurationSource())
 			// .oauth2Login(oauth ->
 			// 	oauth.userInfoEndpoint(c -> c.userService(oAuth2UserService))
 			// 		.successHandler(oAuth2SuccessHandler)
@@ -65,12 +67,15 @@ public class SecurityConfig {
 					.permitAll()
 					.requestMatchers("/api-v1/members/login", "/api-v1/members/logout", "/api-v1/members/join")
 					.permitAll()
+					.requestMatchers(SWAGGER_PATHS)
+					.permitAll()
 					.anyRequest()
 					.authenticated()
 			)
 			.httpBasic(AbstractHttpConfigurer::disable) // Http Basic 인증 방식 disable
 			.formLogin(AbstractHttpConfigurer::disable)
-			.sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // jwt 방식이므로 세션 x
+			.sessionManagement(
+				session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // jwt 방식이므로 세션 x
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 			.exceptionHandling(
 				exceptionHandling -> exceptionHandling
@@ -127,13 +132,15 @@ public class SecurityConfig {
 		configuration.setAllowedOrigins(
 			Arrays.asList(AppConfig.getSiteFrontUrl(), "http://localhost:3000")); // 프론트 엔드 포트번호
 		// 허용할 HTTP 메서드 설정
-		configuration.setAllowedMethods(Collections.singletonList("*"));//Arrays.asList("GET", "POST", "PUT", "DELETE"));
+		configuration.setAllowedMethods(
+			Collections.singletonList("*"));//Arrays.asList("GET", "POST", "PUT", "DELETE"));
 		// 자격 증명 허용 설정
 		configuration.setAllowCredentials(true);
 		// 허용할 헤더 설정
 		configuration.setAllowedHeaders(Collections.singletonList("*"));
 
-		configuration.setExposedHeaders(Collections.singletonList("Authorization")); // client가 Authorization 헤더를 읽을 수 있도록 해야한다.
+		configuration.setExposedHeaders(
+			Collections.singletonList("Authorization")); // client가 Authorization 헤더를 읽을 수 있도록 해야한다.
 		// CORS 설정을 소스에 등록
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
