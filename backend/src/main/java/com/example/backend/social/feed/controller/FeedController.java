@@ -15,8 +15,10 @@ import com.example.backend.social.feed.dto.FeedMemberRequest;
 import com.example.backend.social.feed.dto.FeedMemberResponse;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.service.FeedService;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -28,16 +30,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api-v1/feed")
+@Tag(name = "FeedController", description = "API 피드 컨트롤러")
+@SecurityRequirement(name = "bearerAuth")
 public class FeedController {
 
 	private final FeedService feedService;
-	private final JPAQueryFactory queryFactory;
 
 	/**
 	 * 팔로잉 게시물과 추천 게시물이 혼합된 피드 리스트 요청
 	 * @param request 요청 정보
 	 * @return 피드 Dto 리스트
 	 */
+	@Operation(summary = "메인 피드 요청", description = "자신 및 팔로잉 게시물과 추천 게시물로 이뤄진 피드를 반환합니다.")
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedListResponse> findFeedList(
@@ -52,6 +56,7 @@ public class FeedController {
 	 * @param username 요청하는 유저의 이름 (임시. 삭제 예정)
 	 * @return 피드 Dto
 	 */
+	@Operation(summary = "단건 피드 요청", description = "단건 게시물을 피드로 반환합니다.")
 	@GetMapping("/{postId}/{username}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedInfoResponse> findFeedInfo(
@@ -66,6 +71,7 @@ public class FeedController {
 	 * @param request 요청 정보
 	 * @return 피드 Dto 리스트
 	 */
+	@Operation(summary = "멤버 피드 요청", description = "해당 멤버의 게시물에 대한 피드를 요청합니다.")
 	@GetMapping("/member")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedMemberResponse> findMemberFeedList(
