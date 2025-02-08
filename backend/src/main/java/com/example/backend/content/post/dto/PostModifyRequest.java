@@ -18,9 +18,4 @@ public record PostModifyRequest (
 	@NotNull(message = "게시물 ID는 필수 입력 값입니다.") Long postId,
 	@NotNull(message = "게시물 내용은 필수 입력 값입니다.") String content,
 	@NotNull(message = "회원 ID는 필수 입력 값입니다.") Long memberId
-) {
-	// 추가된 생성자
-	public PostModifyRequest(Long postId, String content) {
-		this(postId, content, null);
-	}
-}
+) { }
