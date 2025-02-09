@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
 import com.example.backend.identity.security.user.SecurityUser;
-import com.example.backend.social.follow.dto.CreateFollowRequest;
 import com.example.backend.social.follow.dto.CreateFollowResponse;
 import com.example.backend.social.follow.dto.DeleteFollowRequest;
 import com.example.backend.social.follow.dto.DeleteFollowResponse;
@@ -51,11 +50,11 @@ public class FollowController {
 	@PostMapping("/{receiverId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<CreateFollowResponse> followMember(
-		@PathVariable Long receiverId, // TODO: 추후 인증 정보를 가져오며 검증 로직 추가 예정
-		@Valid @RequestBody CreateFollowRequest createRequest
+		@PathVariable Long receiverId,
+		@AuthenticationPrincipal SecurityUser securityUser
 	) {
 		CreateFollowResponse createResponse = followService.createFollow(
-			createRequest.senderId(), createRequest.receiverId()
+			securityUser.getId(), receiverId
 		);
 		return RsData.success(createResponse, "팔로우 등록 요청에 성공했습니다.");
 	}
@@ -69,11 +68,12 @@ public class FollowController {
 	@DeleteMapping("/{receiverId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<DeleteFollowResponse> unfollowMember(
-		@PathVariable Long receiverId, // TODO: 추후 인증 정보를 가져오며 검증 로직 추가 예정
-		@Valid @RequestBody DeleteFollowRequest deleteRequest
+		@Valid @RequestBody DeleteFollowRequest deleteRequest,
+		@AuthenticationPrincipal SecurityUser securityUser,
+		@PathVariable Long receiverId
 	) {
 		DeleteFollowResponse deleteResponse = followService.deleteFollow(
-			deleteRequest.id(), deleteRequest.senderId(), deleteRequest.receiverId()
+			deleteRequest.followId(), securityUser.getId(), receiverId
 		);
 		return RsData.success(deleteResponse, "팔로우 취소 요청에 성공했습니다.");
 	}
@@ -91,9 +91,7 @@ public class FollowController {
 		@PathVariable Long memberId,
 		@AuthenticationPrincipal SecurityUser securityUser
 	) {
-		Long currentMemberId = securityUser.getId();
-
-		boolean isMutualFollow = followService.findMutualFollow(currentMemberId, memberId);
+		boolean isMutualFollow = followService.findMutualFollow(securityUser.getId(), memberId);
 
 		MutualFollowResponse getResponse = new MutualFollowResponse(isMutualFollow);
 

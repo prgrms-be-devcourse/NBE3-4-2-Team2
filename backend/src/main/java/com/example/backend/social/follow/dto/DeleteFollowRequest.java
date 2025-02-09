@@ -12,7 +12,5 @@ import lombok.Builder;
  */
 @Builder
 public record DeleteFollowRequest (
-	@NotNull(message = "팔로우 Id는 필수 항목입니다.") Long id,
-	@NotNull(message = "로그인 후 이용해주세요.") Long senderId,
-	@NotNull(message = "팔로우 대상을 확인할 수 없습니다") Long receiverId
+	@NotNull(message = "팔로우 Id는 필수 항목입니다.") Long followId
 ) { }

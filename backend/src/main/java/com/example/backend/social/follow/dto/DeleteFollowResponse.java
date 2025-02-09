@@ -13,7 +13,7 @@ import lombok.Builder;
  */
 @Builder
 public record DeleteFollowResponse (
-	Long id,
+	Long followId,
 	Long senderId,
 	Long receiverId,
 	LocalDateTime deleteDate
