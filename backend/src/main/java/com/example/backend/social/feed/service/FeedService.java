@@ -37,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class FeedService {
 
-	private final FeedSelector feedFinder;
 	private final MemberService memberService;
 	private final FeedValidator feedValidator;
 	private final FeedConverter feedConverter;
@@ -57,7 +56,7 @@ public class FeedService {
 			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
 		int followingCount = (int)(request.maxSize() * FOLLOWING_FEED_RATE);
-		List<Feed> feedList = feedFinder.findByFollower(
+		List<Feed> feedList = feedSelector.findByFollower(
 			member, request.lastPostId(), followingCount);
 
 		Long lastPostId = feedList.isEmpty()
@@ -69,7 +68,7 @@ public class FeedService {
 			: feedList.getLast().getPost().getCreateDate();
 
 		int recommendCount = (int)(request.maxSize() * RECOMMEND_FEED_RATE) + (followingCount - feedList.size());
-		List<Feed> recommendFeedList = feedFinder.findRecommendFinder(
+		List<Feed> recommendFeedList = feedSelector.findRecommendFinder(
 			member,
 			request.timestamp(),
 			lastTime,
@@ -107,7 +106,7 @@ public class FeedService {
 		MemberEntity member = memberService.findByUsername(request.username())
 			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
-		List<FeedInfoResponse> feedList = feedFinder.findByMember(member, request.lastPostId(), request.maxSize())
+		List<FeedInfoResponse> feedList = feedSelector.findByMember(member, request.lastPostId(), request.maxSize())
 			.stream()
 			.map(feedConverter::toFeedInfoResponse)
 			.toList();
