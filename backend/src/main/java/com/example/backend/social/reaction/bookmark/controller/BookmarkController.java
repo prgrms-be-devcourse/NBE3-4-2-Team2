@@ -66,12 +66,12 @@ public class BookmarkController {
 	@DeleteMapping("/{postId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<DeleteBookmarkResponse> removeBookmarkPost(
-		@PathVariable Long postId,
 		@Valid @RequestBody DeleteBookmarkRequest deleteRequest,
-		@AuthenticationPrincipal SecurityUser securityUser
+		@AuthenticationPrincipal SecurityUser securityUser,
+		@PathVariable Long postId
 	) {
 		DeleteBookmarkResponse deleteResponse = bookmarkService.deleteBookmark(
-			deleteRequest.id(), securityUser.getId(), postId
+			deleteRequest.bookmarkId(), securityUser.getId(), postId
 		);
 		return RsData.success(deleteResponse, "북마크가 성공적으로 제거되었습니다.");
 	}

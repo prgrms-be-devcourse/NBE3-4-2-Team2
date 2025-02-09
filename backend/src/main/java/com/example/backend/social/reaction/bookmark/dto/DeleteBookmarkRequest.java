@@ -12,5 +12,5 @@ import lombok.Builder;
  */
 @Builder
 public record DeleteBookmarkRequest(
-	@NotNull(message = "북마크 Id는 필수 항목입니다.") Long id
+	@NotNull(message = "북마크 Id는 필수 항목입니다.") Long bookmarkId
 ) { }

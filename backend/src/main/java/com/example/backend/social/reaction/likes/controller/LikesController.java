@@ -66,12 +66,12 @@ public class LikesController {
 	@DeleteMapping("/{postId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<DeleteLikeResponse> unlikePost(
-		@PathVariable Long postId,
 		@Valid @RequestBody DeleteLikeRequest deleteRequest,
-		@AuthenticationPrincipal SecurityUser securityUser
+		@AuthenticationPrincipal SecurityUser securityUser,
+		@PathVariable Long postId
 		) {
 		DeleteLikeResponse deleteResponse = likesService.deleteLike(
-			deleteRequest.id(), securityUser.getId(), postId
+			deleteRequest.likeId(), securityUser.getId(), postId
 		);
 		return RsData.success(deleteResponse, "좋아요가 성공적으로 취소되었습니다.");
 	}
