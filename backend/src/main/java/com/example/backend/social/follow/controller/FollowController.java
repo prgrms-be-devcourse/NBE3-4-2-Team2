@@ -18,6 +18,8 @@ import com.example.backend.social.follow.dto.CreateFollowResponse;
 import com.example.backend.social.follow.dto.DeleteFollowRequest;
 import com.example.backend.social.follow.dto.DeleteFollowResponse;
 import com.example.backend.social.follow.dto.MutualFollowResponse;
+import com.example.backend.social.follow.exception.FollowErrorCode;
+import com.example.backend.social.follow.exception.FollowException;
 import com.example.backend.social.follow.service.FollowService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,6 +55,9 @@ public class FollowController {
 		@PathVariable Long receiverId,
 		@AuthenticationPrincipal SecurityUser securityUser
 	) {
+		if (receiverId.equals(securityUser.getId())) {
+			throw new FollowException(FollowErrorCode.SELF_FOLLOW);
+		}
 		CreateFollowResponse createResponse = followService.createFollow(
 			securityUser.getId(), receiverId
 		);
@@ -72,6 +77,9 @@ public class FollowController {
 		@AuthenticationPrincipal SecurityUser securityUser,
 		@PathVariable Long receiverId
 	) {
+		if (receiverId.equals(securityUser.getId())) {
+			throw new FollowException(FollowErrorCode.SELF_UNFOLLOW);
+		}
 		DeleteFollowResponse deleteResponse = followService.deleteFollow(
 			deleteRequest.followId(), securityUser.getId(), receiverId
 		);
