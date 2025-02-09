@@ -134,4 +134,65 @@ public class FollowControllerTest {
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.message").value("팔로우 취소 요청에 성공했습니다."));
 	}
+
+	@Test
+	@DisplayName("3. 요청한 sender의 ID와 인증 정보가 다를 때 팔로우 요청 테스트")
+	public void t003() throws Exception {
+		// Given
+		Long anotherMemberId = 99L;
+		SecurityUser securityUser = new SecurityUser(anotherMemberId, "nonExistentUser", "password", new ArrayList<>());
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+
+		// When
+		ResultActions resultActions = mockMvc.perform(post("/api-v1/follow/{receiverId}", receiver.getId())
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON));
+
+		// Then
+		resultActions.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.message").value("멤버 정보를 찾을 수 없습니다."));
+	}
+
+	@Test
+	@DisplayName("4. 존재하지 않는 receiver에게 팔로우 요청 테스트")
+	public void t004() throws Exception {
+		// When
+		ResultActions resultActions = mockMvc.perform(post("/api-v1/follow/{receiverId}", 99L)
+			.header("Authorization", "Bearer " + senderToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON));
+
+		// Then
+		resultActions.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.message").value("사용자 정보를 찾을 수 없습니다."));
+	}
+
+	@Test
+	@DisplayName("5. 이미 팔로우 되있는 상대방에게 중복 팔로우 테스트")
+	public void t005() throws Exception {
+		// When First
+		ResultActions firstResultActions = mockMvc.perform(post("/api-v1/follow/{receiverId}", receiver.getId())
+			.header("Authorization", "Bearer " + senderToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON));
+
+		// Then First
+		firstResultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.message").value("팔로우 등록 요청에 성공했습니다."));
+
+		// When Second
+		ResultActions secondResultActions = mockMvc.perform(post("/api-v1/follow/{receiverId}", receiver.getId())
+			.header("Authorization", "Bearer " + senderToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON));
+
+		// Then
+		secondResultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.message").value("이미 팔로우 상태입니다."));
+	}
 }
