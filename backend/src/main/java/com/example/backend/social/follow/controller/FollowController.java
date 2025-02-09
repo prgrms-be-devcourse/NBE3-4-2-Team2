@@ -21,6 +21,7 @@ import com.example.backend.social.follow.dto.DeleteFollowResponse;
 import com.example.backend.social.follow.dto.MutualFollowResponse;
 import com.example.backend.social.follow.service.FollowService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -46,6 +47,7 @@ public class FollowController {
 	 * @param receiverId(상대방), securityUser(본인)
 	 * @return CreateFollowResponse (DTO)
 	 */
+	@Operation(summary = "상대방 팔로우 요청", description = "상대 멤버와 팔로우 관계를 맺습니다.")
 	@PostMapping("/{receiverId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<CreateFollowResponse> followMember(
@@ -63,6 +65,7 @@ public class FollowController {
 	 * @param receiverId(상대방), DeleteFollowRequest(FollowId), securityUser(본인)
 	 * @return DeleteFollowResponse (DTO)
 	 */
+	@Operation(summary = "상대방 팔로우 취소", description = "상대 멤버와 팔로우 관계를 끊습니다.")
 	@DeleteMapping("/{receiverId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<DeleteFollowResponse> unfollowMember(
@@ -81,6 +84,7 @@ public class FollowController {
 	 * @param memberId(상대방), securityUser(본인)
 	 * @return MutualFollowResponse (DTO)
 	 */
+	@Operation(summary = "맞팔로우 확인", description = "상대 멤버와 서로 팔로우 관계인지 확인합니다.")
 	@GetMapping("/mutual/{memberId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<MutualFollowResponse> isMutualFollow(
