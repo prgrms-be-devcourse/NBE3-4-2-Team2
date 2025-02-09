@@ -124,10 +124,10 @@ public class BookmarkControllerTest {
 		// Given Second
 		String bookmarkResponse = bookmarkResult.getResponse().getContentAsString();
 		JsonNode bookmarkRoot = objectMapper.readTree(bookmarkResponse);
-		Long bookmarkId = bookmarkRoot.path("data").path("id").asLong();
+		Long bookmarkId = bookmarkRoot.path("data").path("bookmarkId").asLong();
 
 		DeleteBookmarkRequest deleteRequest = DeleteBookmarkRequest.builder()
-			.id(bookmarkId)
+			.bookmarkId(bookmarkId)
 			.build();
 		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
 
@@ -211,7 +211,7 @@ public class BookmarkControllerTest {
 	public void t006() throws Exception {
 		// Given
 		DeleteBookmarkRequest deleteRequest = DeleteBookmarkRequest.builder()
-			.id(1L)
+			.bookmarkId(1L)
 			.build();
 		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
 
@@ -249,7 +249,7 @@ public class BookmarkControllerTest {
 		// 북마크 정보 추출
 		String bookmarkResponse = resultActions.andReturn().getResponse().getContentAsString();
 		JsonNode bookmarkRoot = objectMapper.readTree(bookmarkResponse);
-		Long bookmarkId = bookmarkRoot.path("data").path("id").asLong();
+		Long bookmarkId = bookmarkRoot.path("data").path("bookmarkId").asLong();
 
 		// 새로운 멤버 추가 및 토큰 발급
 		MemberEntity otherMember = memberService.join("otherMember", "otherPassword", "other@gmail.com");
@@ -259,7 +259,7 @@ public class BookmarkControllerTest {
 
 		// Request DTO 정보 빌드
 		DeleteBookmarkRequest deleteRequest = DeleteBookmarkRequest.builder()
-			.id(bookmarkId)
+			.bookmarkId(bookmarkId)
 			.build();
 		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
 
@@ -295,7 +295,7 @@ public class BookmarkControllerTest {
 		// 북마크 ID 추출
 		String bookmarkResponse = bookmarkResult.andReturn().getResponse().getContentAsString();
 		JsonNode bookmarkRoot = objectMapper.readTree(bookmarkResponse);
-		Long bookmarkId = bookmarkRoot.path("data").path("id").asLong();
+		Long bookmarkId = bookmarkRoot.path("data").path("bookmarkId").asLong();
 
 		// 새로운 게시물 생성
 		PostEntity otherPost = PostEntity.builder()
@@ -306,7 +306,7 @@ public class BookmarkControllerTest {
 
 		// Request DTO 정보 빌드
 		DeleteBookmarkRequest deleteRequest = DeleteBookmarkRequest.builder()
-			.id(bookmarkId)
+			.bookmarkId(bookmarkId)
 			.build();
 		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
 

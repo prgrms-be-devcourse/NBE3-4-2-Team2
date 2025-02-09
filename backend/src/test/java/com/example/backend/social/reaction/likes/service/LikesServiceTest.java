@@ -122,7 +122,7 @@ public class LikesServiceTest {
 
 		// When Second
 		DeleteLikeResponse deleteResponse = likesService.deleteLike(
-			createResponse.id(), secondMemberId, secondPostId
+			createResponse.likeId(), secondMemberId, secondPostId
 		);
 		entityManager.flush();
 		entityManager.clear();
@@ -226,7 +226,7 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long likeId = createResponse.id();
+		Long likeId = createResponse.likeId();
 		Long anotherMemberId = 999L;
 		Long secondPostId = createResponse.postId();
 
@@ -250,7 +250,7 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long likeId = createResponse.id();
+		Long likeId = createResponse.likeId();
 		Long memberId = createResponse.memberId();
 		Long anotherPostId = 999L;
 

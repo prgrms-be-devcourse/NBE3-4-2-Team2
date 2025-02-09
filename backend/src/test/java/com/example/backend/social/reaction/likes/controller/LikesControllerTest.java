@@ -124,10 +124,10 @@ public class LikesControllerTest {
 		// Given Second
 		String likeResponse = likeResult.getResponse().getContentAsString();
 		JsonNode likeRoot = objectMapper.readTree(likeResponse);
-		Long likeId = likeRoot.path("data").path("id").asLong();
+		Long likeId = likeRoot.path("data").path("likeId").asLong();
 
 		DeleteLikeRequest deleteRequest = DeleteLikeRequest.builder()
-			.id(likeId)
+			.likeId(likeId)
 			.build();
 		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
 
@@ -211,7 +211,7 @@ public class LikesControllerTest {
 	public void t006() throws Exception {
 		// Given
 		DeleteLikeRequest deleteRequest = DeleteLikeRequest.builder()
-			.id(1L)
+			.likeId(1L)
 			.build();
 		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
 
@@ -249,7 +249,7 @@ public class LikesControllerTest {
 		// 좋아요 정보 추출
 		String likeResponse = resultActions.andReturn().getResponse().getContentAsString();
 		JsonNode likeRoot = objectMapper.readTree(likeResponse);
-		Long likeId = likeRoot.path("data").path("id").asLong();
+		Long likeId = likeRoot.path("data").path("likeId").asLong();
 
 		// 새로운 멤버 추가 및 토큰 발급
 		MemberEntity otherMember = memberService.join("otherMember", "otherPassword", "other@gmail.com");
@@ -259,7 +259,7 @@ public class LikesControllerTest {
 
 		// Request DTO 정보 빌드
 		DeleteLikeRequest deleteRequest = DeleteLikeRequest.builder()
-			.id(likeId)
+			.likeId(likeId)
 			.build();
 		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
 
@@ -295,7 +295,7 @@ public class LikesControllerTest {
 		// 좋아요 ID 추출
 		String likeResponse = likeResult.andReturn().getResponse().getContentAsString();
 		JsonNode likeRoot = objectMapper.readTree(likeResponse);
-		Long likeId = likeRoot.path("data").path("id").asLong();
+		Long likeId = likeRoot.path("data").path("likeId").asLong();
 
 		// 새로운 게시물 생성
 		PostEntity otherPost = PostEntity.builder()
@@ -306,7 +306,7 @@ public class LikesControllerTest {
 
 		// Request DTO 정보 빌드
 		DeleteLikeRequest deleteRequest = DeleteLikeRequest.builder()
-			.id(likeId)
+			.likeId(likeId)
 			.build();
 		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
 
