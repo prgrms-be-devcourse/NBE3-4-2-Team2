@@ -87,8 +87,6 @@ public class LikesServiceTest {
 
 		// When First
 		CreateLikeResponse createResponse = likesService.createLike(memberId, postId);
-		entityManager.flush();
-		entityManager.clear();
 
 		// Then First
 		assertNotNull(createResponse);
@@ -124,8 +122,6 @@ public class LikesServiceTest {
 		DeleteLikeResponse deleteResponse = likesService.deleteLike(
 			createResponse.likeId(), secondMemberId, secondPostId
 		);
-		entityManager.flush();
-		entityManager.clear();
 
 		// Then Second
 		assertNotNull(deleteResponse);
@@ -175,8 +171,6 @@ public class LikesServiceTest {
 
 		// When First
 		CreateLikeResponse createResponse = likesService.createLike(firstMemberId, firstPostId);
-		entityManager.flush();
-		entityManager.clear();
 
 		// Then First
 		assertNotNull(createResponse);
