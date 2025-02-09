@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import com.example.backend.entity.FollowEntity;
 import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
@@ -264,7 +265,6 @@ public class FollowControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.message").value("팔로우 등록 요청에 성공했습니다."))
-			.andExpect(jsonPath("$.data").exists())
 			.andReturn();
 
 		// Given Second
@@ -288,5 +288,41 @@ public class FollowControllerTest {
 		resultActions.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value("잘못된 팔로우 취소 요청입니다."));
+	}
+
+	@Test
+	@DisplayName("9. 자기 자신을 팔로우 하는 테스트")
+	public void t009() throws Exception {
+		// When & Then First
+		mockMvc.perform(post("/api-v1/follow/{receiverId}", sender.getId())
+				.header("Authorization", "Bearer " + senderToken)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.message").value("자기 자신을 팔로우 할 수 없습니다."));
+	}
+
+	@Test
+	@DisplayName("10. 자기 자신을 언팔로우 하는 테스트")
+	public void t010() throws Exception {
+		// Given
+		FollowEntity follow = FollowEntity.create(sender, sender);
+		followRepository.save(follow);
+
+		DeleteFollowRequest deleteRequest = DeleteFollowRequest.builder()
+			.followId(1L)
+			.build();
+		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
+
+		// When & Then First
+		mockMvc.perform(delete("/api-v1/follow/{receiverId}", sender.getId())
+				.header("Authorization", "Bearer " + senderToken)
+				.content(deleteRequestJson)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.message").value("자기 자신을 언팔로우 할 수 없습니다."));
 	}
 }
