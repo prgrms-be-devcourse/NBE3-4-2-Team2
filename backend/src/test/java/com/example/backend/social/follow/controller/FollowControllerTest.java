@@ -152,7 +152,7 @@ public class FollowControllerTest {
 		// Then
 		resultActions.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("멤버 정보를 찾을 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("사용자 정보를 찾을 수 없습니다."));
 	}
 
 	@Test
@@ -191,8 +191,102 @@ public class FollowControllerTest {
 			.accept(MediaType.APPLICATION_JSON));
 
 		// Then
-		secondResultActions.andExpect(status().isOk())
+		secondResultActions.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value("이미 팔로우 상태입니다."));
+	}
+
+	@Test
+	@DisplayName("6. 팔로우 관계가 아닌 상대방에게 팔로우 취소 요청 테스트")
+	public void t006() throws Exception {
+		// Given
+		DeleteFollowRequest deleteRequest = DeleteFollowRequest.builder()
+			.followId(receiver.getId())
+			.build();
+		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
+
+		// When
+		ResultActions resultActions = mockMvc.perform(delete("/api-v1/follow/{receiverId}", receiver.getId())
+			.content(deleteRequestJson)
+			.header("Authorization", "Bearer " + senderToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON));
+
+		// Then
+		resultActions.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.message").value("팔로우 관계를 찾을 수 없습니다."));
+	}
+
+	@Test
+	@DisplayName("7. 팔로우 취소시 다른 유저가 요청하는 테스트")
+	public void t007() throws Exception {
+		// When & Then First
+		MvcResult followResult = mockMvc.perform(post("/api-v1/follow/{receiverId}", receiver.getId())
+				.header("Authorization", "Bearer " + senderToken)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.message").value("팔로우 등록 요청에 성공했습니다."))
+			.andExpect(jsonPath("$.data").exists())
+			.andReturn();
+
+		// Given Second
+		Long followId = 99L;
+
+		DeleteFollowRequest deleteRequest = DeleteFollowRequest.builder()
+			.followId(followId)
+			.build();
+		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
+
+		// When Second
+		ResultActions resultActions = mockMvc.perform(delete("/api-v1/follow/{receiverId}", receiver.getId())
+			.content(deleteRequestJson)
+			.header("Authorization", "Bearer " + senderToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON));
+
+		// Then Second
+		resultActions.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.message").value("팔로우 관계를 찾을 수 없습니다."));
+	}
+
+	@Test
+	@DisplayName("8. DB에 등록된 팔로우 관계와 receiver가 일치하지 않는 테스트")
+	public void t008() throws Exception {
+		// When & Then First
+		MvcResult followResult = mockMvc.perform(post("/api-v1/follow/{receiverId}", receiver.getId())
+				.header("Authorization", "Bearer " + senderToken)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.message").value("팔로우 등록 요청에 성공했습니다."))
+			.andExpect(jsonPath("$.data").exists())
+			.andReturn();
+
+		// Given Second
+		String followResponse = followResult.getResponse().getContentAsString();
+		JsonNode followRoot = objectMapper.readTree(followResponse);
+		Long followId = followRoot.path("data").path("followId").asLong();
+
+		DeleteFollowRequest deleteRequest = DeleteFollowRequest.builder()
+			.followId(followId)
+			.build();
+		String deleteRequestJson = objectMapper.writeValueAsString(deleteRequest);
+
+		// When Second
+		ResultActions resultActions = mockMvc.perform(delete("/api-v1/follow/{receiverId}", 99L)
+			.content(deleteRequestJson)
+			.header("Authorization", "Bearer " + senderToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON));
+
+		// Then Second
+		resultActions.andExpect(status().isForbidden())
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.message").value("잘못된 팔로우 취소 요청입니다."));
 	}
 }

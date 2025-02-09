@@ -23,6 +23,7 @@ import com.example.backend.global.exception.GlobalException;
 import com.example.backend.global.rs.ErrorRs;
 import com.example.backend.global.rs.RsData;
 import com.example.backend.social.feed.exception.FeedException;
+import com.example.backend.social.follow.exception.FollowException;
 import com.example.backend.social.reaction.bookmark.exception.BookmarkException;
 import com.example.backend.social.reaction.likes.exception.LikesException;
 
@@ -124,6 +125,14 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(BookmarkException.class)
 	public ResponseEntity<RsData<?>> handleBookmarkException(BookmarkException ex) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getStatus())
+			.body(response);
+	}
+
+	@ExceptionHandler(FollowException.class)
+	public ResponseEntity<RsData<?>> handleFollowException(FollowException ex) {
 		RsData<?> response = RsData.error(null, ex.getMessage());
 		return ResponseEntity
 			.status(ex.getStatus())
