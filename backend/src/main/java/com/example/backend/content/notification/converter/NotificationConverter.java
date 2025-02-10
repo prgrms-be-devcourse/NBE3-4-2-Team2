@@ -1,7 +1,12 @@
 package com.example.backend.content.notification.converter;
 
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import com.example.backend.content.notification.dto.NotificationLikePageResponse;
 import com.example.backend.content.notification.dto.NotificationLikeResponse;
 import com.example.backend.entity.NotificationEntity;
 
@@ -19,7 +24,24 @@ public class NotificationConverter {
 			.type(notification.getType())
 			.postId(postId)
 			.message(notification.getContent())
+			.isRead(notification.isRead())
 			.createdAt(notification.getCreateDate())
 			.build();
 	}
+
+	public NotificationLikePageResponse toLikePage(Page<NotificationLikeResponse> notifications
+	) {
+		List<NotificationLikeResponse> responses = notifications
+			.stream()
+			.sorted(Comparator.comparing(NotificationLikeResponse::createdAt).reversed())
+			.toList();
+
+		return NotificationLikePageResponse.builder()
+			.responses(responses)
+			.totalCount((int)notifications.getTotalElements())
+			.currentPage(notifications.getNumber())
+			.totalPageCount(notifications.getTotalPages())
+			.build();
+	}
+
 }
