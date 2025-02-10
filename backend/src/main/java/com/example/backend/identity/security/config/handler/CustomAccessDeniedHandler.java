@@ -51,7 +51,6 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 			RsData.error(
 				ErrorRs.builder()
 					.target(request.getRequestURI())
-					.code(403)
 					.message("해당 리소스에 권한이 없습니다.")
 					.build()
 			)

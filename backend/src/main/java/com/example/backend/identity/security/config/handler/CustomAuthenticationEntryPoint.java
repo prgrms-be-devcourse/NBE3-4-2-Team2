@@ -54,7 +54,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 			RsData.error(
 				ErrorRs.builder()
 					.target(request.getRequestURI())
-					.code(401)
 					.message("사용자 인증정보가 올바르지 않습니다.")
 					.build()
 			)
