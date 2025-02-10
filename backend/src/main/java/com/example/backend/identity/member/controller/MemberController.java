@@ -44,16 +44,16 @@ public class MemberController {
 						"%s님 환영합니다. 회원가입이 완료되었습니다.".formatted(member.getUsername()));
 	}
 
-	@DeleteMapping("/logout")
-	@ResponseStatus(HttpStatus.OK)
-	public RsData<Void> logout() {
-		rq.deleteCookie("access_token");
-		rq.deleteCookie("refresh_token");
-
-		return RsData.success(
-			null,
-			"로그아웃 되었습니다.");
-	}
+	// @DeleteMapping("/logout")
+	// @ResponseStatus(HttpStatus.OK)
+	// public RsData<Void> logout() {
+	// 	rq.deleteCookie("access_token");
+	// 	rq.deleteCookie("refresh_token");
+	//
+	// 	return RsData.success(
+	// 		null,
+	// 		"로그아웃 되었습니다.");
+	// }
 
 
 	@GetMapping("/{id}")
