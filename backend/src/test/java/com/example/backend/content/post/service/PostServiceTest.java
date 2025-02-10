@@ -3,6 +3,7 @@ package com.example.backend.content.post.service;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,7 @@ class PostServiceTest {
 		testMember = MemberEntity.builder()
 			.username("testUser")
 			.email("test@example.com")
+			.refreshToken("")
 			.password("password")
 			.build();
 
@@ -56,11 +58,11 @@ class PostServiceTest {
 			.build();
 
 		postRepository.save(testPost);
-
 	}
 
 	@Test
-	void 게시물_생성_테스트() {
+	@DisplayName("게시물 생성 테스트")
+	void t1() {
 		// given
 		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물");
 
@@ -76,7 +78,8 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 게시물_수정_테스트() {
+	@DisplayName("게시물 수정 테스트")
+	void t2() {
 		// given
 		String updatedContent = "수정된 게시물 내용";
 		PostModifyRequest request = new PostModifyRequest(testPost.getId(), updatedContent, testMember.getId());
@@ -95,7 +98,8 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 게시물_삭제_테스트() {
+	@DisplayName("게시물 삭제 테스트")
+	void t3() {
 		// given
 		Long postId = testPost.getId();
 		Long memberId = testMember.getId();
@@ -114,7 +118,8 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 존재하지_않는_게시물_삭제시_예외발생() {
+	@DisplayName("존재하지 않는 게시물 삭제시 예외발생")
+	void t4() {
 		// given
 		Long nonExistentPostId = 999L; // 존재하지 않는 게시물 ID
 		Long memberId = testMember.getId();
@@ -130,7 +135,8 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 존재하지_않는_게시물_수정시_예외발생() {
+	@DisplayName("존재하지 않는 게시물 수정시 예외발생")
+	void t5() {
 		// given
 		Long nonExistentPostId = 999L; // 존재하지 않는 게시물 ID
 		PostModifyRequest request = new PostModifyRequest(nonExistentPostId, "수정된 내용", testMember.getId());
@@ -147,15 +153,18 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 다른_사용자의_게시물_수정시_예외발생() {
+	@DisplayName("다른 사용자의 게시물 수정시 예외발생")
+	void t6() {
 		// given
 		MemberEntity anotherUser = memberRepository.save(
 			MemberEntity.builder()
 				.username("otherUser")
 				.email("other@example.com")
+				.refreshToken("dummyToken") // ✅ NULL 방지: 빈 문자열 또는 더미 값 추가
 				.password("password")
 				.build()
 		);
+
 
 		PostModifyRequest request = new PostModifyRequest(testPost.getId(), "허가되지 않은 수정", anotherUser.getId());
 
@@ -169,12 +178,14 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 다른_사용자의_게시물_삭제시_예외발생() {
+	@DisplayName("다른 사용자의 게시물 삭제시 예외발생")
+	void t7() {
 		// given
 		MemberEntity anotherUser = memberRepository.save(
 			MemberEntity.builder()
 				.username("otherUser")
 				.email("other@example.com")
+				.refreshToken("dummyToken") // ✅ NULL 방지: 빈 문자열 또는 더미 값 추가
 				.password("password")
 				.build()
 		);
