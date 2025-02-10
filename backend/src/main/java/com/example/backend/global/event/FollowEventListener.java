@@ -13,30 +13,30 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * @author kwak
- * 2025-02-09
+ * 2025-02-11
  */
-
 @Component
 @Async
 @RequiredArgsConstructor
-public class LikeEventListener {
+public class FollowEventListener {
 
 	private final NotificationService notificationService;
 	private static final int MAX_RETRY_COUNT = 3;
 	private static final long RETRY_DELAY_MS = 1000L;
 
 	@EventListener
-	public void handleLikeEvent(LikeEvent likeEvent) {
+	public void handleFollowEvent(FollowEvent followEvent) {
 		int retryCount = 0;
 
 		while (retryCount < MAX_RETRY_COUNT) {
 
 			try {
 				notificationService.createAndSendNotification(
-					likeEvent.postAuthorId(), likeEvent.postId(), NotificationType.LIKE,
-					likeEvent.likerName() + "님이 게시물을 좋아합니다.");
+					followEvent.receiverId(), followEvent.senderId(), NotificationType.FOLLOW,
+					followEvent.senderName() + "님이 팔로우 요청을 하였습니다.");
 				// 성공 시 바로 리턴
 				return;
+
 			} catch (Exception e) {
 				retryCount++;
 				// 3번째 시도까지 실패 시 진짜 에러 발생

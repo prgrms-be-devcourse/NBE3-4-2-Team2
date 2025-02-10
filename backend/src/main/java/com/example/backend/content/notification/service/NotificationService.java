@@ -36,14 +36,20 @@ public class NotificationService {
 	private static final long THIRTY_DAYS = 30;
 	private static final int PAGE_SIZE = 10;
 
+	/**
+	 * 각 targetId 는
+	 * Like -> postId, Follow -> senderId, Comment -> commentId
+	 * @author kwak
+	 * @since 2025-02-11
+	 */
 	@Transactional
-	public void createAndSendNotification(Long memberId, Long postId, NotificationType type, String message) {
+	public void createAndSendNotification(Long memberId, Long targetId, NotificationType type, String message) {
 		// 알림 엔티티 생성 및 저장
-		NotificationEntity notificationEntity = NotificationEntity.create(message, memberId, type, postId);
+		NotificationEntity notificationEntity = NotificationEntity.create(message, memberId, type, targetId);
 		NotificationEntity notification = notificationRepository.save(notificationEntity);
 
 		// sse 로 실시간 알림 전송
-		sseConnectionPool.sendNotification(memberId, converter.toLikeResponse(notification, postId));
+		sseConnectionPool.sendNotification(memberId, converter.toLikeResponse(notification, targetId));
 	}
 
 	@Transactional
