@@ -1,14 +1,13 @@
 package com.example.backend.global.config;
 
-import static com.example.backend.global.config.SpringDocConfig.*;
-
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -19,10 +18,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.example.backend.global.rs.ErrorRs;
-import com.example.backend.global.rs.RsData;
-import com.example.backend.global.util.Ut;
-import com.example.backend.identity.security.filter.JwtAuthenticationFilter;
+import com.example.backend.identity.security.config.handler.CustomAccessDeniedHandler;
+import com.example.backend.identity.security.config.handler.CustomAuthenticationEntryPoint;
+import com.example.backend.identity.security.config.CustomUsernamePasswordAuthenticationFilter;
+import com.example.backend.identity.security.jwt.JwtAuthenticationFilter;
+import com.example.backend.identity.security.oauth.service.CustomOAuth2UserService;
+import com.example.backend.identity.security.config.handler.CustomSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,7 +40,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
-	// private final CumstomOAuth2UserService oAuth2UserService;
+	private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+	private final CustomAccessDeniedHandler accessDeniedHandler;
+	private final CustomOAuth2UserService customOAuth2UserService;
+	private final CustomSuccessHandler customSuccessHandler;
 	// private final BearToke
 
 	/**
@@ -52,15 +56,18 @@ public class SecurityConfig {
 	 */
 
 	@Bean
-	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+		CustomUsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter =
+			new CustomUsernamePasswordAuthenticationFilter(authenticationManager, customSuccessHandler);
+
 		http
 
-			.csrf(AbstractHttpConfigurer::disable)        // CSRF 인증 방식 disable
-			.cors(cors -> corsConfigurationSource())
-			// .oauth2Login(oauth ->
-			// 	oauth.userInfoEndpoint(c -> c.userService(oAuth2UserService))
-			// 		.successHandler(oAuth2SuccessHandler)
-			// )
+			.csrf(AbstractHttpConfigurer::disable)		// CSRF 인증 방식 disable
+			.cors(cors->corsConfigurationSource())
+			.oauth2Login((oauth2) -> oauth2
+				.userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+					.userService(customOAuth2UserService))
+				.successHandler(customSuccessHandler))
 			.authorizeHttpRequests((authorizeHttpRequests) ->
 				authorizeHttpRequests
 					.requestMatchers("/h2-console/**")
@@ -74,8 +81,7 @@ public class SecurityConfig {
 			)
 			.httpBasic(AbstractHttpConfigurer::disable) // Http Basic 인증 방식 disable
 			.formLogin(AbstractHttpConfigurer::disable)
-			.sessionManagement(
-				session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // jwt 방식이므로 세션 x
+			.sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // jwt 방식이므로 세션 x
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 			.exceptionHandling(
 				exceptionHandling -> exceptionHandling
@@ -132,15 +138,15 @@ public class SecurityConfig {
 		configuration.setAllowedOrigins(
 			Arrays.asList(AppConfig.getSiteFrontUrl(), "http://localhost:3000")); // 프론트 엔드 포트번호
 		// 허용할 HTTP 메서드 설정
-		configuration.setAllowedMethods(
-			Collections.singletonList("*"));//Arrays.asList("GET", "POST", "PUT", "DELETE"));
+		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
 		// 자격 증명 허용 설정
 		configuration.setAllowCredentials(true);
 		// 허용할 헤더 설정
 		configuration.setAllowedHeaders(Collections.singletonList("*"));
 
-		configuration.setExposedHeaders(
-			Collections.singletonList("Authorization")); // client가 Authorization 헤더를 읽을 수 있도록 해야한다.
+		configuration.setExposedHeaders(Collections.singletonList("Authorization")); // client가 Authorization 헤더를 읽을 수 있도록 해야한다.
+
+
 		// CORS 설정을 소스에 등록
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
@@ -152,5 +158,11 @@ public class SecurityConfig {
 		return web -> web.ignoring()
 			// error endpoint를 열어줘야 함, favicon.ico 추가!
 			.requestMatchers("/error", "/favicon.ico");
+	}
+
+	@Bean
+	public AuthenticationManager authenticationManager(
+		AuthenticationConfiguration authenticationConfiguration) throws Exception {
+		return authenticationConfiguration.getAuthenticationManager();
 	}
 }
