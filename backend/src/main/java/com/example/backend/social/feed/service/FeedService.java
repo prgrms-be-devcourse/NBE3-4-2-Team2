@@ -48,11 +48,11 @@ public class FeedService {
 	 * @return Feed 객체를 클라이언트 요청 정보를 Response 형태로 매핑한 리스트
 	 */
 	@Transactional(readOnly = true)
-	public FeedListResponse findList(FeedRequest request) {
+	public FeedListResponse findList(FeedRequest request, Long userId) {
 
 		feedValidator.validateRequest(request);
 
-		MemberEntity member = memberService.findByUsername(request.username())
+		MemberEntity member = memberService.findById(userId)
 			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
 		int followingCount = (int)(request.maxSize() * FOLLOWING_FEED_RATE);
@@ -90,20 +90,20 @@ public class FeedService {
 		);
 	}
 
-	public FeedInfoResponse findByPostId(Long postId, String username) {
+	public FeedInfoResponse findByPostId(Long postId, Long userId) {
 
-		MemberEntity member = memberService.findByUsername(username)
+		MemberEntity member = memberService.findById(userId)
 			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
 		Feed feed = feedSelector.findByPostId(postId, member);
 		return feedConverter.toFeedInfoResponse(feed);
 	}
 
-	public FeedMemberResponse findMembersList(FeedMemberRequest request) {
+	public FeedMemberResponse findMembersList(FeedMemberRequest request, Long userId) {
 
 		feedValidator.validateRequest(request);
 
-		MemberEntity member = memberService.findByUsername(request.username())
+		MemberEntity member = memberService.findById(userId)
 			.orElseThrow(() -> new GlobalException(MemberErrorCode.NOT_FOUND));
 
 		List<FeedInfoResponse> feedList = feedSelector.findByMember(member, request.lastPostId(), request.maxSize())

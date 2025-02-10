@@ -69,10 +69,10 @@ class PostServiceTest {
 
 		// then
 		assertNotNull(response);
-		assertEquals("테스트 게시물", response.getContent());
-		assertEquals(testMember.getId(), response.getMemberId());
+		assertEquals("테스트 게시물", response.content());
+		assertEquals(testMember.getId(), response.memberId());
 
-		System.out.println("게시물 생성 성공: " + response.getContent());
+		System.out.println("게시물 생성 성공: " + response.content());
 	}
 
 	@Test
@@ -86,7 +86,7 @@ class PostServiceTest {
 
 		// then
 		assertNotNull(response);
-		assertEquals(updatedContent, response.getContent()); // 응답 DTO 값 검증
+		assertEquals(updatedContent, response.content()); // 응답 DTO 값 검증
 
 		PostEntity updatedPost = postRepository.findById(testPost.getId()).orElseThrow();
 		assertEquals(updatedContent, updatedPost.getContent()); // 실제 DB 반영 확인
@@ -105,7 +105,7 @@ class PostServiceTest {
 
 		// then
 		assertNotNull(response);
-		assertEquals(postId, response.getPostId()); // 응답 DTO 값 검증
+		assertEquals(postId, response.postId()); // 응답 DTO 값 검증
 
 		PostEntity deletedPost = postRepository.findById(postId).orElseThrow();
 		assertTrue(deletedPost.getIsDeleted()); // 실제 DB에서 isDeleted 값이 true인지 검증
