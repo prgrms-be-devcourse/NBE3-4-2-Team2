@@ -13,7 +13,7 @@ import lombok.Builder;
  */
 @Builder
 public record DeleteBookmarkResponse(
-	Long id,
+	Long bookmarkId,
 	Long memberId,
 	Long postId,
 	LocalDateTime deleteDate
