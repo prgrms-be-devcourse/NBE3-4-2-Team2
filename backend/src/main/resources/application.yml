@@ -71,6 +71,10 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-info-authentication-method: header
             user-name-attribute: id
+  data:
+    redis:
+      port: 6370
+      host: localhost
 logging:
   level:
     org.hibernate.SQL: DEBUG
