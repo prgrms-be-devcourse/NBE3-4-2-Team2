@@ -1,12 +1,13 @@
 package com.example.backend.content.image.controller;
 
-import com.example.backend.content.image.service.ImageService;
-import com.example.backend.entity.ImageEntity;
-import com.example.backend.entity.MemberEntity;
-import com.example.backend.entity.PostEntity;
-import com.example.backend.entity.MemberRepository;
-import com.example.backend.entity.PostRepository;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,11 +17,12 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.example.backend.content.image.service.ImageService;
+import com.example.backend.entity.ImageEntity;
+import com.example.backend.entity.MemberEntity;
+import com.example.backend.entity.MemberRepository;
+import com.example.backend.entity.PostEntity;
+import com.example.backend.entity.PostRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -61,7 +63,8 @@ class ImageControllerTest {
 
 
 	@Test
-	void 이미지_업로드_성공() throws Exception {
+	@DisplayName("이미지 업로드 성공")
+	void t1() throws Exception {
 		// Given: Mock 이미지 파일 생성
 		MockMultipartFile imageFile = new MockMultipartFile(
 			"images", "testImage.jpg", "image/jpeg", "test data".getBytes()

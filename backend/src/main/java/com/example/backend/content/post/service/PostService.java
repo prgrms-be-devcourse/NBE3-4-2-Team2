@@ -4,6 +4,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.post.converter.PostConverter;
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
@@ -31,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class PostService {
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
+	private final ImageService imageService;
 
 	/**
 	 * createPost 요청을 받고 게시물을 생성하는 메소드
@@ -73,6 +75,8 @@ public class PostService {
 		if (!postEntity.getMember().getId().equals(memberId)) {
 			throw new PostException(PostErrorCode.POST_DELETE_FORBIDDEN);
 		}
+
+		imageService.deleteImages(postEntity);
 
 		postEntity.deleteContent();
 

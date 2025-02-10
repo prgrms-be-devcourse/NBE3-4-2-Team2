@@ -2,6 +2,8 @@ package com.example.backend.content.post.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
 import com.example.backend.content.post.dto.PostDeleteResponse;
@@ -18,10 +21,14 @@ import com.example.backend.content.post.dto.PostModifyRequest;
 import com.example.backend.content.post.dto.PostModifyResponse;
 import com.example.backend.content.post.exception.PostErrorCode;
 import com.example.backend.content.post.exception.PostException;
+import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @SpringBootTest
 @Transactional
@@ -36,6 +43,12 @@ class PostServiceTest {
 
 	@Autowired
 	private MemberRepository memberRepository;
+
+	@Autowired
+	private ImageService imageService;
+
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	private MemberEntity testMember;
 	private PostEntity testPost;
@@ -197,6 +210,59 @@ class PostServiceTest {
 
 		assertEquals(PostErrorCode.POST_DELETE_FORBIDDEN, exception.getPostErrorCode());
 		System.out.println("✅ 다른 사용자의 게시물 삭제 시 예외 발생 테스트 통과");
+	}
+
+	// 추가된 테스트 케이스 (이미지 관련)
+	@Test
+	@DisplayName("게시물 생성시 이미지 함께 업로드 테스트")
+	void t8() {
+		// given
+		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물");
+
+		// when
+		PostCreateResponse response = postService.createPost(request);
+
+		// then
+		assertNotNull(response);
+		assertEquals("테스트 게시물", response.content());
+		assertEquals(testMember.getId(), response.memberId());
+
+		PostEntity createdPost = postRepository.findById(response.id()).orElseThrow();
+		List<ImageEntity> images = createdPost.getImages();
+
+		assertNotNull(images);
+		assertTrue(images.isEmpty());
+
+		System.out.println("✅ 게시물 생성 시 이미지 저장 테스트 통과");
+	}
+	@Test
+	@DisplayName("게시물 삭제 시 연관된 이미지도 삭제되는지 테스트")
+	void t9() {
+		// given
+		List<ImageEntity> images = List.of(
+			ImageEntity.create("/uploads/test1.jpg", testPost),
+			ImageEntity.create("/uploads/test2.jpg", testPost)
+		);
+
+		imageService.uploadImages(testPost, images);
+
+		Long postId = testPost.getId();
+		Long memberId = testMember.getId();
+
+		// when
+		postService.deletePost(postId, memberId);
+		entityManager.flush();
+		entityManager.clear();
+
+		// then
+		List<ImageEntity> remainingImages = entityManager
+			.createQuery("SELECT i FROM ImageEntity i WHERE i.post.id = :postId", ImageEntity.class)
+			.setParameter("postId", postId)
+			.getResultList();
+
+		assertTrue(remainingImages.isEmpty(), "✅ 게시물 삭제 시 연관된 이미지도 삭제되어야 함");
+
+		System.out.println("✅ 게시물 삭제 시 이미지 삭제 테스트 통과");
 	}
 
 }

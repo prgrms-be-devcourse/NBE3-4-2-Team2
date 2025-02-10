@@ -51,7 +51,8 @@ class LocalFileStorageServiceTest {
 	}
 
 	@Test
-	void testUploadFile() {
+	@DisplayName("이미지 파일 업로드 성공")
+	void t1() {
 		// given
 		MockMultipartFile mockFile = new MockMultipartFile(
 			"file",
@@ -71,11 +72,12 @@ class LocalFileStorageServiceTest {
 		String fileName = fileUrl.replace("/uploads-test/", "");
 		File file = new File(TEST_DIR + fileName);
 		assertTrue(file.exists());
-		System.out.println("Uploaded file path: " + file.getAbsolutePath());
+		System.out.println("이미지 파일 업로드 경로: " + file.getAbsolutePath());
 	}
 
 	@Test
-	void testDeleteFile() {
+	@DisplayName("이미지 파일 삭제 성공")
+	void t2() {
 		// given
 		MockMultipartFile mockFile = new MockMultipartFile(
 			"file",
@@ -92,5 +94,6 @@ class LocalFileStorageServiceTest {
 		String fileName = fileUrl.replace("/uploads-test/", "");
 		File file = new File(TEST_DIR + fileName);
 		assertFalse(file.exists());
+		System.out.println("이미지 파일 삭제 완료");
 	}
 }

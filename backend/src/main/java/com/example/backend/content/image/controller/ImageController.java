@@ -1,17 +1,24 @@
 package com.example.backend.content.image.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.backend.content.image.converter.ImageConverter;
-import com.example.backend.content.image.dto.ImageUploadRequest;
 import com.example.backend.content.image.dto.ImageUploadResponse;
 import com.example.backend.content.image.service.ImageService;
+import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 /**
  * 이미지 관련 컨트롤러
@@ -37,7 +44,7 @@ public class ImageController {
 	@PostMapping
 	public ResponseEntity<ImageUploadResponse> uploadImages(
 		@RequestParam Long postId,
-		@RequestPart List<MultipartFile> images
+		@RequestPart List<ImageEntity> images
 	) {
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
