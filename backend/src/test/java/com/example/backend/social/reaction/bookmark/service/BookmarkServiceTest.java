@@ -112,7 +112,7 @@ public class BookmarkServiceTest {
 
 		// When Second
 		DeleteBookmarkResponse deleteResponse = bookmarkService.deleteBookmark(
-			createResponse.id(), secondMemberId, secondPostId
+			createResponse.bookmarkId(), secondMemberId, secondPostId
 		);
 
 		// Then Second
@@ -198,7 +198,7 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long bookmarkId = createResponse.id();
+		Long bookmarkId = createResponse.bookmarkId();
 		Long anotherMemberId = 5L;
 		Long secondPostId = createResponse.postId();
 
@@ -222,7 +222,7 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long bookmarkId = createResponse.id();
+		Long bookmarkId = createResponse.bookmarkId();
 		Long memberId = createResponse.memberId();
 		Long anotherPostId = 5L;
 
