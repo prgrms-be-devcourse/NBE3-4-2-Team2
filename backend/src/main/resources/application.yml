@@ -89,3 +89,5 @@ custom:
     refreshToken:
       secretKey: ${JWT_REFRESH_TOKEN_SECRET_KEY}
       expirationSeconds: "#{30 * 24 * 60 * 60}" # 30 days
+springdoc:
+  default-produces-media-type: application/json;charset=UTF-8

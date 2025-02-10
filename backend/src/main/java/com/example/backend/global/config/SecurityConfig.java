@@ -1,5 +1,7 @@
 package com.example.backend.global.config;
 
+import static com.example.backend.global.config.SpringDocConfig.*;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,12 +20,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.example.backend.identity.security.config.CustomUsernamePasswordAuthenticationFilter;
 import com.example.backend.identity.security.config.handler.CustomAccessDeniedHandler;
 import com.example.backend.identity.security.config.handler.CustomAuthenticationEntryPoint;
-import com.example.backend.identity.security.config.CustomUsernamePasswordAuthenticationFilter;
+import com.example.backend.identity.security.config.handler.CustomSuccessHandler;
 import com.example.backend.identity.security.jwt.JwtAuthenticationFilter;
 import com.example.backend.identity.security.oauth.service.CustomOAuth2UserService;
-import com.example.backend.identity.security.config.handler.CustomSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,7 +46,6 @@ public class SecurityConfig {
 	private final CustomAccessDeniedHandler accessDeniedHandler;
 	private final CustomOAuth2UserService customOAuth2UserService;
 	private final CustomSuccessHandler customSuccessHandler;
-	// private final BearToke
 
 	/**
 	 *
@@ -72,7 +73,7 @@ public class SecurityConfig {
 				authorizeHttpRequests
 					.requestMatchers("/h2-console/**")
 					.permitAll()
-					.requestMatchers("/api-v1/members/login", "/api-v1/members/logout", "/api-v1/members/join")
+					.requestMatchers("/api-v1/members/login", "/api-v1/members/join")
 					.permitAll()
 					.requestMatchers(SWAGGER_PATHS)
 					.permitAll()
@@ -85,48 +86,8 @@ public class SecurityConfig {
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 			.exceptionHandling(
 				exceptionHandling -> exceptionHandling
-					.authenticationEntryPoint(
-						(request, response, authException) -> {
-							response.setStatus(HttpStatus.UNAUTHORIZED.value());
-							response.setContentType("application/json;charset=UTF-8");
-
-							String str = Ut.json.toString(
-								RsData.error(
-									ErrorRs.builder()
-										.target(request.getRequestURI())
-										.code(401)
-										.message("사용자 인증정보가 올바르지 않습니다.")
-										.build()
-								)
-							);
-
-							PrintWriter writer = response.getWriter();
-							writer.write(str);
-							writer.flush();
-							writer.close();
-						}
-					)
-					.accessDeniedHandler(
-						(request, response, accessDeniedException) -> {
-							response.setStatus(HttpStatus.FORBIDDEN.value());
-							response.setContentType("application/json;charset=UTF-8");
-
-							String str = Ut.json.toString(
-								RsData.error(
-									ErrorRs.builder()
-										.target(request.getRequestURI())
-										.code(403)
-										.message("해당 리소스에 권한이 없습니다.")
-										.build()
-								)
-							);
-
-							PrintWriter writer = response.getWriter();
-							writer.write(str);
-							writer.flush();
-							writer.close();
-						}
-					)
+					.authenticationEntryPoint(authenticationEntryPoint)
+					.accessDeniedHandler(accessDeniedHandler)
 			);
 		return http.build();
 	}
