@@ -120,7 +120,7 @@ public class FollowServiceTest {
 		assertEquals(receiverId, createResponse.receiverId());
 
 		// Given Second
-		FollowEntity follow = followRepository.findById(createResponse.id())
+		FollowEntity follow = followRepository.findById(createResponse.followId())
 			.orElseThrow(() -> new FollowException(FollowErrorCode.FOLLOW_NOT_FOUND));
 
 		// When & Then Second
@@ -248,7 +248,7 @@ public class FollowServiceTest {
 		assertEquals(receiverId, createResponse.receiverId());
 
 		// Given Secend
-		Long followId = createResponse.id();
+		Long followId = createResponse.followId();
 		Long anotherSenderId = 999L;
 		Long correctReceiverId = createResponse.receiverId();
 
@@ -274,7 +274,7 @@ public class FollowServiceTest {
 		assertEquals(receiverId, createResponse.receiverId());
 
 		// Given Secend
-		Long followId = createResponse.id();
+		Long followId = createResponse.followId();
 		Long correctSenderId = createResponse.senderId();
 		Long anotherReceiverId = 999L;
 
