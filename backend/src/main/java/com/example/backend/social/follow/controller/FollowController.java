@@ -56,7 +56,7 @@ public class FollowController {
 		@AuthenticationPrincipal SecurityUser securityUser
 	) {
 		if (receiverId.equals(securityUser.getId())) {
-			throw new FollowException(FollowErrorCode.SELF_FOLLOW);
+			throw new FollowException(FollowErrorCode.CANNOT_FOLLOW_SELF);
 		}
 		CreateFollowResponse createResponse = followService.createFollow(
 			securityUser.getId(), receiverId
@@ -78,7 +78,7 @@ public class FollowController {
 		@PathVariable Long receiverId
 	) {
 		if (receiverId.equals(securityUser.getId())) {
-			throw new FollowException(FollowErrorCode.SELF_UNFOLLOW);
+			throw new FollowException(FollowErrorCode.CANNOT_UNFOLLOW_SELF);
 		}
 		DeleteFollowResponse deleteResponse = followService.deleteFollow(
 			deleteRequest.followId(), securityUser.getId(), receiverId
