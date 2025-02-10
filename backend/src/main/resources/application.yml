@@ -79,9 +79,9 @@ logging:
     org.springframework.transaction.interceptor: TRACE
 custom:
   jwt:
-    secretKey: ${JWT_SECRET_KEY}
-  accessToken:
-    expirationSeconds: "#{60*20}"
-
-springdoc:
-  default-produces-media-type: application/json;charset=UTF-8
+    accessToken:
+      secretKey: ${JWT_ACCESS_TOKEN_SECRET_KEY}
+      expirationSeconds: "#{20 * 60}" # 20 minutes
+    refreshToken:
+      secretKey: ${JWT_REFRESH_TOKEN_SECRET_KEY}
+      expirationSeconds: "#{30 * 24 * 60 * 60}" # 30 days
