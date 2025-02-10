@@ -54,7 +54,8 @@ public class LikesService {
 			.orElseThrow(() -> new LikesException(LikesErrorCode.POST_NOT_FOUND));
 
 		// 3. 본인의 게시물인지 확인
-		if (post.getMember().equals(member)) {
+		Long authorId = post.getMember().getId();
+		if (authorId.equals(memberId)) {
 			throw new LikesException(LikesErrorCode.CANNOT_LIKE_SELF);
 		}
 

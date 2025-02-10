@@ -47,6 +47,7 @@ public class LikesServiceTest {
 	private PostRepository postRepository;
 
 	private MemberEntity testMember;
+	private MemberEntity anotherMember;
 	private PostEntity testPost;
 
 	@BeforeEach
@@ -70,10 +71,18 @@ public class LikesServiceTest {
 			.build();
 		testMember = memberRepository.save(member);
 
+		MemberEntity anotherMember = MemberEntity.builder()
+			.username("anotherMember")
+			.email("another@gmail.com")
+			.password("testPassword")
+			.refreshToken(UUID.randomUUID().toString())
+			.build();
+		anotherMember = memberRepository.save(anotherMember);
+
 		// 테스트용 게시물 추가
 		PostEntity post = PostEntity.builder()
 			.content("testContent")
-			.member(member)
+			.member(anotherMember)
 			.build();
 		testPost = postRepository.save(post);
 	}
