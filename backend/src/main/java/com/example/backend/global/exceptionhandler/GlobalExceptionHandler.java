@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.example.backend.content.hashtag.exception.HashtagException;
+import com.example.backend.content.notification.exception.NotificationException;
 import com.example.backend.content.post.exception.PostException;
 import com.example.backend.content.search.exception.SearchException;
 import com.example.backend.global.error.GlobalErrorCode;
@@ -179,6 +180,14 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(HashtagException.class)
 	public ResponseEntity<RsData<?>> handleHashtagException(HashtagException ex, HttpServletRequest request) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
+	}
+
+	@ExceptionHandler(NotificationException.class)
+	public ResponseEntity<RsData<?>> handleNotificationException(NotificationException ex, HttpServletRequest request) {
 		RsData<?> response = RsData.error(null, ex.getMessage());
 		return ResponseEntity
 			.status(ex.getErrorCodeIfs().getHttpStatus())
