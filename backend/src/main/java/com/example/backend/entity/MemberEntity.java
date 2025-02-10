@@ -36,6 +36,8 @@ public class MemberEntity extends BaseEntity {
 
 	private String profileUrl;
 
+	private String phoneNumber;
+
 	@Column(unique = true, nullable = false)
 	private String refreshToken;
 
