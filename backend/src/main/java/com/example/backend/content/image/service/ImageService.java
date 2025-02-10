@@ -1,13 +1,16 @@
 package com.example.backend.content.image.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.ImageRepository;
 import com.example.backend.entity.PostEntity;
+import com.example.backend.global.storage.LocalFileStorageService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,17 +25,23 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ImageService {
 	private final ImageRepository imageRepository;
+	private final LocalFileStorageService fileStorageService;
 
 	/**
 	 * 이미지 엔티티 저장
 	 * @param post 게시물 엔티티
-	 * @param imageEntities 저장할 이미지 목록
+	 * @param images 저장할 이미지 목록
 	 * @return 저장된 이미지 엔티티 리스트
 	 */
 	@Transactional
-	public List<ImageEntity> uploadImages(PostEntity post, List<ImageEntity> imageEntities) {
-		imageEntities.forEach(image -> post.addImage(image));  // 게시물과 연결
-		return imageRepository.saveAll(imageEntities);
+	public List<ImageEntity> uploadImages(PostEntity post, List<MultipartFile> images) {
+		return images.stream()
+				.map(file -> {
+					String imageUrl = fileStorageService.uploadFile(file);
+					return ImageEntity.create(imageUrl, post);
+				})
+			.map(imageRepository::save)
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -42,6 +51,7 @@ public class ImageService {
 	@Transactional
 	public void deleteImages(PostEntity post) {
 		List<ImageEntity> images = post.getImages();
+		images.forEach(image -> fileStorageService.deleteFile(image.getImageUrl()));
 		imageRepository.deleteAll(images);
 	}
 

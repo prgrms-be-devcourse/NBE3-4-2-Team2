@@ -1,42 +1,55 @@
 package com.example.backend.global.storage;
 
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 @Service
-public class LocalFileStorageService implements FileStorageService {
+public class LocalFileStorageService {
 
-    private static final String UPLOAD_DIR = "uploads/"; // 로컬 저장 경로
+    private static final String UPLOAD_DIR = "/var/www/html/uploads/"; // NGINX가 제공할 경로
 
-    @Override
     public String uploadFile(MultipartFile file) {
         try {
+            // 파일 확장자 확인
             String originalFilename = file.getOriginalFilename();
-            String fileName = UUID.randomUUID() + "_" + originalFilename;
-            String filePath = Paths.get(UPLOAD_DIR, fileName).toString();
+            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            if (!isValidExtension(extension)) {
+                throw new IllegalArgumentException("허용되지 않은 파일 형식입니다.");
+            }
 
-            File dest = new File(filePath);
-            file.transferTo(dest);
+            // 랜덤 파일명 생성
+            String storedFileName = UUID.randomUUID() + extension;
+            File destFile = new File(UPLOAD_DIR + storedFileName);
 
-            return "/uploads/" + fileName;
+            // 디렉토리 없으면 생성
+            Files.createDirectories(Paths.get(UPLOAD_DIR));
+
+            // 파일 저장
+            file.transferTo(destFile);
+
+            // NGINX에서 접근할 수 있는 URL 반환
+            return "/uploads/" + storedFileName;
         } catch (IOException e) {
-            throw new RuntimeException("파일 업로드 실패", e);
+            throw new RuntimeException("파일 저장 실패", e);
         }
     }
 
-    @Override
     public void deleteFile(String fileUrl) {
-        String fileName = fileUrl.replace("/uploads/", "");
-        String filePath = Paths.get(UPLOAD_DIR, fileName).toString();
-        File file = new File(filePath);
-
-        if (file.exists()) {
-            file.delete();
+        try {
+            String filePath = UPLOAD_DIR + fileUrl.replace("/uploads/", "");
+            Files.deleteIfExists(Paths.get(filePath));
+        } catch (IOException e) {
+            throw new RuntimeException("파일 삭제 실패", e);
         }
+    }
+
+    private boolean isValidExtension(String extension) {
+        return extension.equalsIgnoreCase(".jpg") || extension.equalsIgnoreCase(".png");
     }
 }

@@ -52,7 +52,7 @@ public class PostController {
 	 * @param request 게시물 수정 요청 객체
 	 * @return 수정된 게시물 정보를 담은 응답 DTO
 	 */
-	@PutMapping("/modify/{postId}")
+	@PutMapping("/modify/{postId}")	
 	public ResponseEntity<PostModifyResponse> modifyPost(
 		@PathVariable Long postId,
 		@RequestBody @Valid PostModifyRequest request

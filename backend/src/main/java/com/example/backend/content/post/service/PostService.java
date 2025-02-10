@@ -77,7 +77,6 @@ public class PostService {
 		}
 
 		imageService.deleteImages(postEntity);
-
 		postEntity.deleteContent();
 
 		return PostConverter.toDeleteResponse(postId);

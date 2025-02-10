@@ -22,6 +22,7 @@ import com.example.backend.content.post.dto.PostModifyResponse;
 import com.example.backend.content.post.exception.PostErrorCode;
 import com.example.backend.content.post.exception.PostException;
 import com.example.backend.entity.ImageEntity;
+import com.example.backend.entity.ImageRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
@@ -43,6 +44,9 @@ class PostServiceTest {
 
 	@Autowired
 	private MemberRepository memberRepository;
+
+	@Autowired
+	private ImageRepository imageRepository;
 
 	@Autowired
 	private ImageService imageService;
@@ -69,8 +73,12 @@ class PostServiceTest {
 			.member(testMember)
 			.isDeleted(false)
 			.build();
-
 		postRepository.save(testPost);
+
+		// ✅ 게시물에 이미지 추가 (테스트용)
+		ImageEntity image1 = ImageEntity.create("/uploads/test1.jpg", testPost);
+		ImageEntity image2 = ImageEntity.create("/uploads/test2.jpg", testPost);
+		imageRepository.saveAll(List.of(image1, image2));
 	}
 
 	@Test
@@ -265,4 +273,25 @@ class PostServiceTest {
 		System.out.println("✅ 게시물 삭제 시 이미지 삭제 테스트 통과");
 	}
 
+	@Test
+	@DisplayName("게시물 삭제 시 연관된 이미지도 삭제됨")
+	void t10() {
+		// given
+		Long postId = testPost.getId();
+		Long memberId = testMember.getId();
+
+		// when
+		postService.deletePost(postId, memberId);
+
+		// then
+		// 게시물이 논리적으로 삭제되었는지 검증
+		PostEntity deletedPost = postRepository.findById(postId).orElseThrow();
+		assertTrue(deletedPost.getIsDeleted(), "게시물 삭제 후 isDeleted가 true여야 함");
+
+		// 연관된 이미지도 삭제되었는지 검증
+		List<ImageEntity> remainingImages = imageRepository.findAll();
+		assertTrue(remainingImages.isEmpty(), "게시물 삭제 시 연관된 이미지도 삭제되어야 함");
+
+		System.out.println("게시물 삭제 시 연관된 이미지 삭제 테스트 통과");
+	}
 }
