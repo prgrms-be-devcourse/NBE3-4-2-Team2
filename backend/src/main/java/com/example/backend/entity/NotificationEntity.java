@@ -1,5 +1,7 @@
 package com.example.backend.entity;
 
+import com.example.backend.content.notification.type.NotificationType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,10 +24,19 @@ public class NotificationEntity extends BaseEntity {
 	@Column(nullable = false)
 	private String content;
 
-	@Column(nullable = false)
-	private Boolean isRead;
+	private Long memberId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(nullable = false, name = "member_id")
-	private MemberEntity member;
+	@Column(nullable = false)
+	private NotificationType type;
+
+	@Column(nullable = false)
+	private boolean isRead;
+
+	public static NotificationEntity create(String message, Long memberId, NotificationType type) {
+		return NotificationEntity.builder()
+			.content(message)
+			.memberId(memberId)
+			.type(type)
+			.build();
+	}
 }
