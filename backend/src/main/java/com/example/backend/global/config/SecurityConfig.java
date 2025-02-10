@@ -84,6 +84,7 @@ public class SecurityConfig {
 			.formLogin(AbstractHttpConfigurer::disable)
 			.sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // jwt 방식이므로 세션 x
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterAt(usernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 			.exceptionHandling(
 				exceptionHandling -> exceptionHandling
 					.authenticationEntryPoint(authenticationEntryPoint)
