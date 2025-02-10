@@ -14,13 +14,13 @@ import io.jsonwebtoken.security.Keys;
 import lombok.SneakyThrows;
 
 public class Ut {
-	public static class str {
+	public static class Str {
 		public static boolean isBlank(String str) {
 			return str == null || str.trim().isEmpty();
 		}
 	}
 
-	public static class json {
+	public static class Json {
 		private static final ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule()).setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
 		@SneakyThrows
