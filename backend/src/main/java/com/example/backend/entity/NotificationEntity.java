@@ -32,6 +32,10 @@ public class NotificationEntity extends BaseEntity {
 	@Column(nullable = false)
 	private boolean isRead;
 
+	public void markRead() {
+		this.isRead = true;
+	}
+
 	public static NotificationEntity create(String message, Long memberId, NotificationType type) {
 		return NotificationEntity.builder()
 			.content(message)
