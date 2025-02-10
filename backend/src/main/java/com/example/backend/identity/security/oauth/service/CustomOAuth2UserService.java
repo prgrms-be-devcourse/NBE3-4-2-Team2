@@ -37,12 +37,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 	@Override // OAuth2UserRequest : OAuth2 프로토콜을 통해 인증된(AccessToken 발급) 사용자의 요청 정보(Scope, clientID, clientSecret 등)를 담고 있는 객체
 	public CustomUser loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
-		System.out.println("UserRequest " + userRequest);
-
 		// OAuth2USer : OAuth2 인증이 완료된 후, 인증 서버에서 제공한 사용자 정보를 담고 있는 객체, 권한 정보도 포함됨
 		OAuth2User oAuth2User = super.loadUser(userRequest);
-
-		System.out.println(oAuth2User);
 
 		// registrationId : 사용자의 요청을 받는 인증서버(ex, google, naver, ...)
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();

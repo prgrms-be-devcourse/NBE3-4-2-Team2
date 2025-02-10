@@ -9,7 +9,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 
 /**
  * JWT(JSON Web Token) 관련 유틸리티 클래스.
@@ -75,7 +74,7 @@ public class JwtUtil {
 				.getPayload();
 
 			return claims.getExpiration();  // 만료 시간을 반환
-		} catch (SignatureException e) {
+		} catch (JwtException e) {
 			// 토큰이 유효하지 않은 경우 처리
 			return null;
 		}

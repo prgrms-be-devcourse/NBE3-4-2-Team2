@@ -9,10 +9,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.backend.global.requestScope.Rq;
-import com.example.backend.identity.member.service.MemberService;
-import com.example.backend.identity.security.user.service.CustomUserDetailsService;
 import com.example.backend.identity.security.user.CustomUser;
+import com.example.backend.identity.security.user.service.CustomUserDetailsService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,8 +27,6 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-	private final MemberService memberService;
-	private final Rq rq;
 	private final AccessTokenService accessTokenService;
 	private final CustomUserDetailsService customUserDetailsService;
 

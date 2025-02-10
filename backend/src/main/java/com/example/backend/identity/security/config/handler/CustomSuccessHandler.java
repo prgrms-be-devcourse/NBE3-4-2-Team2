@@ -29,8 +29,8 @@ import lombok.RequiredArgsConstructor;
  * </ul>
  * </p>
  *
- * @author 사용자명
- * @since 1.0
+ * @author k-haehchan
+ * @since 25.01.10
  */
 @Component
 @RequiredArgsConstructor

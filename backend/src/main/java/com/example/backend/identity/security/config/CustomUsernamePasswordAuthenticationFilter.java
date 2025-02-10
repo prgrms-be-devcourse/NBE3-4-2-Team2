@@ -22,7 +22,7 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
 		AuthenticationManager authenticationManager,
 		CustomSuccessHandler successHandler) {
 		super.setAuthenticationManager(authenticationManager);
-		super.setAuthenticationSuccessHandler(successHandler); // ✅ 공통 핸들러 사용
+		super.setAuthenticationSuccessHandler(successHandler);
 		setFilterProcessesUrl("/api-v1/members/login"); //
 	}
 
