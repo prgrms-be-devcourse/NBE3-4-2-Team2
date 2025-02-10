@@ -262,4 +262,23 @@ public class LikesServiceTest {
 			likesService.deleteLike(likeId, memberId, anotherPostId);
 		}, LikesErrorCode.MEMBER_MISMATCH.getMessage());
 	}
+
+	@Test
+	@DisplayName("9. 자신의 게시물에 좋아요를 요청하는 테스트")
+	public void t009() {
+		// Given First
+		PostEntity myPost = PostEntity.builder()
+			.content("testContent")
+			.member(testMember)
+			.build();
+		postRepository.save(myPost);
+
+		Long memberId = testMember.getId();
+		Long postId = 2L; // myPost 의 memberId
+
+		// When & Then
+		assertThrows(LikesException.class, () -> {
+			likesService.createLike(memberId, postId);
+		}, LikesErrorCode.CANNOT_LIKE_SELF.getMessage());
+	}
 }
