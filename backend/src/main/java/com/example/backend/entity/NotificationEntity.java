@@ -4,9 +4,6 @@ import com.example.backend.content.notification.type.NotificationType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -32,15 +29,22 @@ public class NotificationEntity extends BaseEntity {
 	@Column(nullable = false)
 	private boolean isRead;
 
+	// type 따라 유동적으로 처리되는 targetId
+	// LIKE -> postId, Comment -> commentId, Follow -> followId
+	private Long targetId;
+
 	public void markRead() {
 		this.isRead = true;
 	}
 
-	public static NotificationEntity create(String message, Long memberId, NotificationType type) {
+	public static NotificationEntity create(
+		String message, Long memberId, NotificationType type, Long targetId
+	) {
 		return NotificationEntity.builder()
 			.content(message)
 			.memberId(memberId)
 			.type(type)
+			.targetId(targetId)
 			.build();
 	}
 }
