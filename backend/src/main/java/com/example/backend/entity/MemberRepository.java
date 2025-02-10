@@ -14,6 +14,8 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 
 	Optional<MemberEntity> findByEmail(String email);
 
+	Optional<MemberEntity> findByPhoneNumber(String phoneNumber);
+
 	/**
 	 * 팔로워 카운트 증가 쿼리
 	 * 팔로우 요청 시 요청멤버의 팔로워 카운트를 1 증가시킴
