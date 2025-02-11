@@ -69,14 +69,14 @@ public class FeedTestHelper {
 		// 1. 멤버 생성 (20명)
 		List<MemberEntity> members = new ArrayList<>();
 		for (int i = 1; i <= 20; i++) {
-			members.add(MemberEntity.builder()
+			MemberEntity member = memberRepository.save(MemberEntity.builder()
 				.username("user" + i)
 				.email("user" + i + "@test.com")
 				.password("password" + i)
 				.refreshToken("refresh" + i)
 				.build());
+			members.add(member);
 		}
-		memberRepository.saveAll(members);
 		memberRepository.flush();
 
 		// 2. 해시태그 생성 (20개)
@@ -155,9 +155,9 @@ public class FeedTestHelper {
 		imageRepository.flush();
 
 		// 7. 좋아요 추가 (각 게시글에 첫 5명의 사용자가 좋아요)
-		for (PostEntity post : posts) {
-			for (int i = 0; i < 5; i++) {
-				likesService.createLike(members.get(i).getId(), post.getId());
+		for (long i = 1; i <= 20; i++) {
+			for (int j = 0; j < 5; j++) {
+				likesService.createLike(i, posts.get(((int)(i % 20) * 5 + j)).getId());
 			}
 		}
 
