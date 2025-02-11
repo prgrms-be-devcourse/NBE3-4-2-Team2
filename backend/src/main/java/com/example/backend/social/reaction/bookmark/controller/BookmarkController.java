@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
-import com.example.backend.identity.security.user.SecurityUser;
+import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkRequest;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
@@ -49,7 +49,7 @@ public class BookmarkController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<CreateBookmarkResponse> addBookmarkPost(
 		@PathVariable Long postId,
-		@AuthenticationPrincipal SecurityUser securityUser
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
 		CreateBookmarkResponse createResponse = bookmarkService.createBookmark(
 			securityUser.getId(), postId
@@ -67,7 +67,7 @@ public class BookmarkController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<DeleteBookmarkResponse> removeBookmarkPost(
 		@Valid @RequestBody DeleteBookmarkRequest deleteRequest,
-		@AuthenticationPrincipal SecurityUser securityUser,
+		@AuthenticationPrincipal CustomUser securityUser,
 		@PathVariable Long postId
 	) {
 		DeleteBookmarkResponse deleteResponse = bookmarkService.deleteBookmark(

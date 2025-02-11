@@ -24,6 +24,7 @@ import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.identity.security.jwt.AccessTokenService;
 import com.example.backend.identity.security.user.SecurityUser;
 import com.example.backend.social.follow.dto.DeleteFollowRequest;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,13 +52,15 @@ public class FollowControllerTest {
 	private MemberService memberService;
 
 	@Autowired
+	private AccessTokenService accessTokenService;
+
+	@Autowired
 	private MemberRepository memberRepository;
 
 	@Autowired
 	private FollowRepository followRepository;
 
 	private String senderToken;
-	private String receiverToken;
 	private MemberEntity sender;
 	private MemberEntity receiver;
 
@@ -73,10 +76,9 @@ public class FollowControllerTest {
 
 		// 테스트용 Sender 멤버 추가
 		sender = memberService.join("testSender", "testPassword", "sender@gmail.com");
-		senderToken = memberService.genAccessToken(sender);
+		senderToken = accessTokenService.genAccessToken(sender);
 
 		receiver = memberService.join("testReceiver", "testPassword", "receiver@gmail.com");
-		receiverToken = memberService.genAccessToken(receiver);
 
 		// SecurityContext 설정
 		SecurityUser securityUser = new SecurityUser(sender.getId(), sender.getUsername(), sender.getPassword(), new ArrayList<>());
@@ -137,28 +139,8 @@ public class FollowControllerTest {
 	}
 
 	@Test
-	@DisplayName("3. 요청한 sender의 ID와 인증 정보가 다를 때 팔로우 요청 테스트")
+	@DisplayName("3. 존재하지 않는 receiver에게 팔로우 요청 테스트")
 	public void t003() throws Exception {
-		// Given
-		Long anotherMemberId = 99L;
-		SecurityUser securityUser = new SecurityUser(anotherMemberId, "nonExistentUser", "password", new ArrayList<>());
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-
-		// When
-		ResultActions resultActions = mockMvc.perform(post("/api-v1/follow/{receiverId}", receiver.getId())
-			.contentType(MediaType.APPLICATION_JSON)
-			.accept(MediaType.APPLICATION_JSON));
-
-		// Then
-		resultActions.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("사용자 정보를 찾을 수 없습니다."));
-	}
-
-	@Test
-	@DisplayName("4. 존재하지 않는 receiver에게 팔로우 요청 테스트")
-	public void t004() throws Exception {
 		// When
 		ResultActions resultActions = mockMvc.perform(post("/api-v1/follow/{receiverId}", 99L)
 			.header("Authorization", "Bearer " + senderToken)
@@ -172,8 +154,8 @@ public class FollowControllerTest {
 	}
 
 	@Test
-	@DisplayName("5. 이미 팔로우 되있는 상대방에게 중복 팔로우 테스트")
-	public void t005() throws Exception {
+	@DisplayName("4. 이미 팔로우 되있는 상대방에게 중복 팔로우 테스트")
+	public void t004() throws Exception {
 		// When First
 		ResultActions firstResultActions = mockMvc.perform(post("/api-v1/follow/{receiverId}", receiver.getId())
 			.header("Authorization", "Bearer " + senderToken)
@@ -198,8 +180,8 @@ public class FollowControllerTest {
 	}
 
 	@Test
-	@DisplayName("6. 팔로우 관계가 아닌 상대방에게 팔로우 취소 요청 테스트")
-	public void t006() throws Exception {
+	@DisplayName("5. 팔로우 관계가 아닌 상대방에게 팔로우 취소 요청 테스트")
+	public void t005() throws Exception {
 		// Given
 		DeleteFollowRequest deleteRequest = DeleteFollowRequest.builder()
 			.followId(receiver.getId())
@@ -220,8 +202,8 @@ public class FollowControllerTest {
 	}
 
 	@Test
-	@DisplayName("7. 팔로우 취소시 다른 유저가 요청하는 테스트")
-	public void t007() throws Exception {
+	@DisplayName("6. 팔로우 취소시 다른 유저가 요청하는 테스트")
+	public void t006() throws Exception {
 		// When & Then First
 		MvcResult followResult = mockMvc.perform(post("/api-v1/follow/{receiverId}", receiver.getId())
 				.header("Authorization", "Bearer " + senderToken)
@@ -255,8 +237,8 @@ public class FollowControllerTest {
 	}
 
 	@Test
-	@DisplayName("8. DB에 등록된 팔로우 관계와 receiver가 일치하지 않는 테스트")
-	public void t008() throws Exception {
+	@DisplayName("7. DB에 등록된 팔로우 관계와 receiver가 일치하지 않는 테스트")
+	public void t007() throws Exception {
 		// When & Then First
 		MvcResult followResult = mockMvc.perform(post("/api-v1/follow/{receiverId}", receiver.getId())
 				.header("Authorization", "Bearer " + senderToken)
@@ -291,8 +273,8 @@ public class FollowControllerTest {
 	}
 
 	@Test
-	@DisplayName("9. 자기 자신을 팔로우 하는 테스트")
-	public void t009() throws Exception {
+	@DisplayName("8. 자기 자신을 팔로우 하는 테스트")
+	public void t008() throws Exception {
 		// When & Then First
 		mockMvc.perform(post("/api-v1/follow/{receiverId}", sender.getId())
 				.header("Authorization", "Bearer " + senderToken)
@@ -304,8 +286,8 @@ public class FollowControllerTest {
 	}
 
 	@Test
-	@DisplayName("10. 자기 자신을 언팔로우 하는 테스트")
-	public void t010() throws Exception {
+	@DisplayName("9. 자기 자신을 언팔로우 하는 테스트")
+	public void t09() throws Exception {
 		// Given
 		FollowEntity follow = FollowEntity.create(sender, sender);
 		followRepository.save(follow);

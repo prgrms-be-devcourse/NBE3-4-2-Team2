@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.identity.security.jwt.AccessTokenService;
 import com.example.backend.identity.security.user.SecurityUser;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.implement.FeedTestHelper;
@@ -50,6 +51,9 @@ class FeedControllerTest {
 	@Autowired
 	private MemberService memberService;
 
+	@Autowired
+	private AccessTokenService accessTokenService;
+
 	private String accessToken;
 	private MemberEntity testMember;
 
@@ -61,7 +65,7 @@ class FeedControllerTest {
 		testMember = memberService.findById(1L).get();
 		Assertions.assertNotNull(testMember);
 
-		accessToken = memberService.genAccessToken(testMember);
+		accessToken = accessTokenService.genAccessToken(testMember);
 
 		SecurityUser securityUser = new SecurityUser(
 			testMember.getId(),

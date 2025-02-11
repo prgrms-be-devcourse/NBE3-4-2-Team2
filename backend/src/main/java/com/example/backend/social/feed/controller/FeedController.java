@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
-import com.example.backend.identity.security.user.SecurityUser;
+import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.social.feed.dto.FeedInfoResponse;
 import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedMemberRequest;
@@ -50,7 +50,7 @@ public class FeedController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedListResponse> findFeedList(
 		@RequestBody FeedRequest request,
-		@AuthenticationPrincipal SecurityUser securityUser
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
 		FeedListResponse response = feedService.findList(request, securityUser.getId());
 		return RsData.success(response, "피드를 성공적으로 반환했습니다.");
@@ -68,7 +68,7 @@ public class FeedController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedInfoResponse> findFeedInfo(
 		@PathVariable Long postId,
-		@AuthenticationPrincipal SecurityUser securityUser
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
 		FeedInfoResponse response = feedService.findByPostId(postId, securityUser.getId());
 		return RsData.success(response, "피드를 성공적으로 반환했습니다.");
@@ -86,7 +86,7 @@ public class FeedController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedMemberResponse> findMemberFeedList(
 		@RequestBody FeedMemberRequest request,
-		@AuthenticationPrincipal SecurityUser securityUser
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
 		FeedMemberResponse response = feedService.findMembersList(request, securityUser.getId());
 		return RsData.success(response, "피드를 성공적으로 반환했습니다.");
