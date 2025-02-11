@@ -12,9 +12,6 @@ import lombok.Builder;
 @Builder
 public record FeedMemberRequest(
 	Long lastPostId,
-	Integer maxSize,
-
-	// 임시 값
-	String username
+	Integer maxSize
 ) {
 }

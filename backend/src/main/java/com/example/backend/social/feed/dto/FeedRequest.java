@@ -16,9 +16,6 @@ import lombok.Builder;
 public record FeedRequest(
 	LocalDateTime timestamp,
 	Long lastPostId,
-	Integer maxSize,
-
-	// 임시 값
-	String username
+	Integer maxSize
 ) {
 }
