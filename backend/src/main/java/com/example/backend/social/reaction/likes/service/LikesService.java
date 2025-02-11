@@ -1,6 +1,7 @@
 package com.example.backend.social.reaction.likes.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +11,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.global.event.LikeEvent;
 import com.example.backend.social.reaction.likes.converter.LikesConverter;
 import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
@@ -28,12 +30,16 @@ public class LikesService {
 	private final LikesRepository likesRepository;
 	private final MemberRepository memberRepository;
 	private final PostRepository postRepository;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
-	public LikesService(LikesRepository likesRepository, MemberRepository memberRepository, PostRepository postRepository) {
+	public LikesService(LikesRepository likesRepository, MemberRepository memberRepository,
+		PostRepository postRepository, ApplicationEventPublisher applicationEventPublisher
+	) {
 		this.likesRepository = likesRepository;
 		this.memberRepository = memberRepository;
 		this.postRepository = postRepository;
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	/**
@@ -71,6 +77,11 @@ public class LikesService {
 		postRepository.incrementLikeCount(postId);
 		likesRepository.save(like);
 
+		// 이벤트 발생
+		if (!memberId.equals(post.getMember().getId())) {
+			applicationEventPublisher.publishEvent(
+				LikeEvent.create(member.getUsername(), post.getMember().getId(), postId));
+		}
 		return LikesConverter.toCreateResponse(like);
 	}
 
