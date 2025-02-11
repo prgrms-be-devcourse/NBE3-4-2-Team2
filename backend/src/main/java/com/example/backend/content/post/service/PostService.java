@@ -1,9 +1,13 @@
 package com.example.backend.content.post.service;
 
+import java.util.Set;
+
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.content.hashtag.service.HashtagExtractor;
+import com.example.backend.content.hashtag.service.PostHashtagService;
 import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.post.converter.PostConverter;
 import com.example.backend.content.post.dto.PostCreateRequest;
@@ -35,7 +39,8 @@ public class PostService {
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
 	private final ImageService imageService;
-
+	private final HashtagExtractor hashtagExtractor;
+	private final PostHashtagService postHashtagService;
 	/**
 	 * createPost 요청을 받고 게시물을 생성하는 메소드
 	 *
@@ -52,6 +57,10 @@ public class PostService {
 		PostEntity savedPost = postRepository.save(postEntity);
 
 		imageService.uploadImages(savedPost, request.images());
+
+		// 해시태그 추출 및 생성
+		Set<String> extractHashtags = hashtagExtractor.extractHashtag(savedPost.getContent());
+		postHashtagService.create(savedPost, extractHashtags);
 
 		return PostConverter.toCreateResponse(savedPost);
 	}

@@ -88,11 +88,11 @@ class PostServiceTest {
 		PostCreateResponse response = postService.createPost(request);
 
 		// then
-		assertNotNull(response); // 응답이 null이 아닌지 확인
-		assertEquals("테스트 게시물입니다.", response.content()); // 내용 검증
-		assertEquals(testMember.getId(), response.memberId()); // 작성자 검증
+		assertNotNull(response);
+		assertEquals("테스트 게시물입니다.", response.content());
+		assertEquals(testMember.getId(), response.memberId());
 
-		System.out.println("✅ 게시물 생성 테스트 성공!");
+		System.out.println("게시물 생성 성공: " + response.content());
 	}
 
 	@Test
