@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -119,6 +120,7 @@ class PostHashtagServiceTest {
 			.username("testUser")
 			.email("testuser@example.com")
 			.password("password123")
+			.refreshToken(UUID.randomUUID().toString())
 			.build());
 	}
 
