@@ -3,6 +3,7 @@ package com.example.backend.content.comment.converter;
 import com.example.backend.content.comment.dto.CommentCreateResponse;
 import com.example.backend.content.comment.dto.CommentDeleteResponse;
 import com.example.backend.content.comment.dto.CommentModifyResponse;
+import com.example.backend.content.comment.dto.CommentResponse;
 import com.example.backend.entity.CommentEntity;
 
 public class CommentConverter {
@@ -38,4 +39,18 @@ public class CommentConverter {
 		return new CommentDeleteResponse(commentId, memberId, "댓글이 삭제되었습니다.");
 	}
 
+	/**
+	 * 댓글 Entity -> 조회 응답 DTO 변환
+	 */
+	public static CommentResponse toResponse(CommentEntity commentEntity) {
+		return new CommentResponse(
+			commentEntity.getId(),
+			commentEntity.getContent(),
+			commentEntity.getMember().getUsername(), // username 추가
+			commentEntity.getPost().getId(),
+			commentEntity.getCreateDate(), // createDate -> createdAt
+			commentEntity.getStep(),
+			commentEntity.getRefOrder()
+		);
+	}
 }

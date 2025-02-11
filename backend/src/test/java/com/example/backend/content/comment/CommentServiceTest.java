@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -268,6 +271,26 @@ class CommentServiceTest {
 		assertEquals(2, replies.size()); // 대댓글이 2개 존재해야 함
 
 		System.out.println("✅ 특정 댓글의 대댓글 조회 테스트 성공!");
+	}
+	@Test
+	@DisplayName("게시글 내 댓글 페이징 조회 테스트")
+	void t11() {
+		// given
+		CommentEntity comment2 = CommentEntity.createParentComment("테스트 댓글2", testPost, testMember, 2L);
+		CommentEntity comment3 = CommentEntity.createParentComment("테스트 댓글3", testPost, testMember, 3L);
+		commentRepository.save(comment2);
+		commentRepository.save(comment3);
+
+		Pageable pageable = PageRequest.of(0, 2); // 한 페이지에 2개씩 조회
+
+		// when
+		Page<CommentResponse> comments = commentService.findAllCommentsByPostId(testPost.getId(), pageable);
+
+		// then
+		assertNotNull(comments);
+		assertEquals(2, comments.getSize()); // 2개만 가져왔는지 확인
+
+		System.out.println("✅ 게시글 내 댓글 페이징 조회 테스트 성공!");
 	}
 }
 

@@ -3,6 +3,9 @@ package com.example.backend.entity;
 import java.util.List;
 import java.util.Optional;
 
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -51,4 +54,9 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
 	@Query("SELECT c FROM CommentEntity c WHERE c.id = :id AND c.isDeleted = false")
 	Optional<CommentEntity> findActiveById(@Param("id") Long id);
 
+	// ✅ 특정 게시글의 댓글을 페이징하여 조회
+	Page<CommentEntity> findByPostIdAndIsDeletedFalseOrderByRefOrder(Long postId, Pageable pageable);
+
+	// ✅ 특정 부모 댓글의 대댓글을 페이징하여 조회
+	Page<CommentEntity> findByParentNumAndIsDeletedFalse(Long parentNum, Pageable pageable);
 }

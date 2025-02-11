@@ -3,6 +3,9 @@ package com.example.backend.content.comment.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -132,13 +135,13 @@ public class CommentService {
 	public List<CommentResponse> findAllCommentsByPostId(Long postId) {
 		return commentRepository.findAllByPostIdAndIsDeletedFalseOrderByRefOrder(postId)
 			.stream()
-			.map(CommentResponse::fromEntity)
+			.map(CommentConverter::toResponse)
 			.toList();
 	}
 
 	@Transactional(readOnly = true)
 	public CommentResponse findCommentById(Long commentId) {
-		return CommentResponse.fromEntity(
+		return CommentConverter.toResponse(
 			commentRepository.findActiveById(commentId)
 				.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND))
 		);
@@ -149,8 +152,40 @@ public class CommentService {
 		return commentRepository.findAllByParentNum(parentId)
 			.stream()
 			.filter(comment -> !comment.isDeleted())
-			.map(CommentResponse::fromEntity)
+			.map(CommentConverter::toResponse)
 			.toList();
 	}
 
+	@Transactional(readOnly = true)
+	public Page<CommentResponse> findAllCommentsByPostId(Long postId, Pageable pageable) {
+		Page<CommentEntity> comments = commentRepository.findByPostIdAndIsDeletedFalseOrderByRefOrder(postId, pageable);
+		return comments.map(CommentConverter::toResponse);
+	}
+
+	@Transactional(readOnly = true)
+	public Page<CommentResponse> findRepliesByParentId(Long parentNum, Pageable pageable) {
+		Page<CommentEntity> replies = commentRepository.findByParentNumAndIsDeletedFalse(parentNum, pageable);
+		return replies.map(CommentConverter::toResponse);
+	}
+	/**
+	 * 특정 게시글의 댓글 목록을 페이징하여 조회
+	 */
+	@Transactional(readOnly = true)
+	public Page<CommentResponse> getCommentsByPost(Long postId, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
+
+		return commentRepository.findByPostIdAndIsDeletedFalseOrderByRefOrder(postId, pageable)
+			.map(CommentConverter::toResponse);
+	}
+
+	/**
+	 * 특정 부모 댓글의 대댓글 목록을 페이징하여 조회
+	 */
+	@Transactional(readOnly = true)
+	public Page<CommentResponse> getRepliesByParent(Long parentId, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
+
+		return commentRepository.findByParentNumAndIsDeletedFalse(parentId, pageable)
+			.map(CommentConverter::toResponse);
+	}
 }
