@@ -15,7 +15,8 @@ import lombok.RequiredArgsConstructor;
 
 
 /**
- *
+ * @author k-haechan
+ * @since 25.02.10
  * */
 @Component
 @RequiredArgsConstructor
@@ -32,11 +33,9 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		// username으로 DB에서 값 조회
 		CustomUser userDetails = userDetailsService.loadUserByUsername(username);
 
-
-
 		// 비밀번호 인증 확인
 		if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-			throw new BadCredentialsException("Invalid credentials");
+			throw new BadCredentialsException("유효하지 않은 비밀번호입니다.");
 		}
 
 		// 인증이 완료되면 UsernamePasswordToken에 DB에서 조회한 유저정보와 권한을 추가하여 반환 (비밀번호는 보안상 null 처리)
