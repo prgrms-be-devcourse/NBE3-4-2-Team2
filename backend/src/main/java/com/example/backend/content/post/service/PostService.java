@@ -59,7 +59,7 @@ public class PostService {
 
 	@Transactional
 	public PostModifyResponse modifyPost(Long postId, PostModifyRequest request) {
-		PostEntity postEntity = postRepository.findById(postId)
+		PostEntity postEntity = postRepository.findByIdAndIsDeletedFalse(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
 		if (!postEntity.getMember().getId().equals(request.memberId())) {
@@ -80,7 +80,7 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_DELETE_FORBIDDEN);
 		}
 
-		imageService.deleteImages(postEntity);
+		// imageService.deleteImages(postEntity);
 		postEntity.deleteContent();
 
 		return PostConverter.toDeleteResponse(postId);

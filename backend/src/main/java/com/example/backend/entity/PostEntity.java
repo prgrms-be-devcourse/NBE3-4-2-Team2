@@ -80,7 +80,7 @@ public class PostEntity extends BaseEntity {
 	 */
 	public void deleteContent() {
 		this.isDeleted = true;
-		this.images.clear(); // 관련 이미지 수동 삭제
+		// this.images.clear(); // 관련 이미지 수동 삭제
 	}
 
 	/**
