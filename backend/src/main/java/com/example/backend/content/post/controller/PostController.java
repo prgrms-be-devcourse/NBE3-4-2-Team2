@@ -76,5 +76,4 @@ public class PostController {
 		PostDeleteResponse response = postService.deletePost(postId, memberId);
 		return ResponseEntity.ok(response);
 	}
-
 }
