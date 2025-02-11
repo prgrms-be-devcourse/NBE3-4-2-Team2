@@ -18,6 +18,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+      dialect: org.hibernate.dialect.H2Dialect # 데이터베이스 엔진 종류 설정
     properties:
       hibernate:
         default_batch_fetch_size: 100
