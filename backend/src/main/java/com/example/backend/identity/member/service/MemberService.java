@@ -1,7 +1,6 @@
 package com.example.backend.identity.member.service;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,7 +44,7 @@ public class MemberService {
 			.username(username)
 			.password(encodedPassword)
 			.email(email)
-			.refreshToken(UUID.randomUUID().toString())
+			// .refreshToken(UUID.randomUUID().toString())
 			.build();
 
 		return memberRepository.save(member);
@@ -59,8 +58,8 @@ public class MemberService {
 		return memberRepository.findById(authorId);
 	}
 
-	public Optional<MemberEntity> findByRefreshToken(String refreshToken) {
-		return memberRepository.findByRefreshToken(refreshToken);
-	}
+	// public Optional<MemberEntity> findByRefreshToken(String refreshToken) {
+	// 	return memberRepository.findByRefreshToken(refreshToken);
+	// }
 
 }

@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 	Optional<MemberEntity> findByUsername(String username);
 
-	Optional<MemberEntity> findByRefreshToken(String refreshToken);
+	// Optional<MemberEntity> findByRefreshToken(String refreshToken);
 
 	Optional<MemberEntity> findByEmail(String email);
 
