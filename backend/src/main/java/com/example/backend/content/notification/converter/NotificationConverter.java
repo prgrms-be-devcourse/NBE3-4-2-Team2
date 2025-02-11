@@ -6,8 +6,8 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-import com.example.backend.content.notification.dto.NotificationLikePageResponse;
-import com.example.backend.content.notification.dto.NotificationLikeResponse;
+import com.example.backend.content.notification.dto.NotificationPageResponse;
+import com.example.backend.content.notification.dto.NotificationResponse;
 import com.example.backend.entity.NotificationEntity;
 
 /**
@@ -17,26 +17,26 @@ import com.example.backend.entity.NotificationEntity;
 @Component
 public class NotificationConverter {
 
-	public NotificationLikeResponse toLikeResponse(NotificationEntity notification, Long postId
+	public NotificationResponse toResponse(NotificationEntity notification, Long targetId
 	) {
-		return NotificationLikeResponse.builder()
+		return NotificationResponse.builder()
 			.notificationId(notification.getId())
 			.type(notification.getType())
-			.postId(postId)
+			.targetId(targetId)
 			.message(notification.getContent())
 			.isRead(notification.isRead())
 			.createdAt(notification.getCreateDate())
 			.build();
 	}
 
-	public NotificationLikePageResponse toLikePage(Page<NotificationLikeResponse> notifications
+	public NotificationPageResponse toPageResponse(Page<NotificationResponse> notifications
 	) {
-		List<NotificationLikeResponse> responses = notifications
+		List<NotificationResponse> responses = notifications
 			.stream()
-			.sorted(Comparator.comparing(NotificationLikeResponse::createdAt).reversed())
+			.sorted(Comparator.comparing(NotificationResponse::createdAt).reversed())
 			.toList();
 
-		return NotificationLikePageResponse.builder()
+		return NotificationPageResponse.builder()
 			.responses(responses)
 			.totalCount((int)notifications.getTotalElements())
 			.currentPage(notifications.getNumber())

@@ -21,6 +21,7 @@ public record FollowEvent(
 			.receiverId(receiverId)
 			.senderId(senderId)
 			.timestamp(LocalDateTime.now())
+			.timestamp(LocalDateTime.now())
 			.build();
 	}
 }

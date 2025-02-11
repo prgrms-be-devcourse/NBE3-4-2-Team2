@@ -12,7 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.backend.content.notification.dto.NotificationLikeResponse;
+import com.example.backend.content.notification.dto.NotificationResponse;
 import com.example.backend.content.notification.type.NotificationType;
 
 /**
@@ -82,7 +82,7 @@ class SseConnectionPoolTest {
 	void test4() {
 		// given
 		String key = "1";
-		NotificationLikeResponse response = mock(NotificationLikeResponse.class);
+		NotificationResponse response = mock(NotificationResponse.class);
 		when(response.type()).thenReturn(NotificationType.LIKE);
 
 		SseConnection connection1 = mock(SseConnection.class);

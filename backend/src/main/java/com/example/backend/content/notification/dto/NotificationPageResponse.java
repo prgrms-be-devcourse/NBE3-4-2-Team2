@@ -9,9 +9,9 @@ import lombok.Builder;
  * 2025-02-10
  */
 @Builder
-public record NotificationLikePageResponse(
+public record NotificationPageResponse(
 
-	List<NotificationLikeResponse> responses,
+	List<NotificationResponse> responses,
 	Integer totalCount, // 전체 알림 개수
 	Integer currentPage, // 현재 페이지
 	Integer totalPageCount // 전체 페이지 수 (페이지네이션용)

@@ -1,7 +1,6 @@
 package com.example.backend.content.notification.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.content.notification.converter.NotificationConverter;
-import com.example.backend.content.notification.dto.NotificationLikePageResponse;
-import com.example.backend.content.notification.dto.NotificationLikeResponse;
+import com.example.backend.content.notification.dto.NotificationPageResponse;
+import com.example.backend.content.notification.dto.NotificationResponse;
 import com.example.backend.content.notification.exception.NotificationErrorCode;
 import com.example.backend.content.notification.exception.NotificationException;
 import com.example.backend.content.notification.sse.SseConnectionPool;
@@ -49,7 +48,7 @@ public class NotificationService {
 		NotificationEntity notification = notificationRepository.save(notificationEntity);
 
 		// sse 로 실시간 알림 전송
-		sseConnectionPool.sendNotification(memberId, converter.toLikeResponse(notification, targetId));
+		sseConnectionPool.sendNotification(memberId, converter.toResponse(notification, targetId));
 	}
 
 	@Transactional
@@ -65,7 +64,7 @@ public class NotificationService {
 		notification.markRead();
 	}
 
-	public NotificationLikePageResponse getNotificationPage(int page, Long memberId) {
+	public NotificationPageResponse getNotificationPage(int page, Long memberId) {
 		PageRequest pageRequest = PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createDate"));
 		// 알림 목록 조회 (최근 30일)
 		LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(THIRTY_DAYS);
@@ -73,10 +72,10 @@ public class NotificationService {
 		Page<NotificationEntity> notifications =
 			notificationRepository.findByMemberId(memberId, thirtyDaysAgo, pageRequest);
 
-		Page<NotificationLikeResponse> likeResponse = notifications.map(
-			notification -> converter.toLikeResponse(notification, notification.getTargetId())
+		Page<NotificationResponse> likeResponse = notifications.map(
+			notification -> converter.toResponse(notification, notification.getTargetId())
 		);
 
-		return converter.toLikePage(likeResponse);
+		return converter.toPageResponse(likeResponse);
 	}
 }

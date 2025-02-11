@@ -4,20 +4,15 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.content.notification.converter.NotificationConverter;
-import com.example.backend.content.notification.dto.NotificationLikePageResponse;
+import com.example.backend.content.notification.dto.NotificationPageResponse;
 import com.example.backend.content.notification.sse.SseConnectionPool;
 import com.example.backend.content.notification.type.NotificationType;
 import com.example.backend.entity.NotificationEntity;
@@ -101,7 +96,7 @@ class NotificationServiceTest {
 		// when
 		notificationRepository.save(notification1);
 		notificationRepository.save(notification2);
-		NotificationLikePageResponse response = notificationService.getNotificationPage(0, memberId);
+		NotificationPageResponse response = notificationService.getNotificationPage(0, memberId);
 
 		// then
 		assertThat(response.totalCount()).isEqualTo(2);

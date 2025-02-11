@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import com.example.backend.content.notification.dto.NotificationLikePageResponse;
+import com.example.backend.content.notification.dto.NotificationPageResponse;
 import com.example.backend.content.notification.service.NotificationService;
 import com.example.backend.content.notification.sse.SseConnection;
 import com.example.backend.content.notification.sse.SseConnectionPool;
@@ -60,13 +60,13 @@ public class NotificationController {
 	 */
 	@GetMapping("/list")
 	@ResponseStatus(HttpStatus.OK)
-	public RsData<NotificationLikePageResponse> list(
+	public RsData<NotificationPageResponse> list(
 		@RequestParam(name = "page", defaultValue = "0") int page
 	) {
 		// 시큐리티 인증 작업 전까지 임시로 진행
 		Long memberId = 778L;
 
-		NotificationLikePageResponse notificationPage =
+		NotificationPageResponse notificationPage =
 			notificationService.getNotificationPage(page, memberId);
 
 		return RsData.success(notificationPage);

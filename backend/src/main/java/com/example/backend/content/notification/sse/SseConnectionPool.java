@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
 
-import com.example.backend.content.notification.dto.NotificationLikeResponse;
+import com.example.backend.content.notification.dto.NotificationResponse;
 import com.example.backend.content.notification.exception.NotificationErrorCode;
 import com.example.backend.content.notification.exception.NotificationException;
 
@@ -45,7 +45,7 @@ public class SseConnectionPool implements SseConnectionPoolIfs<SseConnection> {
 		}
 	}
 	// 연결이 여러 곳에서 되어 있을 경우 연결마다 알림을 전송 처리
-	public void sendNotification(Long userId, NotificationLikeResponse response) {
+	public void sendNotification(Long userId, NotificationResponse response) {
 		Set<SseConnection> connections = get(userId.toString());
 
 		if (connections == null || connections.isEmpty()) {
