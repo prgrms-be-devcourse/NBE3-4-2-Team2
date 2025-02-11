@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.backend.content.image.converter.ImageConverter;
 import com.example.backend.content.image.dto.ImageUploadResponse;
 import com.example.backend.content.image.service.ImageService;
-import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
 
@@ -44,7 +44,7 @@ public class ImageController {
 	@PostMapping
 	public ResponseEntity<ImageUploadResponse> uploadImages(
 		@RequestParam Long postId,
-		@RequestPart List<ImageEntity> images
+		@RequestPart List<MultipartFile> images
 	) {
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));

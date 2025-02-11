@@ -3,6 +3,7 @@ package com.example.backend.content.post.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,7 +41,7 @@ public class PostController {
 	 * @return 생성된 게시물 정보를 담은 응답 DTO
 	 */
 	@PostMapping
-	public ResponseEntity<PostCreateResponse> createPost(@RequestBody @Valid PostCreateRequest request) {
+	public ResponseEntity<PostCreateResponse> createPost(@ModelAttribute @Valid PostCreateRequest request) {
 		PostCreateResponse response = postService.createPost(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}

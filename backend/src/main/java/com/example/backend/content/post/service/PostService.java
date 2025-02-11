@@ -19,6 +19,7 @@ import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 게시물 관련 Service
@@ -28,6 +29,7 @@ import lombok.RequiredArgsConstructor;
  */
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PostService {
 	private final PostRepository postRepository;
@@ -47,8 +49,10 @@ public class PostService {
 			.orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다."));
 		//MEMBER 클래스 EXCEPTION 으로 변경 예정
 		PostEntity postEntity = PostEntity.create(request.content(), memberEntity);
-
 		PostEntity savedPost = postRepository.save(postEntity);
+
+		log.info("이미지 추가 완료 : {}", request.images().size());
+		imageService.uploadImages(savedPost, request.images());
 
 		return PostConverter.toCreateResponse(savedPost);
 	}

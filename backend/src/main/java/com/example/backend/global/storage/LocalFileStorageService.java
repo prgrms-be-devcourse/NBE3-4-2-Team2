@@ -9,10 +9,13 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class LocalFileStorageService {
 
-    private static final String UPLOAD_DIR = "/var/www/html/uploads/"; // NGINX가 제공할 경로
+    private static final String UPLOAD_DIR = "C:/Users/magic/Desktop/nginx-1.27.4/html/uploads/"; // NGINX가 제공할 경로
 
     public String uploadFile(MultipartFile file) {
         try {
@@ -26,6 +29,8 @@ public class LocalFileStorageService {
             // 랜덤 파일명 생성
             String storedFileName = UUID.randomUUID() + extension;
             File destFile = new File(UPLOAD_DIR + storedFileName);
+
+            log.info("파일 경로 확인 : {}", destFile.getAbsolutePath());
 
             // 디렉토리 없으면 생성
             Files.createDirectories(Paths.get(UPLOAD_DIR));

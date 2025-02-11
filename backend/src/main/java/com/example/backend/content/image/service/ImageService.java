@@ -13,6 +13,7 @@ import com.example.backend.entity.PostEntity;
 import com.example.backend.global.storage.LocalFileStorageService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 이미지 관련 Service
@@ -22,10 +23,12 @@ import lombok.RequiredArgsConstructor;
  */
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ImageService {
 	private final ImageRepository imageRepository;
 	private final LocalFileStorageService fileStorageService;
+	private java.util.Collections Collections;
 
 	/**
 	 * 이미지 엔티티 저장
@@ -35,9 +38,18 @@ public class ImageService {
 	 */
 	@Transactional
 	public List<ImageEntity> uploadImages(PostEntity post, List<MultipartFile> images) {
+
+		if (images == null || images.isEmpty()) {
+			log.info("이미지가 없습니다.");
+			return Collections.emptyList();
+		}
+
+		log.info("이미지 서비스 추가 완료 : {}", images.size());
 		return images.stream()
 				.map(file -> {
+					//서버(NGINX)에 파일 업로드 후 URL 반환
 					String imageUrl = fileStorageService.uploadFile(file);
+					//DB에 저장할 ImageEntity 생성
 					return ImageEntity.create(imageUrl, post);
 				})
 			.map(imageRepository::save)

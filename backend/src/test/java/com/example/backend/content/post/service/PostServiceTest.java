@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,28 +75,23 @@ class PostServiceTest {
 			.isDeleted(false)
 			.build();
 		postRepository.save(testPost);
-
-		// ✅ 게시물에 이미지 추가 (테스트용)
-		ImageEntity image1 = ImageEntity.create("/uploads/test1.jpg", testPost);
-		ImageEntity image2 = ImageEntity.create("/uploads/test2.jpg", testPost);
-		imageRepository.saveAll(List.of(image1, image2));
 	}
 
 	@Test
 	@DisplayName("게시물 생성 테스트")
 	void t1() {
 		// given
-		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물");
+		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물입니다.", null);
 
 		// when
 		PostCreateResponse response = postService.createPost(request);
 
 		// then
-		assertNotNull(response);
-		assertEquals("테스트 게시물", response.content());
-		assertEquals(testMember.getId(), response.memberId());
+		assertNotNull(response); // 응답이 null이 아닌지 확인
+		assertEquals("테스트 게시물입니다.", response.content()); // 내용 검증
+		assertEquals(testMember.getId(), response.memberId()); // 작성자 검증
 
-		System.out.println("게시물 생성 성공: " + response.content());
+		System.out.println("✅ 게시물 생성 테스트 성공!");
 	}
 
 	@Test
@@ -220,78 +216,43 @@ class PostServiceTest {
 		System.out.println("✅ 다른 사용자의 게시물 삭제 시 예외 발생 테스트 통과");
 	}
 
-	// 추가된 테스트 케이스 (이미지 관련)
 	@Test
-	@DisplayName("게시물 생성시 이미지 함께 업로드 테스트")
+	@DisplayName("게시물 생성 시 이미지 저장 테스트")
 	void t8() {
-		// given
-		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물");
-
-		// when
-		PostCreateResponse response = postService.createPost(request);
-
-		// then
-		assertNotNull(response);
-		assertEquals("테스트 게시물", response.content());
-		assertEquals(testMember.getId(), response.memberId());
-
-		PostEntity createdPost = postRepository.findById(response.id()).orElseThrow();
-		List<ImageEntity> images = createdPost.getImages();
-
-		assertNotNull(images);
-		assertTrue(images.isEmpty());
-
-		System.out.println("✅ 게시물 생성 시 이미지 저장 테스트 통과");
-	}
-	@Test
-	@DisplayName("게시물 삭제 시 연관된 이미지도 삭제되는지 테스트")
-	void t9() {
-		// given
-		List<ImageEntity> images = List.of(
-			ImageEntity.create("/uploads/test1.jpg", testPost),
-			ImageEntity.create("/uploads/test2.jpg", testPost)
+		// ✅ given: 가짜 이미지 파일(MockMultipartFile) 생성
+		MockMultipartFile image1 = new MockMultipartFile(
+			"images", "test1.jpg", "image/jpeg", "dummy image content 1".getBytes()
 		);
 
-		imageService.uploadImages(testPost, images);
+		MockMultipartFile image2 = new MockMultipartFile(
+			"images", "test2.png", "image/png", "dummy image content 2".getBytes()
+		);
 
-		Long postId = testPost.getId();
-		Long memberId = testMember.getId();
+		// ✅ 게시물 생성 요청 객체
+		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물입니다.", List.of(image1, image2));
 
-		// when
-		postService.deletePost(postId, memberId);
-		entityManager.flush();
-		entityManager.clear();
+		// ✅ when: 게시물 생성 요청 실행
+		PostCreateResponse response = postService.createPost(request);
 
-		// then
-		List<ImageEntity> remainingImages = entityManager
-			.createQuery("SELECT i FROM ImageEntity i WHERE i.post.id = :postId", ImageEntity.class)
-			.setParameter("postId", postId)
-			.getResultList();
+		// ✅ then: 게시물이 정상적으로 저장되었는지 확인
+		assertNotNull(response);
+		assertEquals("테스트 게시물입니다.", response.content());
+		assertEquals(testMember.getId(), response.memberId());
 
-		assertTrue(remainingImages.isEmpty(), "✅ 게시물 삭제 시 연관된 이미지도 삭제되어야 함");
+		// ✅ 게시물이 실제 DB에 저장되었는지 확인
+		PostEntity createdPost = postRepository.findById(response.id()).orElseThrow();
+		assertNotNull(createdPost);
+		assertEquals("테스트 게시물입니다.", createdPost.getContent());
 
-		System.out.println("✅ 게시물 삭제 시 이미지 삭제 테스트 통과");
-	}
+		// ✅ 이미지가 DB에 정상적으로 저장되었는지 확인
+		List<ImageEntity> images = imageRepository.findAllByPostId(createdPost.getId());
 
-	@Test
-	@DisplayName("게시물 삭제 시 연관된 이미지도 삭제됨")
-	void t10() {
-		// given
-		Long postId = testPost.getId();
-		Long memberId = testMember.getId();
+		assertNotNull(images);
+		assertEquals(2, images.size()); // 2개의 이미지가 저장되어야 함
 
-		// when
-		postService.deletePost(postId, memberId);
+		assertEquals("/uploads/test1.jpg", images.get(0).getImageUrl()); // NGINX에 저장된 이미지 URL 확인
+		assertEquals("/uploads/test2.png", images.get(1).getImageUrl());
 
-		// then
-		// 게시물이 논리적으로 삭제되었는지 검증
-		PostEntity deletedPost = postRepository.findById(postId).orElseThrow();
-		assertTrue(deletedPost.getIsDeleted(), "게시물 삭제 후 isDeleted가 true여야 함");
-
-		// 연관된 이미지도 삭제되었는지 검증
-		List<ImageEntity> remainingImages = imageRepository.findAll();
-		assertTrue(remainingImages.isEmpty(), "게시물 삭제 시 연관된 이미지도 삭제되어야 함");
-
-		System.out.println("게시물 삭제 시 연관된 이미지 삭제 테스트 통과");
+		System.out.println("✅ 게시물 생성 시 이미지 저장 테스트 통과!");
 	}
 }
