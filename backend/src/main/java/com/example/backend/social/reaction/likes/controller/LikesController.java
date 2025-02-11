@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
-import com.example.backend.identity.security.user.SecurityUser;
+import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeRequest;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
@@ -49,7 +49,7 @@ public class LikesController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<CreateLikeResponse> likePost(
 		@PathVariable Long postId,
-		@AuthenticationPrincipal SecurityUser securityUser
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
 		CreateLikeResponse createResponse = likesService.createLike(
 			securityUser.getId(), postId
@@ -67,7 +67,7 @@ public class LikesController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<DeleteLikeResponse> unlikePost(
 		@Valid @RequestBody DeleteLikeRequest deleteRequest,
-		@AuthenticationPrincipal SecurityUser securityUser,
+		@AuthenticationPrincipal CustomUser securityUser,
 		@PathVariable Long postId
 		) {
 		DeleteLikeResponse deleteResponse = likesService.deleteLike(

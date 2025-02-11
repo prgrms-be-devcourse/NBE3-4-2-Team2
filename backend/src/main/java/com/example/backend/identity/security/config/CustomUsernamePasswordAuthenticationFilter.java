@@ -10,7 +10,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.example.backend.identity.member.dto.login.MemberLoginRequest;
-import com.example.backend.identity.security.config.handler.CustomSuccessHandler;
+import com.example.backend.identity.security.config.handler.CustomAuthenticationFailureHandler;
+import com.example.backend.identity.security.config.handler.CustomAuthenticationSuccessHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,9 +21,12 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
 
 	public CustomUsernamePasswordAuthenticationFilter(
 		AuthenticationManager authenticationManager,
-		CustomSuccessHandler successHandler) {
+		CustomAuthenticationSuccessHandler successHandler,
+		CustomAuthenticationFailureHandler authenticationFailureHandler
+	) {
 		super.setAuthenticationManager(authenticationManager);
 		super.setAuthenticationSuccessHandler(successHandler);
+		super.setAuthenticationFailureHandler(authenticationFailureHandler);
 		setFilterProcessesUrl("/api-v1/members/login"); //
 	}
 
