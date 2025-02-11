@@ -2,7 +2,9 @@ package com.example.backend.social.reaction.likes.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,12 +12,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
-import com.example.backend.social.reaction.likes.dto.CreateLikeRequest;
+import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeRequest;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
 import com.example.backend.social.reaction.likes.service.LikesService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -29,23 +34,44 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/api-v1/likes", produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "LikeController", description = "좋아요 컨트롤러")
+@SecurityRequirement(name = "bearerAuth")
 public class LikesController {
 	private final LikesService likesService;
 
-	@PostMapping
+	/**
+	 * 게시물의 ID를 통해 좋아요를 반영합니다.
+	 * @param postId, securityUser
+	 * @return createLikeResponse (DTO)
+	 */
+	@Operation(summary = "게시물 좋아요 요청", description = "게시물에 좋아요 요청을 보냅니다.")
+	@PostMapping("/{postId}")
 	@ResponseStatus(HttpStatus.OK)
-	public RsData<CreateLikeResponse> likePost(@Valid @RequestBody CreateLikeRequest createRequest) {
+	public RsData<CreateLikeResponse> likePost(
+		@PathVariable Long postId,
+		@AuthenticationPrincipal CustomUser securityUser
+	) {
 		CreateLikeResponse createResponse = likesService.createLike(
-			createRequest.memberId(), createRequest.postId()
+			securityUser.getId(), postId
 		);
 		return RsData.success(createResponse, "좋아요가 성공적으로 적용되었습니다.");
 	}
 
-	@DeleteMapping
+	/**
+	 * 게시물의 ID를 통해 좋아요를 취소합니다.
+	 * @param postId, deleteLikeRequest(LikeId), securityUser
+	 * @return deleteLikeResponse (DTO)
+	 */
+	@Operation(summary = "게시물 좋아요 취소", description = "게시물에 좋아요 취소 요청을 보냅니다.")
+	@DeleteMapping("/{postId}")
 	@ResponseStatus(HttpStatus.OK)
-	public RsData<DeleteLikeResponse> unlikePost(@Valid @RequestBody DeleteLikeRequest deleteRequest) {
+	public RsData<DeleteLikeResponse> unlikePost(
+		@Valid @RequestBody DeleteLikeRequest deleteRequest,
+		@AuthenticationPrincipal CustomUser securityUser,
+		@PathVariable Long postId
+		) {
 		DeleteLikeResponse deleteResponse = likesService.deleteLike(
-			deleteRequest.id(), deleteRequest.memberId(), deleteRequest.postId()
+			deleteRequest.likeId(), securityUser.getId(), postId
 		);
 		return RsData.success(deleteResponse, "좋아요가 성공적으로 취소되었습니다.");
 	}

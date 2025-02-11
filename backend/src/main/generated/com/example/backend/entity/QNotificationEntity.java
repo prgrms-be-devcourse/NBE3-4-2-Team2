@@ -7,7 +7,6 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
-import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -17,8 +16,6 @@ import com.querydsl.core.types.dsl.PathInits;
 public class QNotificationEntity extends EntityPathBase<NotificationEntity> {
 
     private static final long serialVersionUID = 1291227694L;
-
-    private static final PathInits INITS = PathInits.DIRECT2;
 
     public static final QNotificationEntity notificationEntity = new QNotificationEntity("notificationEntity");
 
@@ -34,30 +31,25 @@ public class QNotificationEntity extends EntityPathBase<NotificationEntity> {
 
     public final BooleanPath isRead = createBoolean("isRead");
 
-    public final QMemberEntity member;
+    public final NumberPath<Long> memberId = createNumber("memberId", Long.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifyDate = _super.modifyDate;
 
+    public final NumberPath<Long> targetId = createNumber("targetId", Long.class);
+
+    public final EnumPath<com.example.backend.content.notification.type.NotificationType> type = createEnum("type", com.example.backend.content.notification.type.NotificationType.class);
+
     public QNotificationEntity(String variable) {
-        this(NotificationEntity.class, forVariable(variable), INITS);
+        super(NotificationEntity.class, forVariable(variable));
     }
 
     public QNotificationEntity(Path<? extends NotificationEntity> path) {
-        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
+        super(path.getType(), path.getMetadata());
     }
 
     public QNotificationEntity(PathMetadata metadata) {
-        this(metadata, PathInits.getFor(metadata, INITS));
-    }
-
-    public QNotificationEntity(PathMetadata metadata, PathInits inits) {
-        this(NotificationEntity.class, metadata, inits);
-    }
-
-    public QNotificationEntity(Class<? extends NotificationEntity> type, PathMetadata metadata, PathInits inits) {
-        super(type, metadata, inits);
-        this.member = inits.isInitialized("member") ? new QMemberEntity(forProperty("member")) : null;
+        super(NotificationEntity.class, metadata);
     }
 
 }

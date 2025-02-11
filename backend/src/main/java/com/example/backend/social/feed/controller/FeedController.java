@@ -1,6 +1,7 @@
 package com.example.backend.social.feed.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
+import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.social.feed.dto.FeedInfoResponse;
 import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedMemberRequest;
@@ -41,29 +43,35 @@ public class FeedController {
 	 * @param request 요청 정보
 	 * @return 피드 Dto 리스트
 	 */
-	@Operation(summary = "메인 피드 요청", description = "자신 및 팔로잉 게시물과 추천 게시물로 이뤄진 피드를 반환합니다.")
+	@Operation(
+		summary = "메인 피드 요청",
+		description = "자신 및 팔로잉 게시물과 추천 게시물로 이뤄진 피드를 반환합니다.")
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedListResponse> findFeedList(
-		@RequestBody FeedRequest request
+		@RequestBody FeedRequest request,
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
-		return RsData.success(feedService.findList(request), "피드를 성공적으로 반환했습니다.");
+		FeedListResponse response = feedService.findList(request, securityUser.getId());
+		return RsData.success(response, "피드를 성공적으로 반환했습니다.");
 	}
 
 	/**
 	 * 단건 게시글에 대한 피드정보 요청
 	 * @param postId 게시글 ID
-	 * @param username 요청하는 유저의 이름 (임시. 삭제 예정)
 	 * @return 피드 Dto
 	 */
-	@Operation(summary = "단건 피드 요청", description = "단건 게시물을 피드로 반환합니다.")
-	@GetMapping("/{postId}/{username}")
+	@Operation(
+		summary = "단건 피드 요청",
+		description = "단건 게시물을 피드로 반환합니다.")
+	@GetMapping("/{postId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedInfoResponse> findFeedInfo(
 		@PathVariable Long postId,
-		@PathVariable String username
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
-		return RsData.success(feedService.findByPostId(postId, username));
+		FeedInfoResponse response = feedService.findByPostId(postId, securityUser.getId());
+		return RsData.success(response, "피드를 성공적으로 반환했습니다.");
 	}
 
 	/**
@@ -71,12 +79,16 @@ public class FeedController {
 	 * @param request 요청 정보
 	 * @return 피드 Dto 리스트
 	 */
-	@Operation(summary = "멤버 피드 요청", description = "해당 멤버의 게시물에 대한 피드를 요청합니다.")
+	@Operation(
+		summary = "멤버 피드 요청",
+		description = "해당 멤버의 게시물에 대한 피드를 요청합니다.")
 	@GetMapping("/member")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedMemberResponse> findMemberFeedList(
-		@RequestBody FeedMemberRequest request
+		@RequestBody FeedMemberRequest request,
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
-		return RsData.success(feedService.findMembersList(request));
+		FeedMemberResponse response = feedService.findMembersList(request, securityUser.getId());
+		return RsData.success(response, "피드를 성공적으로 반환했습니다.");
 	}
 }

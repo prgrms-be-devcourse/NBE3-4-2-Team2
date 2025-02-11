@@ -47,9 +47,9 @@ public class QMemberEntity extends EntityPathBase<MemberEntity> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifyDate = _super.modifyDate;
 
-    public final ListPath<NotificationEntity, QNotificationEntity> notificationList = this.<NotificationEntity, QNotificationEntity>createList("notificationList", NotificationEntity.class, QNotificationEntity.class, PathInits.DIRECT2);
-
     public final StringPath password = createString("password");
+
+    public final StringPath phoneNumber = createString("phoneNumber");
 
     public final ListPath<PostEntity, QPostEntity> postList = this.<PostEntity, QPostEntity>createList("postList", PostEntity.class, QPostEntity.class, PathInits.DIRECT2);
 
