@@ -63,6 +63,7 @@ public class LikesControllerTest {
 
 	private String accessToken;
 	private MemberEntity testMember;
+	private MemberEntity anotherMember;
 	private PostEntity testPost;
 
 	@BeforeEach
@@ -79,12 +80,13 @@ public class LikesControllerTest {
 
 		// 테스트용 멤버 추가
 		testMember = memberService.join("testMember", "testPassword", "test@gmail.com");
+		anotherMember = memberService.join("anotherMember", "testPassword", "another@gmail.com");
 		accessToken = memberService.genAccessToken(testMember);
 
 		// 테스트용 게시물 추가
 		testPost = PostEntity.builder()
 			.content("testContent")
-			.member(testMember)
+			.member(anotherMember)
 			.build();
 		testPost = postRepository.save(testPost);
 
@@ -324,4 +326,5 @@ public class LikesControllerTest {
 			.andExpect(jsonPath("$.message").value("좋아요 정보와 요청 게시물 정보가 다릅니다."));
 	}
 }
+
 
