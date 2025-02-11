@@ -82,14 +82,14 @@ class PostServiceTest {
 	@DisplayName("게시물 생성 테스트")
 	void t1() {
 		//given
-		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물입니다.", Collections.emptyList());
+		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물", Collections.emptyList());
 
 		// when
 		PostCreateResponse response = postService.createPost(request);
 
 		// then
 		assertNotNull(response);
-		assertEquals("테스트 게시물입니다.", response.content());
+		assertEquals("테스트 게시물", response.content());
 		assertEquals(testMember.getId(), response.memberId());
 
 		System.out.println("게시물 생성 성공: " + response.content());

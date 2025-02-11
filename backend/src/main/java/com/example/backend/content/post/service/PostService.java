@@ -6,9 +6,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.hashtag.service.HashtagExtractor;
 import com.example.backend.content.hashtag.service.PostHashtagService;
-import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.post.converter.PostConverter;
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
@@ -38,9 +38,9 @@ import lombok.extern.slf4j.Slf4j;
 public class PostService {
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
-	private final ImageService imageService;
 	private final HashtagExtractor hashtagExtractor;
 	private final PostHashtagService postHashtagService;
+	private final ImageService imageService;
 	/**
 	 * createPost 요청을 받고 게시물을 생성하는 메소드
 	 *
@@ -55,7 +55,6 @@ public class PostService {
 		//MEMBER 클래스 EXCEPTION 으로 변경 예정
 		PostEntity postEntity = PostEntity.create(request.content(), memberEntity);
 		PostEntity savedPost = postRepository.save(postEntity);
-
 		imageService.uploadImages(savedPost, request.images());
 
 		// 해시태그 추출 및 생성
