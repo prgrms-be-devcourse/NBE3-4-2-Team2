@@ -53,7 +53,7 @@ public class PostController {
 	 * @param request 게시물 수정 요청 객체
 	 * @return 수정된 게시물 정보를 담은 응답 DTO
 	 */
-	@PutMapping("/modify/{postId}")	
+	@PutMapping("/{postId}")
 	public ResponseEntity<PostModifyResponse> modifyPost(
 		@PathVariable Long postId,
 		@RequestBody @Valid PostModifyRequest request
@@ -68,7 +68,7 @@ public class PostController {
 	 * @param postId 삭제할 게시물의 ID
 	 * @return 게시물 삭제 여부 정보를 담은 응답 DTO
 	 */
-	@DeleteMapping("/delete/{postId}")
+	@DeleteMapping("/{postId}")
 	public ResponseEntity<PostDeleteResponse> deletePost(
 		@PathVariable Long postId,
 		@RequestParam Long memberId
