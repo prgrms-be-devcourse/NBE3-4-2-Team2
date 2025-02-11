@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -42,7 +43,6 @@ class SearchFinderTest {
 
 	@BeforeEach
 	void setUp() {
-		searchFinder = new SearchFinder(queryFactory);
 
 		// member1 데이터 및 해시태그 생성
 		MemberEntity member1 = persistMember("testUser1", "a1@test.com");
