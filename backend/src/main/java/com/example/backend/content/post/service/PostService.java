@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.hashtag.service.HashtagExtractor;
 import com.example.backend.content.hashtag.service.PostHashtagService;
 import com.example.backend.content.post.converter.PostConverter;
@@ -22,6 +23,7 @@ import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 게시물 관련 Service
@@ -31,12 +33,14 @@ import lombok.RequiredArgsConstructor;
  */
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PostService {
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
 	private final HashtagExtractor hashtagExtractor;
 	private final PostHashtagService postHashtagService;
+	private final ImageService imageService;
 	/**
 	 * createPost 요청을 받고 게시물을 생성하는 메소드
 	 *
@@ -50,8 +54,8 @@ public class PostService {
 			.orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다."));
 		//MEMBER 클래스 EXCEPTION 으로 변경 예정
 		PostEntity postEntity = PostEntity.create(request.content(), memberEntity);
-
 		PostEntity savedPost = postRepository.save(postEntity);
+		imageService.uploadImages(savedPost, request.images());
 
 		// 해시태그 추출 및 생성
 		Set<String> extractHashtags = hashtagExtractor.extractHashtag(savedPost.getContent());
@@ -62,7 +66,7 @@ public class PostService {
 
 	@Transactional
 	public PostModifyResponse modifyPost(Long postId, PostModifyRequest request) {
-		PostEntity postEntity = postRepository.findById(postId)
+		PostEntity postEntity = postRepository.findByIdAndIsDeletedFalse(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
 
 		if (!postEntity.getMember().getId().equals(request.memberId())) {
@@ -70,10 +74,6 @@ public class PostService {
 		}
 
 		postEntity.modifyContent(request.content());
-
-		// 변경된 해시태그 수정
-		Set<String> newHashtags = hashtagExtractor.extractHashtag(request.content());
-		postHashtagService.updatePostHashtags(postEntity, newHashtags);
 
 		return PostConverter.toModifyResponse(postEntity);
 	}
@@ -87,6 +87,7 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_DELETE_FORBIDDEN);
 		}
 
+		// imageService.deleteImages(postEntity);
 		postEntity.deleteContent();
 
 		return PostConverter.toDeleteResponse(postId);
