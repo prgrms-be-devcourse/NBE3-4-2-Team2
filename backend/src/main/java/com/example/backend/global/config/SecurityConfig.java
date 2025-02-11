@@ -47,8 +47,8 @@ public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 	private final CustomAccessDeniedHandler accessDeniedHandler;
-	private final CustomOAuth2UserService customOAuth2UserService;
-	private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+	private final CustomOAuth2UserService oAuth2UserService;
+	private final CustomAuthenticationSuccessHandler authenticationSuccessHandler;
 	private final CustomAuthenticationFailureHandler authenticationFailureHandler;
 	private final CustomLogoutSuccessHandler logoutSuccessHandler;
 
@@ -56,7 +56,7 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
 		CustomUsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter =
-			new CustomUsernamePasswordAuthenticationFilter(authenticationManager, customAuthenticationSuccessHandler, authenticationFailureHandler);
+			new CustomUsernamePasswordAuthenticationFilter(authenticationManager, authenticationSuccessHandler, authenticationFailureHandler);
 
 		http
 			// ✅ 보안 관련 설정 (CSRF, CORS, 세션)
@@ -71,8 +71,8 @@ public class SecurityConfig {
 			// ✅ OAuth2 로그인 설정
 			.oauth2Login(oauth2 -> oauth2
 				.userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
-					.userService(customOAuth2UserService)) // 사용자 정보 서비스 설정
-				.successHandler(customAuthenticationSuccessHandler)) // OAuth2 로그인 성공 핸들러
+					.userService(oAuth2UserService)) // 사용자 정보 서비스 설정
+				.successHandler(authenticationSuccessHandler)) // OAuth2 로그인 성공 핸들러
 
 			// ✅ 로그아웃 설정
 			.logout(logout -> logout
@@ -105,7 +105,7 @@ public class SecurityConfig {
 		configuration.setAllowedOrigins(
 			Arrays.asList(AppConfig.getSiteFrontUrl(), "http://localhost:3000")); // 프론트 엔드 포트번호
 		// 허용할 HTTP 메서드 설정
-		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // 프론트 엔드 허용 메서드
 		// 자격 증명 허용 설정
 		configuration.setAllowCredentials(true);
 		// 허용할 헤더 설정
