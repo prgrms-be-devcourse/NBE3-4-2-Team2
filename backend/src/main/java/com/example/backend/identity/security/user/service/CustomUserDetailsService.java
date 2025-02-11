@@ -2,6 +2,7 @@ package com.example.backend.identity.security.user.service;
 
 import java.util.Map;
 
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -24,12 +25,15 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	@Override
 	public CustomUser loadUserByUsername(String username) throws UsernameNotFoundException {
-		MemberEntity member = memberRepository.findByUsername(username).orElse(null);
+		MemberEntity member = memberRepository.findByUsername(username)
+								.orElseThrow(()->new UsernameNotFoundException("username not found : " + username));
 		return new CustomUser(member, null);
 	}
 
 	public CustomUser loadUserById(long id) throws UsernameNotFoundException {
-		MemberEntity member = memberRepository.findById(id).orElse(null);
+		MemberEntity member = memberRepository.findById(id)
+			.orElseThrow(() -> new AuthenticationException("id에 맞는 멤버가 존재하지 않습니다.") {
+			});
 		return new CustomUser(member, null);
 	}
 

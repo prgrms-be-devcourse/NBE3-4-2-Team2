@@ -1,7 +1,6 @@
 package com.example.backend.identity.security.jwt;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,17 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final AccessTokenService accessTokenService;
 	private final CustomUserDetailsService customUserDetailsService;
-
-
-	private String getCookie(String key, Cookie[] cookies) {
-		String value = Arrays.stream(cookies)
-			.filter(cookie -> key.equals(cookie.getName()))
-			.map(Cookie::getValue)
-			.findFirst()
-			.orElse(null);
-
-		return value;
-	}
+	private final RefreshTokenService refreshTokenService;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws
@@ -67,13 +56,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		// access 토큰이 유효하지 않다면 refresh 토큰을 이용하여 다시 생성
 		if (customUser == null) {
-			String refreshToken = getCookie("refresh_token", request.getCookies());
+			String refreshToken = null;
 
-			// refresh 토큰이 존재하지 않다면 로그인 필터로 넘긴다.
+			for (Cookie cookie : request.getCookies()) {
+				if (cookie.getName().equals("refresh_token")) {
+					refreshToken = cookie.getValue();
+				}
+			}
+			// refresh 토큰이 존재하지 않다면 다음 로그인 필터로 넘긴다.
 			if (refreshToken == null) {
 				filterChain.doFilter(request, response);
 				return;
 			}
+			// refresh 토큰이 블랙리스트라면 다음 로그인 필터로 넘어간다.
+			boolean blacklisted = refreshTokenService.isBlacklisted(refreshToken);
+			if (blacklisted) {
+				filterChain.doFilter(request, response);
+				return;
+			}
+
+			// refresh 토큰이 유효하지 않다면 다음 로그인 필터로 넘어간다.
 			customUser = customUserDetailsService.getUserByRefreshToken(refreshToken);
 
 			if (customUser == null) {
@@ -81,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				return;
 			}
 
-			// refresh 토큰이 유효하다면 accessToken을 발급한다.
+			// refresh 토큰이 유효하다면 새로운 accessToken을 발급한다.
 			String newAccessToken = accessTokenService.genAccessToken(customUser);
 			response.setHeader("Authorization", "Bearer " + newAccessToken);
 		}
