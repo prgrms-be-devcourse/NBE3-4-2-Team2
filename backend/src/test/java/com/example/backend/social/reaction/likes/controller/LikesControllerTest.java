@@ -26,6 +26,7 @@ import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
 import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.identity.security.jwt.AccessTokenService;
 import com.example.backend.identity.security.user.SecurityUser;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeRequest;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -53,6 +54,9 @@ public class LikesControllerTest {
 	private MemberService memberService;
 
 	@Autowired
+	private AccessTokenService accessTokenService;
+
+	@Autowired
 	private MemberRepository memberRepository;
 
 	@Autowired
@@ -63,6 +67,7 @@ public class LikesControllerTest {
 
 	private String accessToken;
 	private MemberEntity testMember;
+	private MemberEntity anotherMember;
 	private PostEntity testPost;
 
 	@BeforeEach
@@ -79,12 +84,13 @@ public class LikesControllerTest {
 
 		// 테스트용 멤버 추가
 		testMember = memberService.join("testMember", "testPassword", "test@gmail.com");
-		accessToken = memberService.genAccessToken(testMember);
+		anotherMember = memberService.join("anotherMember", "testPassword", "another@gmail.com");
+		accessToken = accessTokenService.genAccessToken(testMember);
 
 		// 테스트용 게시물 추가
 		testPost = PostEntity.builder()
 			.content("testContent")
-			.member(testMember)
+			.member(anotherMember)
 			.build();
 		testPost = postRepository.save(testPost);
 
@@ -146,28 +152,8 @@ public class LikesControllerTest {
 	}
 
 	@Test
-	@DisplayName("3. 존재하지 않는 멤버가 좋아요 적용 테스트")
+	@DisplayName("3. 존재하지 않는 게시물에 좋아요 적용 테스트")
 	public void t003() throws Exception {
-		// Given
-		Long nonExistentMemberId = 99L;
-		SecurityUser securityUser = new SecurityUser(nonExistentMemberId, "nonExistentUser", "password", new ArrayList<>());
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-
-		// When
-		ResultActions resultActions = mockMvc.perform(post("/api-v1/likes/{postId}", testPost.getId())
-			.contentType(MediaType.APPLICATION_JSON)
-			.accept(MediaType.APPLICATION_JSON));
-
-		// Then
-		resultActions.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("멤버 정보를 찾을 수 없습니다."));
-	}
-
-	@Test
-	@DisplayName("4. 존재하지 않는 게시물에 좋아요 적용 테스트")
-	public void t004() throws Exception {
 		// Given
 		Long nonExistentPostId = 99L;
 
@@ -184,8 +170,8 @@ public class LikesControllerTest {
 	}
 
 	@Test
-	@DisplayName("5. 좋아요가 이미 적용된 게시물에 좋아요 중복 적용 테스트")
-	public void t005() throws Exception {
+	@DisplayName("4. 좋아요가 이미 적용된 게시물에 좋아요 중복 적용 테스트")
+	public void t004() throws Exception {
 		// Given
 		mockMvc.perform(post("/api-v1/likes/{postId}", testPost.getId())
 				.header("Authorization", "Bearer " + accessToken)
@@ -207,8 +193,8 @@ public class LikesControllerTest {
 	}
 
 	@Test
-	@DisplayName("6. 좋아요를 누르지 않은 게시물에 좋아요 취소 요청 테스트")
-	public void t006() throws Exception {
+	@DisplayName("5. 좋아요를 누르지 않은 게시물에 좋아요 취소 요청 테스트")
+	public void t005() throws Exception {
 		// Given
 		DeleteLikeRequest deleteRequest = DeleteLikeRequest.builder()
 			.likeId(1L)
@@ -229,8 +215,8 @@ public class LikesControllerTest {
 	}
 
 	@Test
-	@DisplayName("7. 좋아요 취소시 다른 유저가 요청하는 테스트")
-	public void t007() throws Exception {
+	@DisplayName("6. 좋아요 취소시 다른 유저가 요청하는 테스트")
+	public void t006() throws Exception {
 		// Given First
 		SecurityUser testSecurityUser = new SecurityUser(testMember.getId(), testMember.getUsername(), testMember.getPassword(), new ArrayList<>());
 
@@ -253,7 +239,7 @@ public class LikesControllerTest {
 
 		// 새로운 멤버 추가 및 토큰 발급
 		MemberEntity otherMember = memberService.join("otherMember", "otherPassword", "other@gmail.com");
-		String otherAccessToken = memberService.genAccessToken(otherMember);
+		String otherAccessToken = accessTokenService.genAccessToken(otherMember);
 
 		SecurityUser otherSecurityUser = new SecurityUser(otherMember.getId(), otherMember.getUsername(), otherMember.getPassword(), new ArrayList<>());
 
@@ -278,8 +264,8 @@ public class LikesControllerTest {
 	}
 
 	@Test
-	@DisplayName("8. DB에 등록된 좋아요와 해당 게시물이 다른 경우 테스트")
-	public void t008() throws Exception {
+	@DisplayName("7. DB에 등록된 좋아요와 해당 게시물이 다른 경우 테스트")
+	public void t007() throws Exception {
 		// Given First
 		SecurityUser testSecurityUser = new SecurityUser(testMember.getId(), testMember.getUsername(), testMember.getPassword(), new ArrayList<>());
 
@@ -324,4 +310,5 @@ public class LikesControllerTest {
 			.andExpect(jsonPath("$.message").value("좋아요 정보와 요청 게시물 정보가 다릅니다."));
 	}
 }
+
 

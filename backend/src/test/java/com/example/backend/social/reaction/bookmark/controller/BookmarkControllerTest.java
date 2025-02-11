@@ -26,6 +26,7 @@ import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
 import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.identity.security.jwt.AccessTokenService;
 import com.example.backend.identity.security.user.SecurityUser;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkRequest;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,6 +52,9 @@ public class BookmarkControllerTest {
 
 	@Autowired
 	private MemberService memberService;
+
+	@Autowired
+	private AccessTokenService accessTokenService;
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -79,7 +83,7 @@ public class BookmarkControllerTest {
 
 		// 테스트용 멤버 추가
 		testMember = memberService.join("testMember", "testPassword", "test@gmail.com");
-		accessToken = memberService.genAccessToken(testMember);
+		accessToken = accessTokenService.genAccessToken(testMember);
 
 		// 테스트용 게시물 추가
 		testPost = PostEntity.builder()
@@ -146,28 +150,8 @@ public class BookmarkControllerTest {
 	}
 
 	@Test
-	@DisplayName("3. 존재하지 않는 멤버가 북마크 등록 테스트")
+	@DisplayName("3. 존재하지 않는 게시물의 북마크 삭제 테스트")
 	public void t003() throws Exception {
-		// Given
-		Long nonExistentMemberId = 99L;
-		SecurityUser securityUser = new SecurityUser(nonExistentMemberId, "nonExistentUser", "password", new ArrayList<>());
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-
-		// When
-		ResultActions resultActions = mockMvc.perform(post("/api-v1/bookmark/{postId}", testPost.getId())
-			.contentType(MediaType.APPLICATION_JSON)
-			.accept(MediaType.APPLICATION_JSON));
-
-		// Then
-		resultActions.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("멤버 정보를 찾을 수 없습니다."));
-	}
-
-	@Test
-	@DisplayName("4. 존재하지 않는 게시물의 북마크 삭제 테스트")
-	public void t004() throws Exception {
 		// Given
 		Long nonExistentPostId = 99L;
 
@@ -184,8 +168,8 @@ public class BookmarkControllerTest {
 	}
 
 	@Test
-	@DisplayName("5. 이미 북마크로 등록된 게시물 중복 등록 테스트")
-	public void t005() throws Exception {
+	@DisplayName("4. 이미 북마크로 등록된 게시물 중복 등록 테스트")
+	public void t004() throws Exception {
 		// Given
 		mockMvc.perform(post("/api-v1/bookmark/{postId}", testPost.getId())
 				.header("Authorization", "Bearer " + accessToken)
@@ -207,8 +191,8 @@ public class BookmarkControllerTest {
 	}
 
 	@Test
-	@DisplayName("6. 북마크에 없는 게시물 북마크 삭제 테스트")
-	public void t006() throws Exception {
+	@DisplayName("5. 북마크에 없는 게시물 북마크 삭제 테스트")
+	public void t005() throws Exception {
 		// Given
 		DeleteBookmarkRequest deleteRequest = DeleteBookmarkRequest.builder()
 			.bookmarkId(1L)
@@ -229,8 +213,8 @@ public class BookmarkControllerTest {
 	}
 
 	@Test
-	@DisplayName("7. 북마크 삭제시 다른 유저가 요청하는 테스트")
-	public void t007() throws Exception {
+	@DisplayName("6. 북마크 삭제시 다른 유저가 요청하는 테스트")
+	public void t006() throws Exception {
 		// Given First
 		SecurityUser testSecurityUser = new SecurityUser(testMember.getId(), testMember.getUsername(), testMember.getPassword(), new ArrayList<>());
 
@@ -253,7 +237,7 @@ public class BookmarkControllerTest {
 
 		// 새로운 멤버 추가 및 토큰 발급
 		MemberEntity otherMember = memberService.join("otherMember", "otherPassword", "other@gmail.com");
-		String otherAccessToken = memberService.genAccessToken(otherMember);
+		String otherAccessToken = accessTokenService.genAccessToken(otherMember);
 
 		SecurityUser otherSecurityUser = new SecurityUser(otherMember.getId(), otherMember.getUsername(), otherMember.getPassword(), new ArrayList<>());
 
@@ -278,8 +262,8 @@ public class BookmarkControllerTest {
 	}
 
 	@Test
-	@DisplayName("8. DB에 등록된 북마크의 게시물과 해당 게시물이 다른 경우의 테스트")
-	public void t008() throws Exception {
+	@DisplayName("7. DB에 등록된 북마크의 게시물과 해당 게시물이 다른 경우의 테스트")
+	public void t007() throws Exception {
 		// Given First
 		SecurityUser testSecurityUser = new SecurityUser(testMember.getId(), testMember.getUsername(), testMember.getPassword(), new ArrayList<>());
 

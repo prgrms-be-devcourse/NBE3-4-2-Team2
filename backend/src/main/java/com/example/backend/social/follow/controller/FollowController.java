@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
-import com.example.backend.identity.security.user.SecurityUser;
+import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.social.follow.dto.CreateFollowResponse;
 import com.example.backend.social.follow.dto.DeleteFollowRequest;
 import com.example.backend.social.follow.dto.DeleteFollowResponse;
@@ -53,10 +53,10 @@ public class FollowController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<CreateFollowResponse> followMember(
 		@PathVariable Long receiverId,
-		@AuthenticationPrincipal SecurityUser securityUser
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
 		if (receiverId.equals(securityUser.getId())) {
-			throw new FollowException(FollowErrorCode.SELF_FOLLOW);
+			throw new FollowException(FollowErrorCode.CANNOT_FOLLOW_SELF);
 		}
 		CreateFollowResponse createResponse = followService.createFollow(
 			securityUser.getId(), receiverId
@@ -74,11 +74,11 @@ public class FollowController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<DeleteFollowResponse> unfollowMember(
 		@Valid @RequestBody DeleteFollowRequest deleteRequest,
-		@AuthenticationPrincipal SecurityUser securityUser,
+		@AuthenticationPrincipal CustomUser securityUser,
 		@PathVariable Long receiverId
 	) {
 		if (receiverId.equals(securityUser.getId())) {
-			throw new FollowException(FollowErrorCode.SELF_UNFOLLOW);
+			throw new FollowException(FollowErrorCode.CANNOT_UNFOLLOW_SELF);
 		}
 		DeleteFollowResponse deleteResponse = followService.deleteFollow(
 			deleteRequest.followId(), securityUser.getId(), receiverId
@@ -97,7 +97,7 @@ public class FollowController {
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<MutualFollowResponse> isMutualFollow(
 		@PathVariable Long memberId,
-		@AuthenticationPrincipal SecurityUser securityUser
+		@AuthenticationPrincipal CustomUser securityUser
 	) {
 		boolean isMutualFollow = followService.findMutualFollow(securityUser.getId(), memberId);
 
