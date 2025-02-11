@@ -30,8 +30,6 @@ public class LocalFileStorageService {
             String storedFileName = UUID.randomUUID() + extension;
             File destFile = new File(UPLOAD_DIR + storedFileName);
 
-            log.info("파일 경로 확인 : {}", destFile.getAbsolutePath());
-
             // 디렉토리 없으면 생성
             Files.createDirectories(Paths.get(UPLOAD_DIR));
 

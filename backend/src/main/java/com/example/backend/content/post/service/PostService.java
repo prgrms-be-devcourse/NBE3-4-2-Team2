@@ -51,7 +51,6 @@ public class PostService {
 		PostEntity postEntity = PostEntity.create(request.content(), memberEntity);
 		PostEntity savedPost = postRepository.save(postEntity);
 
-		log.info("이미지 추가 완료 : {}", request.images().size());
 		imageService.uploadImages(savedPost, request.images());
 
 		return PostConverter.toCreateResponse(savedPost);
