@@ -2,6 +2,7 @@ package com.example.backend.content.comment;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,7 @@ import com.example.backend.content.comment.dto.CommentCreateResponse;
 import com.example.backend.content.comment.dto.CommentDeleteResponse;
 import com.example.backend.content.comment.dto.CommentModifyRequest;
 import com.example.backend.content.comment.dto.CommentModifyResponse;
+import com.example.backend.content.comment.dto.CommentResponse;
 import com.example.backend.content.comment.exception.CommentErrorCode;
 import com.example.backend.content.comment.exception.CommentException;
 import com.example.backend.content.comment.service.CommentService;
@@ -214,6 +216,58 @@ class CommentServiceTest {
 		assertEquals(CommentErrorCode.COMMENT_UPDATE_FORBIDDEN, exception.getCommentErrorCode());
 
 		System.out.println("✅ 다른 사용자의 댓글 수정 예외 테스트 성공!");
+	}
+	@Test
+	@DisplayName("단일 댓글 조회 테스트")
+	void t8() {
+		// given
+		Long commentId = testComment.getId();
+
+		// when
+		CommentResponse response = commentService.findCommentById(commentId);
+
+		// then
+		assertNotNull(response);
+		assertEquals(testComment.getContent(), response.content());
+		assertEquals(testComment.getId(), response.id());
+
+		System.out.println("✅ 단일 댓글 조회 테스트 성공!");
+	}
+
+	@Test
+	@DisplayName("게시글 내 모든 댓글 조회 테스트")
+	void t9() {
+		// given
+		CommentEntity comment2 = CommentEntity.createParentComment("테스트 댓글2", testPost, testMember, 2L);
+		commentRepository.save(comment2);
+
+		// when
+		List<CommentResponse> comments = commentService.findAllCommentsByPostId(testPost.getId());
+
+		// then
+		assertNotNull(comments);
+		assertEquals(2, comments.size()); // 2개의 댓글이 존재해야 함
+
+		System.out.println("✅ 게시글 내 모든 댓글 조회 테스트 성공!");
+	}
+
+	@Test
+	@DisplayName("특정 댓글의 대댓글 조회 테스트")
+	void t10() {
+		// given
+		CommentEntity child1 = CommentEntity.createChildComment("대댓글1", testPost, testMember, testComment, 2);
+		CommentEntity child2 = CommentEntity.createChildComment("대댓글2", testPost, testMember, testComment, 3);
+		commentRepository.save(child1);
+		commentRepository.save(child2);
+
+		// when
+		List<CommentResponse> replies = commentService.findRepliesByParentId(testComment.getId());
+
+		// then
+		assertNotNull(replies);
+		assertEquals(2, replies.size()); // 대댓글이 2개 존재해야 함
+
+		System.out.println("✅ 특정 댓글의 대댓글 조회 테스트 성공!");
 	}
 }
 

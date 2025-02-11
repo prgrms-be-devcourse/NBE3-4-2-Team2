@@ -1,5 +1,6 @@
 package com.example.backend.content.comment.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import com.example.backend.content.comment.dto.CommentCreateResponse;
 import com.example.backend.content.comment.dto.CommentDeleteResponse;
 import com.example.backend.content.comment.dto.CommentModifyRequest;
 import com.example.backend.content.comment.dto.CommentModifyResponse;
+import com.example.backend.content.comment.dto.CommentResponse;
 import com.example.backend.content.comment.exception.CommentErrorCode;
 import com.example.backend.content.comment.exception.CommentException;
 import com.example.backend.entity.CommentEntity;
@@ -124,6 +126,31 @@ public class CommentService {
 	public CommentEntity getCommentById(Long commentId) {
 		return commentRepository.findActiveById(commentId)
 			.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND));
+	}
+
+	@Transactional(readOnly = true)
+	public List<CommentResponse> findAllCommentsByPostId(Long postId) {
+		return commentRepository.findAllByPostIdAndIsDeletedFalseOrderByRefOrder(postId)
+			.stream()
+			.map(CommentResponse::fromEntity)
+			.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public CommentResponse findCommentById(Long commentId) {
+		return CommentResponse.fromEntity(
+			commentRepository.findActiveById(commentId)
+				.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND))
+		);
+	}
+
+	@Transactional(readOnly = true)
+	public List<CommentResponse> findRepliesByParentId(Long parentId) {
+		return commentRepository.findAllByParentNum(parentId)
+			.stream()
+			.filter(comment -> !comment.isDeleted())
+			.map(CommentResponse::fromEntity)
+			.toList();
 	}
 
 }

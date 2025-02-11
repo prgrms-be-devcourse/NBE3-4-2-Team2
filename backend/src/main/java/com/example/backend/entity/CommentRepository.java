@@ -12,7 +12,8 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
 	/**
 	 * 특정 게시글에 속한 모든 댓글을 refOrder 기준으로 정렬하여 가져오기 (트리 구조 유지)
 	 */
-	List<CommentEntity> findAllByPostIdOrderByRefOrder(Long postId);
+	@Query("SELECT c FROM CommentEntity c WHERE c.post.id = :postId AND c.isDeleted = false ORDER BY c.refOrder")
+	List<CommentEntity> findAllByPostIdAndIsDeletedFalseOrderByRefOrder(@Param("postId") Long postId);
 
 	/**
 	 * 특정 ref(최상위 댓글 그룹)에 속한 댓글을 step과 refOrder 기준으로 정렬하여 가져오기
@@ -49,4 +50,5 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
 	// ✅ Soft Delete 적용: 삭제되지 않은 댓글만 조회
 	@Query("SELECT c FROM CommentEntity c WHERE c.id = :id AND c.isDeleted = false")
 	Optional<CommentEntity> findActiveById(@Param("id") Long id);
+
 }
