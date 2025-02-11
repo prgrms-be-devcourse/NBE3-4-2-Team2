@@ -1,7 +1,5 @@
 package com.example.backend.content.notification.controller;
 
-import java.util.UUID;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +15,7 @@ import com.example.backend.content.notification.dto.NotificationLikePageResponse
 import com.example.backend.content.notification.service.NotificationService;
 import com.example.backend.content.notification.sse.SseConnection;
 import com.example.backend.content.notification.sse.SseConnectionPool;
+import com.example.backend.content.notification.sse.SseEmitterFactory;
 import com.example.backend.global.rs.RsData;
 
 import lombok.RequiredArgsConstructor;
@@ -32,12 +31,13 @@ public class NotificationController {
 
 	private final SseConnectionPool sseConnectionPool;
 	private final NotificationService notificationService;
+	private final SseEmitterFactory sseEmitterFactory;
 
 	@GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public SseEmitter subscribe() {
 		// 시큐리티 인증 작업 전까지 임시로 진행
 		String uniqueKey = "userId1";
-		SseConnection connection = SseConnection.connect(uniqueKey, sseConnectionPool);
+		SseConnection connection = SseConnection.connect(uniqueKey, sseConnectionPool, sseEmitterFactory);
 
 		return connection.getSseEmitter();
 	}

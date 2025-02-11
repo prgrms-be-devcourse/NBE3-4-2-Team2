@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * 각각의 단일 사용자 연결을 담당하는 객체
@@ -16,15 +17,19 @@ public class SseConnection {
 
 	private final String uniqueKey;
 	private final SseEmitter sseEmitter;
+	private final SseEmitterFactory sseEmitterFactory;
 	private final SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs;
 
 	private static final Long DEFAULT_MINUTE = 1000L * 60 * 5;
 
 	private SseConnection(
-		String uniqueKey, SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs
+		String uniqueKey,
+		SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs,
+		SseEmitterFactory sseEmitterFactory
 	) {
 		this.uniqueKey = uniqueKey;
-		this.sseEmitter = new SseEmitter(DEFAULT_MINUTE);
+		this.sseEmitterFactory = sseEmitterFactory;
+		this.sseEmitter = sseEmitterFactory.create(DEFAULT_MINUTE);
 		this.sseConnectionPoolIfs = sseConnectionPoolIfs;
 
 		this.sseEmitter.onTimeout(sseEmitter::complete);
@@ -38,9 +43,11 @@ public class SseConnection {
 	 * @since 2025-02-10
 	 */
 	public static SseConnection connect(
-		String uniqueKey, SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs
+		String uniqueKey,
+		SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs,
+		SseEmitterFactory sseEmitterFactory
 	) {
-		SseConnection connection = new SseConnection(uniqueKey, sseConnectionPoolIfs);
+		SseConnection connection = new SseConnection(uniqueKey, sseConnectionPoolIfs, sseEmitterFactory);
 		sseConnectionPoolIfs.add(uniqueKey, connection);
 		return connection;
 	}

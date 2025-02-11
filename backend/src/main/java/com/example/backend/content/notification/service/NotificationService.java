@@ -66,7 +66,7 @@ public class NotificationService {
 	}
 
 	public NotificationLikePageResponse getNotificationPage(int page, Long memberId) {
-		PageRequest pageRequest = PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdDate"));
+		PageRequest pageRequest = PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createDate"));
 		// 알림 목록 조회 (최근 30일)
 		LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(THIRTY_DAYS);
 
