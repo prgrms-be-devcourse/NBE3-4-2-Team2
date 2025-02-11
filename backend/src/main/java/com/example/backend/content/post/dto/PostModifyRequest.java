@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
@@ -19,5 +20,5 @@ public record PostModifyRequest (
 	@NotNull(message = "게시물 ID는 필수 입력 값입니다.") Long postId,
 	@NotNull(message = "게시물 내용은 필수 입력 값입니다.") String content,
 	@NotNull(message = "회원 ID는 필수 입력 값입니다.") Long memberId,
-	List<MultipartFile> images
+	@Nullable List<MultipartFile> images
 ) { }

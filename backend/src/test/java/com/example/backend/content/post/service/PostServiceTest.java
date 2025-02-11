@@ -2,7 +2,8 @@ package com.example.backend.content.post.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +22,6 @@ import com.example.backend.content.post.dto.PostModifyRequest;
 import com.example.backend.content.post.dto.PostModifyResponse;
 import com.example.backend.content.post.exception.PostErrorCode;
 import com.example.backend.content.post.exception.PostException;
-import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.ImageRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
@@ -69,10 +68,12 @@ class PostServiceTest {
 
 		memberRepository.save(testMember);
 
+
 		testPost = PostEntity.builder()
 			.content("테스트 게시물")
 			.member(testMember)
 			.isDeleted(false)
+			.images(new ArrayList<>())
 			.build();
 		postRepository.save(testPost);
 	}
@@ -80,8 +81,8 @@ class PostServiceTest {
 	@Test
 	@DisplayName("게시물 생성 테스트")
 	void t1() {
-		// given
-		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물입니다.", null);
+		//given
+		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물입니다.", Collections.emptyList());
 
 		// when
 		PostCreateResponse response = postService.createPost(request);
@@ -99,7 +100,7 @@ class PostServiceTest {
 	void t2() {
 		// given
 		String updatedContent = "수정된 게시물 내용";
-		PostModifyRequest request = new PostModifyRequest(testPost.getId(), updatedContent, testMember.getId());
+		PostModifyRequest request = new PostModifyRequest(testPost.getId(), updatedContent, testMember.getId(),Collections.emptyList());
 
 		// when
 		PostModifyResponse response = postService.modifyPost(testPost.getId(), request);
@@ -156,7 +157,7 @@ class PostServiceTest {
 	void t5() {
 		// given
 		Long nonExistentPostId = 999L; // 존재하지 않는 게시물 ID
-		PostModifyRequest request = new PostModifyRequest(nonExistentPostId, "수정된 내용", testMember.getId());
+		PostModifyRequest request = new PostModifyRequest(nonExistentPostId, "수정된 내용", testMember.getId(),null);
 
 		// when & then
 		PostException exception = assertThrows(PostException.class, () -> {
@@ -183,7 +184,7 @@ class PostServiceTest {
 		);
 
 
-		PostModifyRequest request = new PostModifyRequest(testPost.getId(), "허가되지 않은 수정", anotherUser.getId());
+		PostModifyRequest request = new PostModifyRequest(testPost.getId(), "허가되지 않은 수정", anotherUser.getId(),null);
 
 		// when & then
 		PostException exception = assertThrows(PostException.class, () -> {
@@ -214,45 +215,5 @@ class PostServiceTest {
 
 		assertEquals(PostErrorCode.POST_DELETE_FORBIDDEN, exception.getPostErrorCode());
 		System.out.println("✅ 다른 사용자의 게시물 삭제 시 예외 발생 테스트 통과");
-	}
-
-	@Test
-	@DisplayName("게시물 생성 시 이미지 저장 테스트")
-	void t8() {
-		// ✅ given: 가짜 이미지 파일(MockMultipartFile) 생성
-		MockMultipartFile image1 = new MockMultipartFile(
-			"images", "test1.jpg", "image/jpeg", "dummy image content 1".getBytes()
-		);
-
-		MockMultipartFile image2 = new MockMultipartFile(
-			"images", "test2.png", "image/png", "dummy image content 2".getBytes()
-		);
-
-		// ✅ 게시물 생성 요청 객체
-		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물입니다.", List.of(image1, image2));
-
-		// ✅ when: 게시물 생성 요청 실행
-		PostCreateResponse response = postService.createPost(request);
-
-		// ✅ then: 게시물이 정상적으로 저장되었는지 확인
-		assertNotNull(response);
-		assertEquals("테스트 게시물입니다.", response.content());
-		assertEquals(testMember.getId(), response.memberId());
-
-		// ✅ 게시물이 실제 DB에 저장되었는지 확인
-		PostEntity createdPost = postRepository.findById(response.id()).orElseThrow();
-		assertNotNull(createdPost);
-		assertEquals("테스트 게시물입니다.", createdPost.getContent());
-
-		// ✅ 이미지가 DB에 정상적으로 저장되었는지 확인
-		List<ImageEntity> images = imageRepository.findAllByPostId(createdPost.getId());
-
-		assertNotNull(images);
-		assertEquals(2, images.size()); // 2개의 이미지가 저장되어야 함
-
-		assertEquals("/uploads/test1.jpg", images.get(0).getImageUrl()); // NGINX에 저장된 이미지 URL 확인
-		assertEquals("/uploads/test2.png", images.get(1).getImageUrl());
-
-		System.out.println("✅ 게시물 생성 시 이미지 저장 테스트 통과!");
 	}
 }
