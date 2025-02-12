@@ -27,6 +27,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.identity.member.service.MemberService;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -56,17 +57,20 @@ class PostServiceTest {
 
 	private MemberEntity testMember;
 	private PostEntity testPost;
+	@Autowired
+	private MemberService memberService;
 
 	@BeforeEach
 	void setUp() {
-		testMember = MemberEntity.builder()
-			.username("testUser")
-			.email("test@example.com")
-			.refreshToken("")
-			.password("password")
-			.build();
-
-		memberRepository.save(testMember);
+		// testMember = MemberEntity.builder()
+		// 	.username("testUser")
+		// 	.email("test@example.com")
+		// 	.refreshToken("")
+		// 	.password("password")
+		// 	.build();
+		//
+		// memberRepository.save(testMember);
+		testMember = memberService.join("testUser","password","test@example.com");
 
 
 		testPost = PostEntity.builder()
@@ -82,17 +86,17 @@ class PostServiceTest {
 	@DisplayName("게시물 생성 테스트")
 	void t1() {
 		//given
-		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물입니다.", Collections.emptyList());
+		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물", Collections.emptyList());
 
 		// when
 		PostCreateResponse response = postService.createPost(request);
 
 		// then
-		assertNotNull(response); // 응답이 null이 아닌지 확인
-		assertEquals("테스트 게시물입니다.", response.content()); // 내용 검증
-		assertEquals(testMember.getId(), response.memberId()); // 작성자 검증
+		assertNotNull(response);
+		assertEquals("테스트 게시물", response.content());
+		assertEquals(testMember.getId(), response.memberId());
 
-		System.out.println("✅ 게시물 생성 테스트 성공!");
+		System.out.println("게시물 생성 성공: " + response.content());
 	}
 
 	@Test
@@ -174,14 +178,15 @@ class PostServiceTest {
 	@DisplayName("다른 사용자의 게시물 수정시 예외발생")
 	void t6() {
 		// given
-		MemberEntity anotherUser = memberRepository.save(
-			MemberEntity.builder()
-				.username("otherUser")
-				.email("other@example.com")
-				.refreshToken("dummyToken") // ✅ NULL 방지: 빈 문자열 또는 더미 값 추가
-				.password("password")
-				.build()
-		);
+		MemberEntity anotherUser = memberService.join("otherUser","password","other@example.com");
+		// 	memberRepository.save(
+		// 	MemberEntity.builder()
+		// 		.username("otherUser")
+		// 		.email("other@example.com")
+		// 		.refreshToken("dummyToken") // ✅ NULL 방지: 빈 문자열 또는 더미 값 추가
+		// 		.password("password")
+		// 		.build()
+		// );
 
 
 		PostModifyRequest request = new PostModifyRequest(testPost.getId(), "허가되지 않은 수정", anotherUser.getId(),null);
@@ -199,14 +204,15 @@ class PostServiceTest {
 	@DisplayName("다른 사용자의 게시물 삭제시 예외발생")
 	void t7() {
 		// given
-		MemberEntity anotherUser = memberRepository.save(
-			MemberEntity.builder()
-				.username("otherUser")
-				.email("other@example.com")
-				.refreshToken("dummyToken") // ✅ NULL 방지: 빈 문자열 또는 더미 값 추가
-				.password("password")
-				.build()
-		);
+		MemberEntity anotherUser = memberService.join("otherUser","password","other@example.com");
+		// 	memberRepository.save(
+		// 	MemberEntity.builder()
+		// 		.username("otherUser")
+		// 		.email("other@example.com")
+		// 		.refreshToken("dummyToken") // ✅ NULL 방지: 빈 문자열 또는 더미 값 추가
+		// 		.password("password")
+		// 		.build()
+		// );
 
 		// when & then
 		PostException exception = assertThrows(PostException.class, () -> {

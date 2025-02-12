@@ -23,6 +23,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.identity.member.service.MemberService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -42,18 +43,13 @@ class ImageControllerTest {
 	private PostRepository postRepository;
 
 	private PostEntity testPost;
+	@Autowired
+	private MemberService memberService;
 
 	@BeforeEach
 	void setUp() {
 		// ✅ 테스트용 사용자(MemberEntity) 저장 (refresh_token 추가)
-		MemberEntity testMember = memberRepository.save(
-			MemberEntity.builder()
-				.username("Testuser1")
-				.email("Testuser@gmail.com")
-				.password("Testuser1!")
-				.refreshToken("testRefreshToken") // ✅ refreshToken 값 설정
-				.build()
-		);
+		MemberEntity testMember = memberService.join("testUser","password","test@example.com");
 
 		// ✅ 테스트용 게시물(PostEntity) 저장
 		testPost = postRepository.save(

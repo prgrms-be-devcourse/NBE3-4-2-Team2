@@ -36,8 +36,9 @@ public class MemberEntity extends BaseEntity {
 
 	private String profileUrl;
 
-	@Column(unique = true, nullable = false)
-	private String refreshToken;
+	private String phoneNumber;
+
+	// private String refreshToken;
 
 	@Column(nullable = false)
 	@Builder.Default
@@ -58,10 +59,6 @@ public class MemberEntity extends BaseEntity {
 	@OneToMany(mappedBy = "sender") // sender가 자기 자신 => 내가 팔로잉하는
 	@Builder.Default
 	private List<FollowEntity> followingList = new ArrayList<>();
-
-	@OneToMany(mappedBy = "member")
-	@Builder.Default
-	private List<NotificationEntity> notificationList = new ArrayList<>();
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default

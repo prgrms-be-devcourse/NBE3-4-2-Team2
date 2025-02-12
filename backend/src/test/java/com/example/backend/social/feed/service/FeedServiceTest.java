@@ -54,33 +54,30 @@ class FeedServiceTest {
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(0L)
 			.timestamp(null)
-			.username("user1")
 			.build();
 
 		FeedRequest afterTimestamp = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(0L)
 			.timestamp(LocalDateTime.now().plusDays(1))
-			.username("user1")
 			.build();
 
 		FeedRequest overMaxSize = FeedRequest.builder()
 			.maxSize(REQUEST_FEED_MAX_SIZE + 1)
 			.lastPostId(0L)
 			.timestamp(LocalDateTime.now().minusDays(1))
-			.username("user1")
 			.build();
 
 		Assertions.assertThrows(FeedException.class, () -> {
-			feedService.findList(nullTimestamp);
+			feedService.findList(nullTimestamp, 1L);
 		});
 
 		Assertions.assertThrows(FeedException.class, () -> {
-			feedService.findList(afterTimestamp);
+			feedService.findList(afterTimestamp, 1L);
 		});
 
 		Assertions.assertThrows(FeedException.class, () -> {
-			feedService.findList(overMaxSize);
+			feedService.findList(overMaxSize, 1L);
 		});
 	}
 
@@ -91,10 +88,9 @@ class FeedServiceTest {
 			.maxSize(REQUEST_FEED_MAX_SIZE)
 			.lastPostId(0L)
 			.timestamp(LocalDateTime.now())
-			.username("user1")
 			.build();
 
-		FeedListResponse response = feedService.findList(request);
+		FeedListResponse response = feedService.findList(request, 1L);
 		Assertions.assertNotNull(response);
 		Assertions.assertEquals(REQUEST_FEED_MAX_SIZE, response.feedList().size());
 	}
@@ -103,11 +99,10 @@ class FeedServiceTest {
 	@DisplayName("멤버 피드 validate 테스트")
 	void t3() {
 		FeedMemberRequest request = FeedMemberRequest.builder()
-			.username("user1")
 			.lastPostId(0L)
 			.maxSize(2)
 			.build();
 
-		feedService.findMembersList(request);
+		feedService.findMembersList(request, 1L);
 	}
 }

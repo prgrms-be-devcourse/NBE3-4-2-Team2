@@ -3,13 +3,13 @@ package com.example.backend.content.search.implement;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -20,7 +20,9 @@ import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostHashtagEntity;
+import com.example.backend.global.config.EncryptConfig;
 import com.example.backend.global.config.QuerydslConfig;
+import com.example.backend.identity.member.service.MemberService;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.persistence.EntityManager;
@@ -30,7 +32,7 @@ import jakarta.persistence.EntityManager;
  * 2025-02-07
  */
 @DataJpaTest
-@Import({QuerydslConfig.class, SearchFinder.class})
+@Import({QuerydslConfig.class, SearchFinder.class, MemberService.class, EncryptConfig.class})
 class SearchFinderTest {
 
 	@Autowired
@@ -39,10 +41,11 @@ class SearchFinderTest {
 	JPAQueryFactory queryFactory;
 	@Autowired
 	SearchFinder searchFinder;
+	@Autowired
+	private MemberService memberService;
 
 	@BeforeEach
 	void setUp() {
-		searchFinder = new SearchFinder(queryFactory);
 
 		// member1 데이터 및 해시태그 생성
 		MemberEntity member1 = persistMember("testUser1", "a1@test.com");
@@ -77,14 +80,15 @@ class SearchFinderTest {
 	}
 
 	private MemberEntity persistMember(String username, String email) {
-		MemberEntity member = MemberEntity.builder()
-			.username(username)
-			.email(email)
-			.password("1234")
-			.refreshToken(UUID.randomUUID().toString())
-			.build();
-		em.persist(member);
-		return member;
+		// MemberEntity member = MemberEntity.builder()
+		// 	.username(username)
+		// 	.email(email)
+		// 	.password("1234")
+		// 	// .refreshToken(UUID.randomUUID().toString())
+		// 	.build();
+		// em.persist(member);
+		// return member;
+		return memberService.join(username,"1234",email);
 	}
 
 	private PostEntity persistPost(MemberEntity member) {

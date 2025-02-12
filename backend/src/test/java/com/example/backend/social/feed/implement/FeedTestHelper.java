@@ -26,6 +26,8 @@ import com.example.backend.entity.PostHashtagRepository;
 import com.example.backend.entity.PostRepository;
 import com.example.backend.social.reaction.likes.service.LikesService;
 
+import jakarta.persistence.EntityManager;
+
 @Component
 public class FeedTestHelper {
 
@@ -56,8 +58,14 @@ public class FeedTestHelper {
 	@Autowired
 	private LikesService likesService;
 
+	@Autowired
+	EntityManager entityManager;
+
 	@Transactional
 	public void setData() {
+
+		entityManager.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate();
+
 		// 1. 멤버 생성 (20명)
 		List<MemberEntity> members = new ArrayList<>();
 		for (int i = 1; i <= 20; i++) {
@@ -65,7 +73,7 @@ public class FeedTestHelper {
 				.username("user" + i)
 				.email("user" + i + "@test.com")
 				.password("password" + i)
-				.refreshToken("refresh" + i)
+				// .refreshToken("refresh" + i)
 				.build());
 		}
 		memberRepository.saveAll(members);

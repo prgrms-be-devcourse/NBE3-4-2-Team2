@@ -242,3 +242,10 @@ db_dev.trace.db
 .env*
 /backend/.env
 /backend/en
+
+# QueryDSL QClass 자동 생성 파일 무시
+/build/
+/out/
+/generated/
+/src/main/generated/
+**/Q*.java

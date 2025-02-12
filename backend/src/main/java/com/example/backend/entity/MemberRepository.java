@@ -10,9 +10,11 @@ import org.springframework.data.repository.query.Param;
 public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
 	Optional<MemberEntity> findByUsername(String username);
 
-	Optional<MemberEntity> findByRefreshToken(String refreshToken);
+	// Optional<MemberEntity> findByRefreshToken(String refreshToken);
 
 	Optional<MemberEntity> findByEmail(String email);
+
+	Optional<MemberEntity> findByPhoneNumber(String phoneNumber);
 
 	/**
 	 * 팔로워 카운트 증가 쿼리

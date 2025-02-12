@@ -2,6 +2,7 @@ package com.example.backend.content.search.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,6 +13,7 @@ import com.example.backend.content.search.dto.SearchPostCursorResponse;
 import com.example.backend.content.search.service.SearchService;
 import com.example.backend.content.search.type.SearchType;
 import com.example.backend.global.rs.RsData;
+import com.example.backend.identity.security.user.CustomUser;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -38,7 +40,8 @@ public class SearchController {
 		@RequestParam @NotNull(message = "검색 타입은 필수입니다.") SearchType type,
 		@RequestParam @NotBlank(message = "검색어는 필수입니다.") String keyword,
 		@RequestParam(required = false) Long lastPostId,
-		@RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
+		@RequestParam(defaultValue = "10") @Min(1) @Max(100) int size,
+		@AuthenticationPrincipal CustomUser customUser
 	) {
 		SearchPostCursorResponse response = searchService.search(type, keyword, lastPostId, size);
 		return RsData.success(response);

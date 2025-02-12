@@ -1,8 +1,6 @@
 package com.example.backend.identity.member.service;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class MemberService {
-	private final JwtService jwtService;
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
 
@@ -47,7 +44,7 @@ public class MemberService {
 			.username(username)
 			.password(encodedPassword)
 			.email(email)
-			.refreshToken(UUID.randomUUID().toString())
+			// .refreshToken(UUID.randomUUID().toString())
 			.build();
 
 		return memberRepository.save(member);
@@ -61,44 +58,8 @@ public class MemberService {
 		return memberRepository.findById(authorId);
 	}
 
-	public Optional<MemberEntity> findByRefreshToken(String refreshToken) {
-		return memberRepository.findByRefreshToken(refreshToken);
-	}
+	// public Optional<MemberEntity> findByRefreshToken(String refreshToken) {
+	// 	return memberRepository.findByRefreshToken(refreshToken);
+	// }
 
-	public String genAccessToken(MemberEntity member) {
-		return jwtService.genAccessToken(member);
-	}
-
-	public MemberEntity getActorFromAccessToken(String accessToken) {
-		Map<String, Object> payload = jwtService.payload(accessToken);
-
-		if (payload == null) return null;
-
-		Long id = (Long) payload.get("id");
-		String username = (String) payload.get("username");
-
-		if (id == null || username == null)
-			return null;
-
-		MemberEntity actor = new MemberEntity(id, username);
-
-		return actor;
-	}
-
-
-
-	public MemberEntity login(String username, String password) {
-		// Username
-		MemberEntity member = memberRepository.findByUsername(username).orElseThrow(
-			() -> new GlobalException(MemberErrorCode.UNAUTHORIZED)
-		);
-
-		// Password
-		boolean isMatched = passwordEncoder.matches(password, member.getPassword());
-		if(!isMatched) {
-			throw new GlobalException(MemberErrorCode.UNAUTHORIZED);
-		}
-
-		return member;
-	}
 }

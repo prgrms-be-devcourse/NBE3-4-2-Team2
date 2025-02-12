@@ -40,11 +40,9 @@ public class ImageService {
 	public List<ImageEntity> uploadImages(PostEntity post, List<MultipartFile> images) {
 
 		if (images == null || images.isEmpty()) {
-			log.info("이미지가 없습니다.");
 			return Collections.emptyList();
 		}
 
-		log.info("이미지 서비스 추가 완료 : {}", images.size());
 		return images.stream()
 				.map(file -> {
 					//서버(NGINX)에 파일 업로드 후 URL 반환
