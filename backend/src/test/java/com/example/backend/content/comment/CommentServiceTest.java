@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.global.event.CommentEventListener;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -56,6 +58,9 @@ class CommentServiceTest {
 	@PersistenceContext
 	private EntityManager entityManager;
 
+	@MockitoBean
+	CommentEventListener commentEventListener;
+
 	private MemberEntity testMember;
 	private PostEntity testPost;
 	private CommentEntity testComment;
@@ -65,7 +70,6 @@ class CommentServiceTest {
 		testMember = MemberEntity.builder()
 			.username("testUser")
 			.email("test@example.com")
-			.refreshToken("")
 			.password("password")
 			.build();
 		memberRepository.save(testMember);
@@ -206,7 +210,6 @@ class CommentServiceTest {
 			MemberEntity.builder()
 				.username("otherUser")
 				.email("other@example.com")
-				.refreshToken(UUID.randomUUID().toString())
 				.password("password")
 				.build()
 		);

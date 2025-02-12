@@ -2,6 +2,7 @@ package com.example.backend.content.comment.service;
 
 import java.util.Optional;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.global.event.CommentEvent;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +34,7 @@ public class CommentService {
 	private final CommentRepository commentRepository;
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	/**
 	 * 댓글 생성
@@ -62,10 +65,14 @@ public class CommentService {
 		}
 
 		CommentEntity savedComment = commentRepository.save(comment);
+
+		// 이벤트 발생
+		applicationEventPublisher.publishEvent(
+			CommentEvent.create(member.getUsername(), post.getMember().getId(), comment.getId())
+		);
+
 		return CommentConverter.toCreateResponse(savedComment);
 	}
-
-
 
 	/**
 	 * 댓글 수정
@@ -122,6 +129,7 @@ public class CommentService {
 
 		return CommentConverter.toDeleteResponse(comment.getId(), comment.getMember().getId());
 	}
+
 	/**
 	 * 댓글 단건 조회
 	 */

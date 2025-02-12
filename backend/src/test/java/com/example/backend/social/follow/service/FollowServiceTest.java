@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.example.backend.entity.FollowEntity;
 import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
+import com.example.backend.global.event.FollowEventListener;
 import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.social.follow.dto.CreateFollowResponse;
 import com.example.backend.social.follow.exception.FollowErrorCode;
@@ -44,6 +46,8 @@ public class FollowServiceTest {
 	private MemberEntity testReceiver;
 	@Autowired
 	private MemberService memberService;
+	@MockitoBean
+	FollowEventListener followEventListener;
 
 	@BeforeEach
 	public void setup() {
