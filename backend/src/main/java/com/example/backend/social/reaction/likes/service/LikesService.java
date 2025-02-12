@@ -35,7 +35,6 @@ public class LikesService {
 		this.memberRepository = memberRepository;
 		this.postRepository = postRepository;
 	}
-
 	/**
 	 * 좋아요 생성 메서드
 	 * memberId와 postId를 받아 LikesEntity 생성
