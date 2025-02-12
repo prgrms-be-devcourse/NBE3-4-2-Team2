@@ -46,6 +46,9 @@ public class PostEntity extends BaseEntity {
 	@Builder.Default
 	private Long likeCount = 0L; // 좋아요 초기 카운트 0 설정
 
+	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<CommentEntity> comments;
+
 	/**
 	 *  PostEntity create 메소드
 	 *

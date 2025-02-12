@@ -41,7 +41,6 @@ public class LikesService {
 		this.postRepository = postRepository;
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
-
 	/**
 	 * 좋아요 생성 메서드
 	 * memberId와 postId를 받아 LikesEntity 생성

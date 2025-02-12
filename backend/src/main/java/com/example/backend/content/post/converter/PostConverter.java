@@ -3,10 +3,13 @@ package com.example.backend.content.post.converter;
 import com.example.backend.content.post.dto.PostCreateResponse;
 import com.example.backend.content.post.dto.PostDeleteResponse;
 import com.example.backend.content.post.dto.PostModifyResponse;
-import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.PostEntity;
 
 public class PostConverter {
+
+	private PostConverter() {
+		throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+	}
 
 	/**
 	 * PostEntity 객체를 PostCreateResponse로 변환
