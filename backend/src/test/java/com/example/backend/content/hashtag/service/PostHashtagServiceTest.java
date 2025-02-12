@@ -1,13 +1,10 @@
 package com.example.backend.content.hashtag.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +19,7 @@ import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostHashtagEntity;
 import com.example.backend.entity.PostHashtagRepository;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.identity.member.service.MemberService;
 
 @SpringBootTest
 @Transactional
@@ -39,6 +37,8 @@ class PostHashtagServiceTest {
 	PostRepository postRepository;
 	@Autowired
 	MemberRepository memberRepository;
+	@Autowired
+	private MemberService memberService;
 
 	@Test
 	@DisplayName("create 통합 테스트")
@@ -116,12 +116,13 @@ class PostHashtagServiceTest {
 	}
 
 	private MemberEntity getMemberEntity() {
-		return memberRepository.save(MemberEntity.builder()
-			.username("testUser")
-			.email("testuser@example.com")
-			.password("password123")
-			.refreshToken(UUID.randomUUID().toString())
-			.build());
+		// return memberRepository.save(MemberEntity.builder()
+		// 	.username("testUser")
+		// 	.email("testuser@example.com")
+		// 	.password("password123")
+		// 	.refreshToken(UUID.randomUUID().toString())
+		// 	.build());
+		return memberService.join("testUser","password123","testuser@exampe.com");
 	}
 
 }

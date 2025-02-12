@@ -2,8 +2,6 @@ package com.example.backend.social.follow.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +14,7 @@ import com.example.backend.entity.FollowEntity;
 import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
+import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.social.follow.dto.CreateFollowResponse;
 import com.example.backend.social.follow.exception.FollowErrorCode;
 import com.example.backend.social.follow.exception.FollowException;
@@ -43,6 +42,8 @@ public class FollowServiceTest {
 
 	private MemberEntity testSender;
 	private MemberEntity testReceiver;
+	@Autowired
+	private MemberService memberService;
 
 	@BeforeEach
 	public void setup() {
@@ -55,22 +56,26 @@ public class FollowServiceTest {
 		entityManager.createNativeQuery("ALTER TABLE follow ALTER COLUMN id RESTART WITH 1").executeUpdate();
 
 		// 테스트용 Followee 멤버 추가
-		MemberEntity member1 = MemberEntity.builder()
-			.username("testSender")
-			.email("testSender@gmail.com")
-			.password("testPassword")
-			.refreshToken(UUID.randomUUID().toString())
-			.build();
-		testSender = memberRepository.save(member1);
+		// MemberEntity member1 = MemberEntity.builder()
+		// 	.username("testSender")
+		// 	.email("testSender@gmail.com")
+		// 	.password("testPassword")
+		// 	.refreshToken(UUID.randomUUID().toString())
+		// 	.build();
+		// testSender = memberRepository.save(member1);
+		testSender = memberService.join("testSender","testPassword","testSender@gmail.com");
+
 
 		// 테스트용 Follower 멤버 추가
-		MemberEntity member2 = MemberEntity.builder()
-			.username("testReceiver")
-			.email("testReceiver@gmail.com")
-			.password("testPassword")
-			.refreshToken(UUID.randomUUID().toString())
-			.build();
-		testReceiver = memberRepository.save(member2);
+		// MemberEntity member2 = MemberEntity.builder()
+		// 	.username("testReceiver")
+		// 	.email("testReceiver@gmail.com")
+		// 	.password("testPassword")
+		// 	.refreshToken(UUID.randomUUID().toString())
+		// 	.build();
+		// testReceiver = memberRepository.save(member2);
+		testReceiver = memberService.join("testReceiver","testPassword","testReceiver@gmail.com");
+
 	}
 
 	@Test

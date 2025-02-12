@@ -38,8 +38,7 @@ public class MemberEntity extends BaseEntity {
 
 	private String phoneNumber;
 
-	@Column(unique = true, nullable = false)
-	private String refreshToken;
+	// private String refreshToken;
 
 	@Column(nullable = false)
 	@Builder.Default

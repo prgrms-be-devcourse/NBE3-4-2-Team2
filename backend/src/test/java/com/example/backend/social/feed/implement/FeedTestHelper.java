@@ -73,7 +73,7 @@ public class FeedTestHelper {
 				.username("user" + i)
 				.email("user" + i + "@test.com")
 				.password("password" + i)
-				.refreshToken("refresh" + i)
+				// .refreshToken("refresh" + i)
 				.build());
 		}
 		memberRepository.saveAll(members);
