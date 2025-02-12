@@ -34,7 +34,7 @@ public class CommentEntity extends BaseEntity {
 	private MemberEntity member;
 
 	@Column(nullable = false)
-	private Long ref; // 최상위 댓글 그룹 번호 (원댓글 기준)
+	private Long ref = 0L; // 최상위 댓글 그룹 번호 (원댓글 기준)
 
 	@Column(nullable = false)
 	private int step; // 댓글의 깊이 (0: 원댓글, 1~N: 대댓글)

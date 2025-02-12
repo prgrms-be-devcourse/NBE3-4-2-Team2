@@ -1,12 +1,7 @@
 package com.example.backend.content.post.dto;
 
-import com.example.backend.entity.PostEntity;
-
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * 게시물 생성 관련 DTO

@@ -18,6 +18,7 @@ public class CommentConverter {
 			.postId(comment.getPost().getId())
 			.memberId(comment.getMember().getId())
 			.parentId(comment.getParentNum())
+			.ref(comment.getRef())
 			.build();
 	}
 	/**
@@ -50,7 +51,8 @@ public class CommentConverter {
 			commentEntity.getPost().getId(),
 			commentEntity.getCreateDate(), // createDate -> createdAt
 			commentEntity.getStep(),
-			commentEntity.getRefOrder()
+			commentEntity.getRefOrder(),
+			commentEntity.getRef()
 		);
 	}
 }

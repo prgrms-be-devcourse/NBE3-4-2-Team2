@@ -48,9 +48,9 @@ class ImageControllerTest {
 		// ✅ 테스트용 사용자(MemberEntity) 저장 (refresh_token 추가)
 		MemberEntity testMember = memberRepository.save(
 			MemberEntity.builder()
-				.username("testUser")
-				.email("test@example.com")
-				.password("password")
+				.username("Testuser1")
+				.email("Testuser@gmail.com")
+				.password("Testuser1!")
 				.refreshToken("testRefreshToken") // ✅ refreshToken 값 설정
 				.build()
 		);

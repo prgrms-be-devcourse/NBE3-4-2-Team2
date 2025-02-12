@@ -80,7 +80,9 @@ class CommentServiceTest {
 		testComment = CommentEntity.createParentComment("테스트 댓글", testPost, testMember, 1L);
 		commentRepository.save(testComment);
 	}
-
+	private Pageable getDefaultPageable() {
+		return PageRequest.of(0, 10); // 기본적으로 10개씩 조회하는 페이지네이션 설정
+	}
 	@Test
 	@DisplayName("댓글 생성 테스트")
 	void t1() {
@@ -245,7 +247,7 @@ class CommentServiceTest {
 		commentRepository.save(comment2);
 
 		// when
-		List<CommentResponse> comments = commentService.findAllCommentsByPostId(testPost.getId());
+		List<CommentResponse> comments = commentService.findAllCommentsByPostId(testPost.getId(), getDefaultPageable()).getContent();
 
 		// then
 		assertNotNull(comments);
@@ -264,7 +266,7 @@ class CommentServiceTest {
 		commentRepository.save(child2);
 
 		// when
-		List<CommentResponse> replies = commentService.findRepliesByParentId(testComment.getId());
+		List<CommentResponse> replies = commentService.findRepliesByParentId(testComment.getId(), getDefaultPageable()).getContent();
 
 		// then
 		assertNotNull(replies);

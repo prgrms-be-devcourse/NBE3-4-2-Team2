@@ -9,5 +9,6 @@ public record CommentResponse(
 	Long postId,           // 게시글 ID
 	LocalDateTime createdAt, // 댓글 작성 시간
 	int step,              // 댓글 깊이
-	int refOrder           // 같은 그룹 내 정렬 순서
+	int refOrder,			// 같은 그룹 내 정렬 순서
+	Long ref
 ) { }

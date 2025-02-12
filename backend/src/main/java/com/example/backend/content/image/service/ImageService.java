@@ -2,6 +2,7 @@ package com.example.backend.content.image.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ImageService {
 	private final ImageRepository imageRepository;
 	private final LocalFileStorageService fileStorageService;
-	private java.util.Collections Collections;
 
 	/**
 	 * 이미지 엔티티 저장

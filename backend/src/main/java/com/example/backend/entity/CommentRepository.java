@@ -41,22 +41,22 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
 	void shiftRefOrderWithinGroup(@Param("ref") Long ref, @Param("newRefOrder") int newRefOrder);
 
 
-	// ✅ 현재 게시물에서 가장 큰 ref 값을 가져오기 (최상위 댓글 그룹 번호 찾기)
+	//  현재 게시물에서 가장 큰 ref 값을 가져오기 (최상위 댓글 그룹 번호 찾기)
 	@Query("SELECT COALESCE(MAX(c.ref), 0) FROM CommentEntity c WHERE c.post.id = :postId")
 	Long findMaxRefByPostId(@Param("postId") Long postId);
 
 
-	// ✅ 특정 댓글이 부모 댓글인지 확인 (대댓글이 존재하는지 여부)
+	//  특정 댓글이 부모 댓글인지 확인 (대댓글이 존재하는지 여부)
 	@Query("SELECT COUNT(c) > 0 FROM CommentEntity c WHERE c.parentNum = :parentNum")
 	boolean existsByParentNum(@Param("parentNum") Long parentNum);
 
-	// ✅ Soft Delete 적용: 삭제되지 않은 댓글만 조회
+	//  Soft Delete 적용: 삭제되지 않은 댓글만 조회
 	@Query("SELECT c FROM CommentEntity c WHERE c.id = :id AND c.isDeleted = false")
 	Optional<CommentEntity> findActiveById(@Param("id") Long id);
 
-	// ✅ 특정 게시글의 댓글을 페이징하여 조회
+	//  특정 게시글의 댓글을 페이징하여 조회
 	Page<CommentEntity> findByPostIdAndIsDeletedFalseOrderByRefOrder(Long postId, Pageable pageable);
 
-	// ✅ 특정 부모 댓글의 대댓글을 페이징하여 조회
+	//  특정 부모 댓글의 대댓글을 페이징하여 조회
 	Page<CommentEntity> findByParentNumAndIsDeletedFalse(Long parentNum, Pageable pageable);
 }
