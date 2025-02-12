@@ -2,8 +2,6 @@ package com.example.backend.social.reaction.bookmark.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +15,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.exception.BookmarkErrorCode;
@@ -47,6 +46,8 @@ public class BookmarkServiceTest {
 
 	private MemberEntity testMember;
 	private PostEntity testPost;
+	@Autowired
+	private MemberService memberService;
 
 	@BeforeEach
 	public void setup() {
@@ -61,18 +62,19 @@ public class BookmarkServiceTest {
 		entityManager.createNativeQuery("ALTER TABLE bookmark ALTER COLUMN id RESTART WITH 1").executeUpdate();
 
 		// 테스트용 멤버 추가
-		MemberEntity member = MemberEntity.builder()
-			.username("testMember")
-			.email("test@gmail.com")
-			.password("testPassword")
-			.refreshToken(UUID.randomUUID().toString())
-			.build();
-		testMember = memberRepository.save(member);
+		// MemberEntity member = MemberEntity.builder()
+		// 	.username("testMember")
+		// 	.email("test@gmail.com")
+		// 	.password("testPassword")
+		// 	.refreshToken(UUID.randomUUID().toString())
+		// 	.build();
+		// testMember = memberRepository.save(member);
+		testMember = memberService.join("testMember","testPassword","test@gmail.com");
 
 		// 테스트용 게시물 추가
 		PostEntity post = PostEntity.builder()
 			.content("testContent")
-			.member(member)
+			.member(testMember)
 			.build();
 		testPost = postRepository.save(post);
 	}
@@ -89,8 +91,8 @@ public class BookmarkServiceTest {
 
 		// Then
 		assertNotNull(createResponse);
-		assertEquals(memberId, createResponse.getMemberId());
-		assertEquals(postId, createResponse.getPostId());
+		assertEquals(memberId, createResponse.memberId());
+		assertEquals(postId, createResponse.postId());
 	}
 
 	@Test
@@ -107,18 +109,18 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long secondMemberId = createResponse.getMemberId();
-		Long secondPostId = createResponse.getPostId();
+		Long secondMemberId = createResponse.memberId();
+		Long secondPostId = createResponse.postId();
 
 		// When Second
 		DeleteBookmarkResponse deleteResponse = bookmarkService.deleteBookmark(
-			createResponse.getId(), secondMemberId, secondPostId
+			createResponse.bookmarkId(), secondMemberId, secondPostId
 		);
 
 		// Then Second
 		assertNotNull(deleteResponse);
-		assertEquals(firstMemberId, deleteResponse.getMemberId());
-		assertEquals(firstPostId, deleteResponse.getPostId());
+		assertEquals(firstMemberId, deleteResponse.memberId());
+		assertEquals(firstPostId, deleteResponse.postId());
 	}
 
 	@Test
@@ -161,8 +163,8 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long secondMemberId = createResponse.getMemberId();
-		Long secondPostId = createResponse.getPostId();
+		Long secondMemberId = createResponse.memberId();
+		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
 		assertThrows(BookmarkException.class, () -> {
@@ -198,9 +200,9 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long bookmarkId = createResponse.getId();
+		Long bookmarkId = createResponse.bookmarkId();
 		Long anotherMemberId = 5L;
-		Long secondPostId = createResponse.getPostId();
+		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
 		assertThrows(BookmarkException.class, () -> {
@@ -222,8 +224,8 @@ public class BookmarkServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long bookmarkId = createResponse.getId();
-		Long memberId = createResponse.getMemberId();
+		Long bookmarkId = createResponse.bookmarkId();
+		Long memberId = createResponse.memberId();
 		Long anotherPostId = 5L;
 
 		// When & Then Second

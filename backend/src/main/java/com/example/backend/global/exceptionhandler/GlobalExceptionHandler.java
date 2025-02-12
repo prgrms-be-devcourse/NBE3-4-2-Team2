@@ -1,12 +1,14 @@
 package com.example.backend.global.exceptionhandler;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -14,12 +16,16 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.example.backend.content.hashtag.exception.HashtagException;
+import com.example.backend.content.notification.exception.NotificationException;
 import com.example.backend.content.post.exception.PostException;
+import com.example.backend.content.search.exception.SearchException;
 import com.example.backend.global.error.GlobalErrorCode;
 import com.example.backend.global.exception.GlobalException;
 import com.example.backend.global.rs.ErrorRs;
 import com.example.backend.global.rs.RsData;
 import com.example.backend.social.feed.exception.FeedException;
+import com.example.backend.social.follow.exception.FollowException;
 import com.example.backend.social.reaction.bookmark.exception.BookmarkException;
 import com.example.backend.social.reaction.likes.exception.LikesException;
 
@@ -45,7 +51,7 @@ public class GlobalExceptionHandler {
 		BindingResult bindingResult = ex.getBindingResult();
 		List<ErrorRs> errorRsList = new ArrayList<>();
 		String description = GlobalErrorCode.VALIDATION_FAILED.getDescription();
-		Integer code = GlobalErrorCode.VALIDATION_FAILED.getCode();
+		Integer code = GlobalErrorCode.VALIDATION_FAILED.getHttpStatus().value();
 
 		for (FieldError error : bindingResult.getFieldErrors()) {
 			ErrorRs fieldErrorRs = ErrorRs.builder()
@@ -66,6 +72,12 @@ public class GlobalExceptionHandler {
 			errorRsList.add(objectErrorRs);
 		}
 
+		if(errorRsList.size()>1) {
+			errorRsList.sort(Comparator
+				.comparing(ErrorRs::target) // target 기준으로 정렬
+				.thenComparing(ErrorRs::message)); // message 기준으로 정렬
+		}
+
 		return ResponseEntity.badRequest()
 			.body(RsData.error(errorRsList, description));
 
@@ -79,7 +91,7 @@ public class GlobalExceptionHandler {
 		Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
 		List<ErrorRs> errorRsList = new ArrayList<>();
 		String description = GlobalErrorCode.VALIDATION_FAILED.getDescription();
-		Integer code = GlobalErrorCode.VALIDATION_FAILED.getCode();
+		Integer code = GlobalErrorCode.VALIDATION_FAILED.getHttpStatus().value();
 
 		for (ConstraintViolation<?> constraintViolation : constraintViolations) {
 			ErrorRs constraintErrorRs = ErrorRs.builder()
@@ -95,17 +107,14 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(GlobalException.class)
-	public ResponseEntity<RsData<ErrorRs>> handleGlobalException(GlobalException ex,
+	public ResponseEntity<RsData<?>> handleGlobalException(GlobalException ex,
 		HttpServletRequest request) {
 
-		log.error("globalException", ex);
+		RsData<?> response = RsData.error(null, ex.getMessage());
 
-		return ResponseEntity.status(ex.getErrorCodeIfs().getHttpStatus())
-			.body(RsData.error(ErrorRs.builder()
-				.target(request.getRequestURI())
-				.code(ex.getErrorCodeIfs().getCode())
-				.message(ex.getErrorDescription())
-				.build()));
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
 	}
 
 	@ExceptionHandler(LikesException.class)
@@ -124,33 +133,82 @@ public class GlobalExceptionHandler {
 			.body(response);
 	}
 
+	@ExceptionHandler(FollowException.class)
+	public ResponseEntity<RsData<?>> handleFollowException(FollowException ex) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getStatus())
+			.body(response);
+	}
+
 	@ExceptionHandler(FeedException.class)
 	public ResponseEntity<RsData<?>> handleFeedException(FeedException ex, HttpServletRequest request) {
-		return ResponseEntity.status(ex.getErrorCodeIfs().getHttpStatus())
-			.body(RsData.error(ErrorRs.builder()
-				.target(request.getRequestURI())
-				.code(ex.getErrorCodeIfs().getCode())
-				.message(ex.getErrorDescription())
-				.build(), ex.getErrorDescription()));
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
 	}
 
 	@ExceptionHandler(PostException.class)
-	public ResponseEntity<String> handlePostException(PostException ex) {
-		return ResponseEntity.status(ex.getHttpStatus())
-			.body(ex.getMessage());
+	public ResponseEntity<RsData<?>> handlePostException(PostException ex) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getHttpStatus())
+			.body(response);
 	}
 
-	@ExceptionHandler(UsernameNotFoundException.class)
-	public ResponseEntity<RsData<ErrorRs>> handleUsernameNotFoundException(
-		UsernameNotFoundException ex, HttpServletRequest request) {
+	// @ExceptionHandler(UsernameNotFoundException.class)
+	// public ResponseEntity<RsData<ErrorRs>> handleUsernameNotFoundException(
+	// 	UsernameNotFoundException ex, HttpServletRequest request) {
+	//
+	// 	log.error("UsernameNotFoundException: {}", ex.getMessage());
+	//
+	// 	return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	// 		.body(RsData.error(ErrorRs.builder()
+	// 			.target(request.getRequestURI()) // 에러 발생한 URL
+	// 			.code(HttpStatus.NOT_FOUND.value()) // 404 상태 코드
+	// 			.message(ex.getMessage()) // 예외 메시지
+	// 			.build()));
+	// }
 
-		log.error("UsernameNotFoundException: {}", ex.getMessage());
-
-		return ResponseEntity.status(HttpStatus.NOT_FOUND)
-			.body(RsData.error(ErrorRs.builder()
-				.target(request.getRequestURI()) // 에러 발생한 URL
-				.code(HttpStatus.NOT_FOUND.value()) // 404 상태 코드
-				.message(ex.getMessage()) // 예외 메시지
-				.build()));
+	@ExceptionHandler(SearchException.class)
+	public ResponseEntity<RsData<?>> handleSearchException(SearchException ex, HttpServletRequest request) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
 	}
+
+	@ExceptionHandler(HashtagException.class)
+	public ResponseEntity<RsData<?>> handleHashtagException(HashtagException ex, HttpServletRequest request) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
+	}
+
+	@ExceptionHandler(NotificationException.class)
+	public ResponseEntity<RsData<?>> handleNotificationException(NotificationException ex, HttpServletRequest request) {
+		RsData<?> response = RsData.error(null, ex.getMessage());
+		return ResponseEntity
+			.status(ex.getErrorCodeIfs().getHttpStatus())
+			.body(response);
+	}
+
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<RsData<?>> handleAuthenticationException(AuthenticationException ex) {
+		RsData<?> response = RsData.error(null, "인증 정보가 일치하지 않습니다.");
+		return ResponseEntity
+			.status(HttpStatus.UNAUTHORIZED)
+			.body(response);
+	}
+
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<RsData<?>> handleAccessDeniedException(AccessDeniedException ex) {
+		RsData<?> response = RsData.error(null, "접근 권한이 없습니다..");
+		return ResponseEntity
+			.status(HttpStatus.FORBIDDEN)
+			.body(response);
+	}
+
 }

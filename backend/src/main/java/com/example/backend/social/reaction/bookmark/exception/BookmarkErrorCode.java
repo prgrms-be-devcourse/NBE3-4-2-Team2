@@ -15,14 +15,13 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum BookmarkErrorCode {
-	MEMBER_MISMATCH(HttpStatus.FORBIDDEN, "북마크에 접근할 권한이 없습니다.", "403"),
-	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "멤버 정보를 찾을 수 없습니다.", "404"),
-	POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시물 정보를 찾을 수 없습니다.", "404"),
-	BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "북마크 정보를 찾을 수 없습니다.", "404"),
-	POST_MISMATCH(HttpStatus.CONFLICT, "북마크 정보와 요청 게시물 정보가 다릅니다.", "409"),
-	ALREADY_BOOKMARKED(HttpStatus.CONFLICT, "이미 등록된 북마크 입니다.", "409");
+	MEMBER_MISMATCH(HttpStatus.FORBIDDEN, "북마크에 접근할 권한이 없습니다."),
+	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "멤버 정보를 찾을 수 없습니다."),
+	POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시물 정보를 찾을 수 없습니다."),
+	BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "북마크 정보를 찾을 수 없습니다."),
+	POST_MISMATCH(HttpStatus.CONFLICT, "북마크 정보와 요청 게시물 정보가 다릅니다."),
+	ALREADY_BOOKMARKED(HttpStatus.CONFLICT, "이미 등록된 북마크 입니다.");
 
 	final HttpStatus httpStatus;
 	final String message;
-	final String code;
 }

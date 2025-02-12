@@ -1,47 +1,99 @@
 package com.example.backend.social.feed.controller;
 
+import static com.example.backend.social.feed.constant.FeedConstants.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.entity.MemberEntity;
+import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.identity.security.jwt.AccessTokenService;
+import com.example.backend.identity.security.user.CustomUser;
+import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.implement.FeedTestHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 
 @SpringBootTest
 @Transactional
 @DirtiesContext
 @AutoConfigureMockMvc
 class FeedControllerTest {
-
-	@Autowired
-	private MockMvc mockMvc;
-
-	@Autowired
-	private ObjectMapper objectMapper;
-
-	@Autowired
-	private FeedTestHelper feedTestHelper;
-
-	@BeforeEach
-	void setUp() {
-		feedTestHelper.setData();
-	}
-
+	//
+	// @Autowired
+	// private MockMvc mockMvc;
+	//
+	// @Autowired
+	// private ObjectMapper objectMapper;
+	//
+	// @Autowired
+	// private FeedTestHelper feedTestHelper;
+	//
+	// @Autowired
+	// private MemberService memberService;
+	//
+	// @Autowired
+	// private AccessTokenService accessTokenService;
+	//
+	// private String accessToken;
+	// private MemberEntity testMember;
+	//
+	// @BeforeEach
+	// void setUp() {
+	// 	feedTestHelper.setData();
+	//
+	// 	// 멤버 로그인
+	// 	testMember = memberService.findById(1L).get();
+	// 	Assertions.assertNotNull(testMember);
+	//
+	// 	accessToken = accessTokenService.genAccessToken(testMember);
+	//
+	// 	CustomUser securityUser = new CustomUser(
+	// 		testMember,
+	// 		null
+	// 		// testMember.getId(),
+	// 		// testMember.getUsername(),
+	// 		// testMember.getPassword(),
+	// 		// new ArrayList<>()
+	// 	);
+	//
+	// 	UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+	// 		securityUser,
+	// 		null,
+	// 		securityUser.getAuthorities());
+	//
+	// 	SecurityContextHolder.getContext().setAuthentication(authentication);
+	// }
+	//
 	// @Test
 	// @DisplayName("피드요청 - 성공")
 	// void t1() throws Exception {
 	// 	FeedRequest request = FeedRequest.builder()
 	// 		.maxSize(REQUEST_FEED_MAX_SIZE)
-	// 		.lastPostId(null)
+	// 		.lastPostId(0L)
 	// 		.timestamp(LocalDateTime.now())
-	// 		.username("user1")
 	// 		.build();
 	//
 	// 	mockMvc.perform(get("/api-v1/feed")
+	// 			.header("Authorization", "Bearer " + accessToken)
 	// 			.contentType(MediaType.APPLICATION_JSON)
 	// 			.accept(MediaType.APPLICATION_JSON)
 	// 			.content(objectMapper.writeValueAsString(request)))
@@ -54,53 +106,51 @@ class FeedControllerTest {
 	// @Test
 	// @DisplayName("피드요청 - 실패: 잘못된 Request 전달")
 	// void t2() throws Exception {
+	//
 	// 	FeedRequest nullTimestamp = FeedRequest.builder()
 	// 		.maxSize(REQUEST_FEED_MAX_SIZE)
-	// 		.lastPostId(null)
+	// 		.lastPostId(0L)
 	// 		.timestamp(null)
-	// 		.username("user1")
 	// 		.build();
 	//
 	// 	FeedRequest afterTimestamp = FeedRequest.builder()
 	// 		.maxSize(REQUEST_FEED_MAX_SIZE)
-	// 		.lastPostId(null)
+	// 		.lastPostId(0L)
 	// 		.timestamp(LocalDateTime.now().plusDays(1))
-	// 		.username("user1")
 	// 		.build();
 	//
 	// 	FeedRequest overMaxSize = FeedRequest.builder()
 	// 		.maxSize(REQUEST_FEED_MAX_SIZE + 1)
-	// 		.lastPostId(null)
+	// 		.lastPostId(0L)
 	// 		.timestamp(LocalDateTime.now().minusDays(1))
-	// 		.username("user1")
 	// 		.build();
 	//
 	// 	mockMvc.perform(get("/api-v1/feed")
+	// 			.header("Authorization", "Bearer " + accessToken)
 	// 			.contentType(MediaType.APPLICATION_JSON)
 	// 			.accept(MediaType.APPLICATION_JSON)
 	// 			.content(objectMapper.writeValueAsString(nullTimestamp)))
 	// 		.andExpect(status().isBadRequest())
 	// 		.andExpect(jsonPath("$.success").value(false))
-	// 		.andExpect(jsonPath("$.message").value("유효하지 않은 타임스탬프입니다."))
-	// 		.andExpect(jsonPath("$.data").exists());
+	// 		.andExpect(jsonPath("$.message").value("유효하지 않은 타임스탬프입니다."));
 	//
 	// 	mockMvc.perform(get("/api-v1/feed")
+	// 			.header("Authorization", "Bearer " + accessToken)
 	// 			.contentType(MediaType.APPLICATION_JSON)
 	// 			.accept(MediaType.APPLICATION_JSON)
 	// 			.content(objectMapper.writeValueAsString(afterTimestamp)))
 	// 		.andExpect(status().isBadRequest())
 	// 		.andExpect(jsonPath("$.success").value(false))
-	// 		.andExpect(jsonPath("$.message").value("유효하지 않은 타임스탬프입니다."))
-	// 		.andExpect(jsonPath("$.data").exists());
+	// 		.andExpect(jsonPath("$.message").value("유효하지 않은 타임스탬프입니다."));
 	//
 	// 	mockMvc.perform(get("/api-v1/feed")
+	// 			.header("Authorization", "Bearer " + accessToken)
 	// 			.contentType(MediaType.APPLICATION_JSON)
 	// 			.accept(MediaType.APPLICATION_JSON)
 	// 			.content(objectMapper.writeValueAsString(overMaxSize)))
 	// 		.andExpect(status().isBadRequest())
 	// 		.andExpect(jsonPath("$.success").value(false))
-	// 		.andExpect(jsonPath("$.message").value("유효하지 않은 범위의 요청 개수입니다."))
-	// 		.andExpect(jsonPath("$.data").exists());
+	// 		.andExpect(jsonPath("$.message").value("유효하지 않은 범위의 요청 개수입니다."));
 	// }
 	//
 	// @Test
@@ -108,12 +158,12 @@ class FeedControllerTest {
 	// void t3() throws Exception {
 	// 	FeedRequest notEnoughFeedRequest = FeedRequest.builder()
 	// 		.maxSize(REQUEST_FEED_MAX_SIZE)
-	// 		.lastPostId(null)
+	// 		.lastPostId(0L)
 	// 		.timestamp(LocalDateTime.now().minusDays(1))
-	// 		.username("user1")
 	// 		.build();
 	//
 	// 	ResultActions resultActions = mockMvc.perform(get("/api-v1/feed")
+	// 			.header("Authorization", "Bearer " + accessToken)
 	// 			.contentType(MediaType.APPLICATION_JSON)
 	// 			.accept(MediaType.APPLICATION_JSON)
 	// 			.content(objectMapper.writeValueAsString(notEnoughFeedRequest)))
@@ -129,12 +179,12 @@ class FeedControllerTest {
 	// void t4() throws Exception {
 	// 	FeedRequest firstRequest = FeedRequest.builder()
 	// 		.maxSize(2)
-	// 		.lastPostId(null)
+	// 		.lastPostId(0L)
 	// 		.timestamp(LocalDateTime.now())
-	// 		.username("user1")
 	// 		.build();
 	//
 	// 	ResultActions resultActions = mockMvc.perform(get("/api-v1/feed")
+	// 			.header("Authorization", "Bearer " + accessToken)
 	// 			.contentType(MediaType.APPLICATION_JSON)
 	// 			.accept(MediaType.APPLICATION_JSON)
 	// 			.content(objectMapper.writeValueAsString(firstRequest)))
@@ -158,10 +208,10 @@ class FeedControllerTest {
 	// 		.maxSize(2)
 	// 		.lastPostId(lastPostId1.longValue())
 	// 		.timestamp(lastTime1)
-	// 		.username("user1")
 	// 		.build();
 	//
 	// 	resultActions = mockMvc.perform(get("/api-v1/feed")
+	// 			.header("Authorization", "Bearer " + accessToken)
 	// 			.contentType(MediaType.APPLICATION_JSON)
 	// 			.accept(MediaType.APPLICATION_JSON)
 	// 			.content(objectMapper.writeValueAsString(secondRequest)))
@@ -175,7 +225,6 @@ class FeedControllerTest {
 	// 		.getContentAsString();
 	//
 	// 	List<Map<String, Object>> feedList2 = JsonPath.read(responseContent, "$.data.feedList");
-	// 	Number lastPostId2 = JsonPath.read(responseContent, "$.data.lastPostId");
 	// 	String lastTimestamp2 = JsonPath.read(responseContent, "$.data.lastTimestamp");
 	// 	LocalDateTime lastTime2 = LocalDateTime.parse(lastTimestamp2);
 	//

@@ -14,15 +14,7 @@ import lombok.NoArgsConstructor;
  * @since 2025-02-03
  */
 @Builder
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public class PostDeleteRequest {
-
-	@NotNull
-	private Long postId;
-
-	@NotNull
-	private Long memberId;
-
-}
+public record PostDeleteRequest (
+	@NotNull(message = "게시물 ID는 필수 입력 값입니다.") Long postId,
+	@NotNull(message = "회원 ID는 필수 입력 값입니다.") Long memberId
+) { }

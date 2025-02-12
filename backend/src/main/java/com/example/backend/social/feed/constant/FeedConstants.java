@@ -18,13 +18,13 @@ public class FeedConstants {
 	 *  FOLLOWING_FEED_RATE
 	 *  요청 게시물에서 팔로잉 게시물의 비율
 	 */
-	public static final float FOLLOWING_FEED_RATE = 0.5f;
+	public static final double FOLLOWING_FEED_RATE = 0.5;
 
 	/**
 	 *  RECOMMEND_FEED_RATE
 	 *  요청 게시물에서 추천 게시물의 비율
 	 */
-	public static final float RECOMMEND_FEED_RATE = 1.0f - FOLLOWING_FEED_RATE;
+	public static final double RECOMMEND_FEED_RATE = 1.0 - FOLLOWING_FEED_RATE;
 
 	/**
 	 * RECOMMEND_SEARCH_DATE_RANGE

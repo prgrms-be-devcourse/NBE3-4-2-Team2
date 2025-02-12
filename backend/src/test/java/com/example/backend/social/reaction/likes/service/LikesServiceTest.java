@@ -2,21 +2,27 @@ package com.example.backend.social.reaction.likes.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.UUID;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.example.backend.entity.LikesRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+
+import com.example.backend.global.event.LikeEventListener;
+import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
 import com.example.backend.social.reaction.likes.exception.LikesErrorCode;
@@ -46,7 +52,12 @@ public class LikesServiceTest {
 	private PostRepository postRepository;
 
 	private MemberEntity testMember;
+	private MemberEntity anotherMember;
 	private PostEntity testPost;
+	@Autowired
+	private MemberService memberService;
+	@MockitoBean
+	LikeEventListener likeEventListener;
 
 	@BeforeEach
 	public void setup() {
@@ -61,18 +72,30 @@ public class LikesServiceTest {
 		entityManager.createNativeQuery("ALTER TABLE likes ALTER COLUMN id RESTART WITH 1").executeUpdate();
 
 		// 테스트용 멤버 추가
-		MemberEntity member = MemberEntity.builder()
-			.username("testMember")
-			.email("test@gmail.com")
-			.password("testPassword")
-			.refreshToken(UUID.randomUUID().toString())
-			.build();
-		testMember = memberRepository.save(member);
+		// MemberEntity member = MemberEntity.builder()
+		// 	.username("testMember")
+		// 	.email("test@gmail.com")
+		// 	.password("testPassword")
+		// 	.refreshToken(UUID.randomUUID().toString())
+		// 	.build();
+		// testMember = memberRepository.save(member);
+		testMember = memberService.join("testMember","testPassword","test@gmail.com");
+
+
+		// MemberEntity anotherMember = MemberEntity.builder()
+		// 	.username("anotherMember")
+		// 	.email("another@gmail.com")
+		// 	.password("testPassword")
+		// 	.refreshToken(UUID.randomUUID().toString())
+		// 	.build();
+		// anotherMember = memberRepository.save(anotherMember);
+		anotherMember = memberService.join("anotherMember","testPassword","another@gmail.com");
+
 
 		// 테스트용 게시물 추가
 		PostEntity post = PostEntity.builder()
 			.content("testContent")
-			.member(member)
+			.member(anotherMember)
 			.build();
 		testPost = postRepository.save(post);
 	}
@@ -80,17 +103,25 @@ public class LikesServiceTest {
 	@Test
 	@DisplayName("1. 좋아요 적용 테스트")
 	public void t001() {
-		// Given
+		// Given First
 		Long memberId = testMember.getId();
 		Long postId = testPost.getId();
 
-		// When
+		// When First
 		CreateLikeResponse createResponse = likesService.createLike(memberId, postId);
 
-		// Then
+		// Then First
 		assertNotNull(createResponse);
-		assertEquals(memberId, createResponse.getMemberId());
-		assertEquals(postId, createResponse.getPostId());
+		assertEquals(memberId, createResponse.memberId());
+		assertEquals(postId, createResponse.postId());
+
+		// When Second
+		Optional<PostEntity> post = postRepository.findById(postId);
+
+		// Then Second
+		assertTrue(post.isPresent());
+		assertEquals(1, post.get().getLikeCount());
+
 	}
 
 	@Test
@@ -107,25 +138,32 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long secondMemberId = createResponse.getMemberId();
-		Long secondPostId = createResponse.getPostId();
+		Long secondMemberId = createResponse.memberId();
+		Long secondPostId = createResponse.postId();
 
 		// When Second
 		DeleteLikeResponse deleteResponse = likesService.deleteLike(
-			createResponse.getId(), secondMemberId, secondPostId
+			createResponse.likeId(), secondMemberId, secondPostId
 		);
 
 		// Then Second
 		assertNotNull(deleteResponse);
-		assertEquals(firstMemberId, deleteResponse.getMemberId());
-		assertEquals(firstPostId, deleteResponse.getPostId());
+		assertEquals(firstMemberId, deleteResponse.memberId());
+		assertEquals(firstPostId, deleteResponse.postId());
+
+		// When Third
+		Optional<PostEntity> post = postRepository.findById(secondPostId);
+
+		// Then Third
+		assertTrue(post.isPresent());
+		assertEquals(0, post.get().getLikeCount());
 	}
 
 	@Test
 	@DisplayName("3. 존재하지 않는 멤버 좋아요 요청 테스트")
 	public void t003() {
 		// Given
-		Long nonExistMemberId = 99L;
+		Long nonExistMemberId = 999L;
 		Long postId = testPost.getId();
 
 		// When & Then
@@ -139,7 +177,7 @@ public class LikesServiceTest {
 	public void t004() {
 		// Given
 		Long memberId = testMember.getId();
-		Long nonExistPostId = 99L;
+		Long nonExistPostId = 999L;
 
 		// When & Then
 		assertThrows(LikesException.class, () -> {
@@ -161,20 +199,27 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long secondMemberId = createResponse.getMemberId();
-		Long secondPostId = createResponse.getPostId();
+		Long secondMemberId = createResponse.memberId();
+		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
 		assertThrows(LikesException.class, () -> {
 			likesService.createLike(secondMemberId, secondPostId);
 		}, LikesErrorCode.ALREADY_LIKED.getMessage());
+
+		// When Third
+		Optional<PostEntity> post = postRepository.findById(secondPostId);
+
+		// Then Third
+		assertTrue(post.isPresent());
+		assertEquals(1, post.get().getLikeCount());
 	}
 
 	@Test
 	@DisplayName("6. 적용되지 않은 좋아요 취소 테스트")
 	public void t006() {
 		// Given
-		Long nonExistLikeId = 1L;
+		Long nonExistLikeId = 999L;
 		Long memberId = testMember.getId();
 		Long postId = testPost.getId();
 
@@ -198,9 +243,9 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long likeId = createResponse.getId();
-		Long anotherMemberId = 5L;
-		Long secondPostId = createResponse.getPostId();
+		Long likeId = createResponse.likeId();
+		Long anotherMemberId = 999L;
+		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
 		assertThrows(LikesException.class, () -> {
@@ -222,13 +267,32 @@ public class LikesServiceTest {
 		assertNotNull(createResponse);
 
 		// Given Second
-		Long likeId = createResponse.getId();
-		Long memberId = createResponse.getMemberId();
-		Long anotherPostId = 5L;
+		Long likeId = createResponse.likeId();
+		Long memberId = createResponse.memberId();
+		Long anotherPostId = 999L;
 
 		// When & Then Second
 		assertThrows(LikesException.class, () -> {
 			likesService.deleteLike(likeId, memberId, anotherPostId);
 		}, LikesErrorCode.MEMBER_MISMATCH.getMessage());
+	}
+
+	@Test
+	@DisplayName("9. 자신의 게시물에 좋아요를 요청하는 테스트")
+	public void t009() {
+		// Given First
+		PostEntity myPost = PostEntity.builder()
+			.content("testContent")
+			.member(testMember)
+			.build();
+		postRepository.save(myPost);
+
+		Long memberId = testMember.getId();
+		Long postId = 2L; // myPost 의 memberId
+
+		// When & Then
+		assertThrows(LikesException.class, () -> {
+			likesService.createLike(memberId, postId);
+		}, LikesErrorCode.CANNOT_LIKE_SELF.getMessage());
 	}
 }
