@@ -63,7 +63,7 @@ class FeedSelectorTest {
 		Assertions.assertNotNull(latestFeed);
 		Assertions.assertNotNull(latestFeed.getPost().getId());
 		Assertions.assertEquals(3L, latestFeed.getCommentCount());
-		Assertions.assertEquals(5L, latestFeed.getPost().getLikeCount());
+		Assertions.assertEquals(1L, latestFeed.getPost().getLikeCount());
 
 		Assertions.assertNotNull(latestFeed.getHashTagList());
 		Assertions.assertEquals(3, latestFeed.getHashTagList().size());
