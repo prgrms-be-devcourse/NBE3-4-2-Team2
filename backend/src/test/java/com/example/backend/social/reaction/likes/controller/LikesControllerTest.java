@@ -27,6 +27,7 @@ import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
 import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.identity.security.jwt.AccessTokenService;
+import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.identity.security.user.SecurityUser;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeRequest;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -95,7 +96,8 @@ public class LikesControllerTest {
 		testPost = postRepository.save(testPost);
 
 		// SecurityContext 설정
-		SecurityUser securityUser = new SecurityUser(testMember.getId(), testMember.getUsername(), testMember.getPassword(), new ArrayList<>());
+		// SecurityUser securityUser = new SecurityUser(testMember.getId(), testMember.getUsername(), testMember.getPassword(), new ArrayList<>());
+		CustomUser securityUser = new CustomUser(testMember, null);
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
@@ -110,7 +112,7 @@ public class LikesControllerTest {
 			.accept(MediaType.APPLICATION_JSON));
 
 		// Then
-		resultActions.andExpect(status().isOk())
+		resultActions.andExpect(status().isOk()) // SSE 세션이 추가되지 않습니다.
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.message").value("좋아요가 성공적으로 적용되었습니다."))
 			.andExpect(jsonPath("$.data").exists());

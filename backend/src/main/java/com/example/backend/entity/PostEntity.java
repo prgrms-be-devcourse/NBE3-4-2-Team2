@@ -80,17 +80,7 @@ public class PostEntity extends BaseEntity {
 	 */
 	public void deleteContent() {
 		this.isDeleted = true;
-		this.images.clear(); // 관련 이미지 수동 삭제
-	}
-
-	/**
-	 * 이미지 삭제 메소드
-	 * 게시물에서 개별 이미지 삭제 로직
-	 *
-	 * @param image 삭제할 개별 이미지
-	 */
-	public void removeImage(ImageEntity image) {
-		this.images.remove(image);
+		// this.images.clear(); // 관련 이미지 수동 삭제
 	}
 
 	/**
@@ -101,6 +91,16 @@ public class PostEntity extends BaseEntity {
 	 */
 	public void addImage(ImageEntity image) {
 		this.images.add(image);
+	}
+
+	/**
+	 * 이미지 삭제 메소드
+	 * 게시물에서 개별 이미지 삭제 로직
+	 *
+	 * @param image 삭제할 개별 이미지
+	 */
+	public void removeImage(ImageEntity image) {
+		this.images.remove(image);
 	}
 
 }

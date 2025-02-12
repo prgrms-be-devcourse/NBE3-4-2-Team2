@@ -58,7 +58,7 @@ public class FeedSelector {
 					postEntity,
 					commentCountByPost()))
 			.from(postEntity)
-			.where(postEntity.id.eq(postId))
+			.where(postEntity.id.eq(postId).and(postEntity.isDeleted.isFalse()))
 			.fetch();
 
 		if (feedList.size() != 1) {
@@ -92,7 +92,8 @@ public class FeedSelector {
 			.on(membersFollowingPost(member))
 			.where(
 				findPostsBeforeId(lastPostId)
-					.and(isFollowingOrOwnPost(member)))
+					.and(isFollowingOrOwnPost(member))
+					.and(postEntity.isDeleted.isFalse()))
 			.groupBy(postEntity)
 			.orderBy(postEntity.createDate.desc())
 			.limit(limit)
@@ -123,7 +124,8 @@ public class FeedSelector {
 			.fetchJoin()
 			.where(
 				findByDateBetweenExclusiveStart(startTime, lastTime)
-					.and(isRecommendableToMember(member)))
+					.and(isRecommendableToMember(member))
+					.and(postEntity.isDeleted.isFalse()))
 			.orderBy(calculatePostPopularityScore())
 			.limit(limit * RECOMMEND_RANDOM_POOL_MULTIPLIER)
 			.fetch();
@@ -150,7 +152,7 @@ public class FeedSelector {
 			.from(postEntity)
 			.join(postEntity.member)
 			.fetchJoin()
-			.where(findMemberPostAndPaging(member, lastPostId))
+			.where(findMemberPostAndPaging(member, lastPostId).and(postEntity.isDeleted.isFalse()))
 			.orderBy(postEntity.createDate.desc())
 			.limit(limit)
 			.fetch();

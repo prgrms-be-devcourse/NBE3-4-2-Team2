@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.identity.security.jwt.AccessTokenService;
-import com.example.backend.identity.security.user.SecurityUser;
+import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.social.feed.dto.FeedRequest;
 import com.example.backend.social.feed.implement.FeedTestHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,11 +66,14 @@ class FeedControllerTest {
 
 		accessToken = accessTokenService.genAccessToken(testMember);
 
-		SecurityUser securityUser = new SecurityUser(
-			testMember.getId(),
-			testMember.getUsername(),
-			testMember.getPassword(),
-			new ArrayList<>());
+		CustomUser securityUser = new CustomUser(
+			testMember,
+			null
+			// testMember.getId(),
+			// testMember.getUsername(),
+			// testMember.getPassword(),
+			// new ArrayList<>()
+		);
 
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 			securityUser,
