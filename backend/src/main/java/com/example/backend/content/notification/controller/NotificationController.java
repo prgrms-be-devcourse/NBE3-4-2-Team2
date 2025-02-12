@@ -2,6 +2,7 @@ package com.example.backend.content.notification.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,6 +18,7 @@ import com.example.backend.content.notification.sse.SseConnection;
 import com.example.backend.content.notification.sse.SseConnectionPool;
 import com.example.backend.content.notification.sse.SseEmitterFactory;
 import com.example.backend.global.rs.RsData;
+import com.example.backend.identity.security.user.CustomUser;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,10 +36,9 @@ public class NotificationController {
 	private final SseEmitterFactory sseEmitterFactory;
 
 	@GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter subscribe() {
-		// 시큐리티 인증 작업 전까지 임시로 진행
-		String uniqueKey = "userId1";
-		SseConnection connection = SseConnection.connect(uniqueKey, sseConnectionPool, sseEmitterFactory);
+	public SseEmitter subscribe(@AuthenticationPrincipal CustomUser customUser) {
+		SseConnection connection = SseConnection.connect(
+			String.valueOf(customUser.getId()), sseConnectionPool, sseEmitterFactory);
 
 		return connection.getSseEmitter();
 	}
@@ -45,11 +46,11 @@ public class NotificationController {
 	@PutMapping("/{notificationId}/read")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<Void> markAsRead(
+		@AuthenticationPrincipal CustomUser customUser,
 		@PathVariable Long notificationId
 	) {
-		// 시큐리티 인증 작업 전까지 임시로 진행
-		Long userId = 777L;
-		notificationService.markRead(notificationId, userId);
+
+		notificationService.markRead(notificationId, customUser.getId());
 		return RsData.success(null);
 	}
 
@@ -61,13 +62,11 @@ public class NotificationController {
 	@GetMapping("/list")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<NotificationPageResponse> list(
-		@RequestParam(name = "page", defaultValue = "0") int page
+		@RequestParam(name = "page", defaultValue = "0") int page,
+		@AuthenticationPrincipal CustomUser customUser
 	) {
-		// 시큐리티 인증 작업 전까지 임시로 진행
-		Long memberId = 778L;
-
 		NotificationPageResponse notificationPage =
-			notificationService.getNotificationPage(page, memberId);
+			notificationService.getNotificationPage(page, customUser.getId());
 
 		return RsData.success(notificationPage);
 	}

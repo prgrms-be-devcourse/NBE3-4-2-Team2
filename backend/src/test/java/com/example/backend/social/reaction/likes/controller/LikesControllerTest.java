@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -25,6 +26,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.global.event.LikeEventListener;
 import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.identity.security.jwt.AccessTokenService;
 import com.example.backend.identity.security.user.CustomUser;
@@ -65,6 +67,8 @@ public class LikesControllerTest {
 
 	@Autowired
 	private LikesRepository likesRepository;
+	@MockitoBean
+	private LikeEventListener likeEventListener;
 
 	private String accessToken;
 	private MemberEntity testMember;
