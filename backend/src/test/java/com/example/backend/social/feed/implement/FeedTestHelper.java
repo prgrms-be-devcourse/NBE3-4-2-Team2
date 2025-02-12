@@ -24,6 +24,7 @@ import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostHashtagEntity;
 import com.example.backend.entity.PostHashtagRepository;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.social.reaction.likes.service.LikesService;
 
 import jakarta.persistence.EntityManager;
@@ -60,6 +61,8 @@ public class FeedTestHelper {
 
 	@Autowired
 	EntityManager entityManager;
+	@Autowired
+	private MemberService memberService;
 
 	@Transactional
 	public void setData() {
@@ -69,12 +72,7 @@ public class FeedTestHelper {
 		// 1. 멤버 생성 (20명)
 		List<MemberEntity> members = new ArrayList<>();
 		for (int i = 1; i <= 20; i++) {
-			MemberEntity member = memberRepository.save(MemberEntity.builder()
-				.username("user" + i)
-				.email("user" + i + "@test.com")
-				.password("password" + i)
-				.refreshToken("refresh" + i)
-				.build());
+			MemberEntity member = memberService.join("user" + i, "password" + i, "user" + i + "@test.com");
 			members.add(member);
 		}
 		memberRepository.flush();
