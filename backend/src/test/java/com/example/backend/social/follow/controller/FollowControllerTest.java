@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -23,6 +24,7 @@ import com.example.backend.entity.FollowEntity;
 import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
+import com.example.backend.global.event.FollowEventListener;
 import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.identity.security.jwt.AccessTokenService;
 import com.example.backend.identity.security.user.SecurityUser;
@@ -59,6 +61,8 @@ public class FollowControllerTest {
 
 	@Autowired
 	private FollowRepository followRepository;
+	@MockitoBean
+	FollowEventListener followEventListener;
 
 	private String senderToken;
 	private MemberEntity sender;

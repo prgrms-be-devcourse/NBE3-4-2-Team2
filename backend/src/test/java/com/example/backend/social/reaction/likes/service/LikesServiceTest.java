@@ -7,16 +7,21 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.example.backend.entity.LikesRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+
+import com.example.backend.global.event.LikeEventListener;
 import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
@@ -51,6 +56,8 @@ public class LikesServiceTest {
 	private PostEntity testPost;
 	@Autowired
 	private MemberService memberService;
+	@MockitoBean
+	LikeEventListener likeEventListener;
 
 	@BeforeEach
 	public void setup() {
@@ -114,6 +121,7 @@ public class LikesServiceTest {
 		// Then Second
 		assertTrue(post.isPresent());
 		assertEquals(1, post.get().getLikeCount());
+
 	}
 
 	@Test

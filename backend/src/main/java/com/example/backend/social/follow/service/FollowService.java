@@ -1,12 +1,15 @@
 package com.example.backend.social.follow.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.entity.FollowEntity;
 import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
+import com.example.backend.global.event.FollowEvent;
+import com.example.backend.global.event.LikeEvent;
 import com.example.backend.social.follow.converter.FollowConverter;
 import com.example.backend.social.follow.dto.CreateFollowResponse;
 import com.example.backend.social.follow.dto.DeleteFollowResponse;
@@ -26,11 +29,16 @@ import jakarta.transaction.Transactional;
 public class FollowService {
 	private final FollowRepository followRepository;
 	private final MemberRepository memberRepository;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
-	public FollowService(FollowRepository followRepository, MemberRepository memberRepository) {
+	public FollowService(
+		FollowRepository followRepository, MemberRepository memberRepository,
+		ApplicationEventPublisher applicationEventPublisher
+	) {
 		this.followRepository = followRepository;
 		this.memberRepository = memberRepository;
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	/**
@@ -63,6 +71,10 @@ public class FollowService {
 		memberRepository.incrementFollowerCount(senderId);
 		memberRepository.incrementFolloweeCount(receiverId);
 		followRepository.save(follow);
+
+		// 이벤트 발생
+		applicationEventPublisher.publishEvent(
+			FollowEvent.create(sender.getUsername(), receiverId, senderId));
 
 		return FollowConverter.toCreateResponse(follow);
 	}
