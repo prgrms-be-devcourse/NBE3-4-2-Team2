@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -13,14 +14,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "likes")
 public class LikesEntity {
 	@Id
@@ -30,32 +29,52 @@ public class LikesEntity {
 	@CreatedDate
 	private LocalDateTime createDate;
 
-	@JoinColumn(nullable = false, name = "post_id")
-	@ManyToOne(fetch = FetchType.LAZY)
-	private PostEntity post;
+	@Column(name = "is_active", nullable = false)
+	private boolean isActive;
+
+	@Column(name = "updated_date")
+	private LocalDateTime updatedDate;
+
+	@Column(name = "resource_id", nullable = false)
+	private Long resourceId;
+
+	@Column(name = "resource_type", nullable = false)
+	private String resourceType; // "POST", "COMMENT", "REPLY"
 
 	@JoinColumn(nullable = false, name = "member_id")
 	@ManyToOne(fetch = FetchType.LAZY)
 	private MemberEntity member;
 
-	public LikesEntity(
-		MemberEntity member, PostEntity post
-	) {
+	// 게시물 좋아요용 생성자
+	public LikesEntity(MemberEntity member, Long resourceId, String resourceType, boolean isActive) {
 		this.member = member;
-		this.post = post;
+		this.resourceId = resourceId;
+		this.resourceType = resourceType;
+		this.isActive = isActive;
 		this.createDate = LocalDateTime.now();
+		this.updatedDate = LocalDateTime.now();
 	}
 
 	// 정적 팩토리 메서드
-	public static LikesEntity create(MemberEntity member, PostEntity post) {
-		return new LikesEntity(member, post);
+	public static LikesEntity create(MemberEntity member, Long resourceId, String resourceType) {
+		return new LikesEntity(member, resourceId, resourceType, true);
+	}
+
+	// 좋아요 상태 업데이트
+	public void updateLikeStatus(boolean isActive) {
+		this.isActive = isActive;
+		this.updatedDate = LocalDateTime.now();
 	}
 
 	public Long getMemberId() {
 		return member.getId();
 	}
 
-	public Long getPostId() {
-		return post.getId();
+	public Long getResourceId() {
+		return resourceId;
+	}
+
+	public String getResourceType() {
+		return resourceType;
 	}
 }
