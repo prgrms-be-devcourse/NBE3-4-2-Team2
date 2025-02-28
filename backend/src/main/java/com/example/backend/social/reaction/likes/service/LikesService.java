@@ -12,6 +12,8 @@ import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
 import com.example.backend.global.event.LikeEvent;
+import com.example.backend.social.exception.SocialErrorCode;
+import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.reaction.likes.converter.LikesConverter;
 import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
@@ -52,7 +54,7 @@ public class LikesService {
 	public CreateLikeResponse createLike(Long memberId, Long postId) {
 		// 1. 멤버가 존재하는지 검증하고 엔티티 가져오기
 		MemberEntity member = memberRepository.findById(memberId)
-			.orElseThrow(() -> new LikesException(LikesErrorCode.MEMBER_NOT_FOUND));
+			.orElseThrow(() -> new SocialException(SocialErrorCode.MEMBER_NOT_FOUND));
 
 		// 2. 게시물이 존재하는지 검증하고 엔티티 가져오기
 		PostEntity post = postRepository.findById(postId)

@@ -10,11 +10,11 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.social.exception.SocialErrorCode;
+import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.reaction.bookmark.converter.BookmarkConverter;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
-import com.example.backend.social.reaction.bookmark.exception.BookmarkErrorCode;
-import com.example.backend.social.reaction.bookmark.exception.BookmarkException;
 
 /**
  * 북마크 서비스
@@ -47,15 +47,15 @@ public class BookmarkService {
 	public CreateBookmarkResponse createBookmark(Long memberId, Long postId) {
 		// 1. 멤버가 존재하는지 검증하고 엔티티 가져오기
 		MemberEntity member = memberRepository.findById(memberId)
-			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.MEMBER_NOT_FOUND));
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "로그인 정보 확인에 실패했습니다."));
 
 		// 2. 게시물이 존재하는지 검증하고 엔티티 가져오기
 		PostEntity post = postRepository.findById(postId)
-			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.POST_NOT_FOUND));
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "게시물 정보를 확인할 수 없습니다."));
 
 		// 3. 이미 등록된 북마크인지 검증
 		if (bookmarkRepository.existsByMemberIdAndPostId(memberId, postId)) {
-			throw new BookmarkException(BookmarkErrorCode.ALREADY_BOOKMARKED);
+			throw new SocialException(SocialErrorCode.ALREADY_EXISTS);
 		}
 
 		// 4. id 및 생성 날짜를 포함하기 위해 build
@@ -78,16 +78,16 @@ public class BookmarkService {
 	public DeleteBookmarkResponse deleteBookmark(Long id, Long memberId, Long postId) {
 		// 1. 북마크가 실제로 존재하는지 검증
 		BookmarkEntity bookmark = bookmarkRepository.findById(id)
-			.orElseThrow(() -> new BookmarkException(BookmarkErrorCode.BOOKMARK_NOT_FOUND));
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "북마크가 존재하지 않습니다."));
 
 		// 2. 북마크의 멤버 ID와 요청한 멤버 ID가 동일한지 검증
 		if (!bookmark.getMemberId().equals(memberId)) {
-			throw new BookmarkException(BookmarkErrorCode.MEMBER_MISMATCH);
+			throw new SocialException(SocialErrorCode.ACTION_NOT_ALLOWED);
 		}
 
 		// 3. 북마크의 게시물 ID와 요청한 게시물 ID가 동일한지 검증
 		if (!bookmark.getPostId().equals(postId)) {
-			throw new BookmarkException(BookmarkErrorCode.POST_MISMATCH);
+			throw new SocialException(SocialErrorCode.DATA_MISMATCH);
 		}
 
 		// 4. 삭제 로직

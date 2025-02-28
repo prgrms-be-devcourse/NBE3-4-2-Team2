@@ -26,7 +26,6 @@ import com.example.backend.global.rs.ErrorRs;
 import com.example.backend.global.rs.RsData;
 import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.feed.exception.FeedException;
-import com.example.backend.social.reaction.likes.exception.LikesException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
@@ -117,7 +116,7 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(SocialException.class)
-	public ResponseEntity<RsData<?>> handleLikesException(LikesException ex) {
+	public ResponseEntity<RsData<?>> handleSocialException(SocialException ex) {
 		RsData<?> response = RsData.error(null, ex.getMessage());
 		return ResponseEntity
 			.status(ex.getStatus())

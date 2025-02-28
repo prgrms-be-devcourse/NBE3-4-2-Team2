@@ -9,12 +9,11 @@ import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.global.event.FollowEvent;
-import com.example.backend.global.event.LikeEvent;
+import com.example.backend.social.exception.SocialErrorCode;
+import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.follow.converter.FollowConverter;
 import com.example.backend.social.follow.dto.CreateFollowResponse;
 import com.example.backend.social.follow.dto.DeleteFollowResponse;
-import com.example.backend.social.follow.exception.FollowErrorCode;
-import com.example.backend.social.follow.exception.FollowException;
 
 import jakarta.transaction.Transactional;
 
@@ -53,15 +52,15 @@ public class FollowService {
 	public CreateFollowResponse createFollow(Long senderId, Long receiverId) {
 		// 1. 팔로우 요청측 검증후 엔티티 가져오기
 		MemberEntity sender = memberRepository.findById(senderId)
-			.orElseThrow(() -> new FollowException(FollowErrorCode.MEMBER_NOT_FOUND));
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "요청측 클라이언트 검증에 실패했습니다."));
 
 		// 2. 팔로위측 검증후 엔티티 가져오기
 		MemberEntity receiver = memberRepository.findById(receiverId)
-			.orElseThrow(() -> new FollowException(FollowErrorCode.MEMBER_NOT_FOUND));
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 클라이언트 검증에 실패했습니다."));
 
 		// 3. 이미 팔로우가 되어있는지 검증
 		if (followRepository.existsBySenderIdAndReceiverId(senderId, receiverId)) {
-			throw new FollowException(FollowErrorCode.ALREADY_FOLLOWED);
+			throw new SocialException(SocialErrorCode.ALREADY_EXISTS);
 		}
 
 		// 4. id 및 요청 날짜 포함을 위해 엔티티 생성
@@ -91,19 +90,14 @@ public class FollowService {
 	public DeleteFollowResponse deleteFollow(Long id, Long senderId, Long receiverId) {
 		// 1. 팔로우 관계가 적용되어 있는지 검증하고 엔티티 가져오기
 		FollowEntity follow = followRepository.findById(id)
-			.orElseThrow(() -> new FollowException(FollowErrorCode.FOLLOW_NOT_FOUND));
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "팔로우 확인에 실패했습니다."));
 
-		// 2. 팔로우 취소를 요청한 멤버 ID와 senderId가 일치한지 검증
-		if (!follow.getSenderId().equals(senderId)) {
-			throw new FollowException(FollowErrorCode.SENDER_MISMATCH);
+		// 2. sender, receiver 검증
+		if (!follow.getSenderId().equals(senderId) && !follow.getReceiverId().equals(receiverId)) {
+			throw new SocialException(SocialErrorCode.DATA_MISMATCH);
 		}
 
-		// 3. 팔로우 취소 요청의 상대 멤버 ID와 receiverId가 일치한지 검증
-		if (!follow.getReceiverId().equals(receiverId)) {
-			throw new FollowException(FollowErrorCode.RECEIVER_MISMATCH);
-		}
-
-		// 4. 팔로우 취소 및 팔로워, 팔로위 인원수 감소 반영
+		// 3. 팔로우 취소 및 팔로워, 팔로위 인원수 감소 반영
 		memberRepository.decrementFollowerCount(senderId);
 		memberRepository.decrementFolloweeCount(receiverId);
 		followRepository.delete(follow);

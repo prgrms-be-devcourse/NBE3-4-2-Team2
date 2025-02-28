@@ -10,10 +10,8 @@ import lombok.Getter;
 public enum SocialErrorCode {
 
 	INVALID_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
-	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
-	POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시물을 찾을 수 없습니다."),
 	ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 처리된 요청입니다."),
-	NOT_FOUND(HttpStatus.NOT_FOUND, "정보를 찾을 수 없습니다."),
+	NOT_FOUND(HttpStatus.NOT_FOUND, "해당 정보 찾기에 실패했습니다."),
 	ACTION_NOT_ALLOWED(HttpStatus.FORBIDDEN, "해당 작업을 수행할 권한이 없습니다."),
 	CANNOT_PERFORM_ON_SELF(HttpStatus.BAD_REQUEST, "자기 자신에게 해당 작업을 수행할 수 없습니다."),
 	DATA_MISMATCH(HttpStatus.CONFLICT, "요청한 정보가 일치하지 않습니다.");

@@ -18,3 +18,4 @@ public class SocialException extends RuntimeException {
 	public HttpStatus getStatus() {
 		return errorCode.getHttpStatus();
 	}
+}
