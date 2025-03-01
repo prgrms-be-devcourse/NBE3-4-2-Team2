@@ -11,13 +11,11 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend.entity.CommentEntity;
 import com.example.backend.entity.CommentRepository;
 import com.example.backend.entity.LikeEntity;
 import com.example.backend.entity.LikeRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
-import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
 import com.example.backend.global.event.LikeEvent;
 import com.example.backend.global.util.RedisKeyUtil;
@@ -40,6 +38,7 @@ public class LikeService {
 	private final MemberRepository memberRepository;
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
+	private final OwnerChecker ownerChecker;
 	private final RedisTemplate<String, Object> redisTemplate;
 	private final StringRedisTemplate stringRedisTemplate;
 	private final ApplicationEventPublisher applicationEventPublisher;
@@ -51,6 +50,7 @@ public class LikeService {
 		PostRepository postRepository,
 		CommentRepository commentRepository,
 		LikeRepository likeRepository,
+		OwnerChecker ownerChecker,
 		RedisTemplate<String, Object> redisTemplate,
 		StringRedisTemplate stringRedisTemplate,
 		ApplicationEventPublisher applicationEventPublisher) {
@@ -58,6 +58,7 @@ public class LikeService {
 		this.postRepository = postRepository;
 		this.commentRepository = commentRepository;
 		this.likeRepository = likeRepository;
+		this.ownerChecker = ownerChecker;
 		this.redisTemplate = redisTemplate;
 		this.stringRedisTemplate = stringRedisTemplate;
 		this.applicationEventPublisher = applicationEventPublisher;
@@ -86,16 +87,7 @@ public class LikeService {
 		};
 
 		// 3. 본인의 컨텐츠인지 확인
-		boolean isOwner;
-		if (resource instanceof PostEntity) {
-			isOwner = ((PostEntity) resource).getMember().equals(member);
-		} else if (resource instanceof CommentEntity) {
-			isOwner = ((CommentEntity) resource).getMember().equals(member);
-		} else {
-			throw new IllegalArgumentException("알 수 없는 리소스 타입입니다.");
-		}
-
-		if (isOwner) {
+		if (ownerChecker.isOwner(member, resource)) {
 			throw new SocialException(SocialErrorCode.CANNOT_PERFORM_ON_SELF, "자신의 컨텐츠에는 좋아요를 할 수 없습니다.");
 		}
 
@@ -155,9 +147,10 @@ public class LikeService {
 		scheduleSyncToDatabase(memberId, resourceId, upperResourceType, newLikedState, isNewLike);
 
 		// 9. 알림 이벤트 발행
-		Long ownerId = getOwnerIdFromResource(resource);
+		Long ownerId = ownerChecker.getOwnerIdFromResource(resource);
 		applicationEventPublisher.publishEvent(
-			LikeEvent.create(member.getUsername(), ownerId, resourceId, upperResourceType));
+			LikeEvent.create(member.getUsername(), ownerId, resourceId, upperResourceType)
+		);
 
 		// 10. 좋아요 수 조회
 		String countStr = stringRedisTemplate.opsForValue().get(countKey);
@@ -166,30 +159,10 @@ public class LikeService {
 			likeCount = Long.parseLong(countStr);
 		} else {
 			// Redis에 countKey가 없는 경우, 기본값 설정 또는 DB에서 조회
-			likeCount = 0L; // 필요에 따라 DB에서 실제 값을 가져올 수 있습니다.
+			likeCount = 0L;
 		}
 
 		return LikeConverter.toLikeResponse(likeInfo, likeCount);
-	}
-
-	// 리소스의 소유자인지 확인
-	private boolean isOwner(MemberEntity member, Object resource) {
-		if (resource instanceof PostEntity) {
-			return ((PostEntity) resource).getMember().getId().equals(member.getId());
-		} else if (resource instanceof CommentEntity) {
-			return ((CommentEntity) resource).getMember().getId().equals(member.getId());
-		}
-		return false;
-	}
-
-	// 리소스의 소유자 ID 가져오기
-	private Long getOwnerIdFromResource(Object resource) {
-		if (resource instanceof PostEntity) {
-			return ((PostEntity) resource).getMember().getId();
-		} else if (resource instanceof CommentEntity) {
-			return ((CommentEntity) resource).getMember().getId();
-		}
-		throw new IllegalArgumentException("지원하지 않는 리소스 타입입니다.");
 	}
 
 	// 비동기로 DB 업데이트 스케줄링 (구현 필요)
