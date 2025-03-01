@@ -1,4 +1,4 @@
-package com.example.backend.global.util;
+package com.example.backend.social.reaction.like.util;
 
 public class RedisKeyUtil {
 	private static final String LIKE_KEY_FORMAT = "like:%s:%d:%d";

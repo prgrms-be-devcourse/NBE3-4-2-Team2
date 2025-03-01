@@ -1,72 +1,47 @@
 package com.example.backend.social.reaction.like.service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend.entity.CommentRepository;
-import com.example.backend.entity.LikeEntity;
-import com.example.backend.entity.LikeRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
-import com.example.backend.entity.PostRepository;
-import com.example.backend.global.event.LikeEvent;
-import com.example.backend.global.util.RedisKeyUtil;
 import com.example.backend.social.exception.SocialErrorCode;
 import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.reaction.like.converter.LikeConverter;
 import com.example.backend.social.reaction.like.dto.LikeInfo;
 import com.example.backend.social.reaction.like.dto.LikeToggleResponse;
+import com.example.backend.social.reaction.like.scheduler.LikeSyncManager;
+import com.example.backend.social.reaction.like.util.RedisKeyUtil;
+import com.example.backend.social.reaction.like.util.component.LikeEventPublisher;
+import com.example.backend.social.reaction.like.util.component.OwnerChecker;
+import com.example.backend.social.reaction.like.util.component.RedisLikeService;
+import com.example.backend.social.reaction.like.util.component.ResourceResolver;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * 좋아요 서비스
  * 좋아요 서비스 관련 로직 구현
  *
  * @author Metronon
- * @since 2025-01-30
+ * @since 2025-03-01
  */
 @Service
+@RequiredArgsConstructor
 public class LikeService {
-	private final LikeRepository likeRepository;
 	private final MemberRepository memberRepository;
-	private final PostRepository postRepository;
-	private final CommentRepository commentRepository;
 	private final OwnerChecker ownerChecker;
-	private final RedisTemplate<String, Object> redisTemplate;
-	private final StringRedisTemplate stringRedisTemplate;
-	private final ApplicationEventPublisher applicationEventPublisher;
+	private final ResourceResolver resourceResolver;
+	private final RedisLikeService redisLikeService;
+	private final LikeEventPublisher likeEventPublisher;
+	private final LikeSyncManager likeSyncManager;
 
-	private static final Duration CACHE_TTL = Duration.ofDays(7);
-
-	@Autowired
-	public LikeService(MemberRepository memberRepository,
-		PostRepository postRepository,
-		CommentRepository commentRepository,
-		LikeRepository likeRepository,
-		OwnerChecker ownerChecker,
-		RedisTemplate<String, Object> redisTemplate,
-		StringRedisTemplate stringRedisTemplate,
-		ApplicationEventPublisher applicationEventPublisher) {
-		this.memberRepository = memberRepository;
-		this.postRepository = postRepository;
-		this.commentRepository = commentRepository;
-		this.likeRepository = likeRepository;
-		this.ownerChecker = ownerChecker;
-		this.redisTemplate = redisTemplate;
-		this.stringRedisTemplate = stringRedisTemplate;
-		this.applicationEventPublisher = applicationEventPublisher;
-	}
 	/**
 	 * 좋아요 토글 메서드
 	 * 리소스의 타입을 통해 대상 확인 및 좋아요 토글을 진행합니다.
-	 * 좋아요 취소의 경우 Redis에 데이터가 없는 경우에만 서버 통신을 진행합니다.
+	 * 좋아요 취소의 경우 Redis 에 데이터가 없는 경우에만 서버 통신을 진행합니다.
 	 *
 	 * @param memberId, resourceType, resourceId
 	 * @return LikeToggleResponse (DTO)
@@ -78,44 +53,23 @@ public class LikeService {
 			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "로그인 정보 확인에 실패했습니다."));
 
 		// 2. 타입을 통해 리소스 가져오기
-		Object resource = switch (resourceType) {
-			case "post" -> postRepository.findById(resourceId)
-				.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "게시물을 찾을 수 없습니다."));
-			case "comment", "reply" -> commentRepository.findById(resourceId)
-				.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "댓글을 찾을 수 없습니다."));
-			default -> throw new IllegalArgumentException("리소스 타입을 확인할 수 없습니다: " + resourceType);
-		};
+		Object resource = resourceResolver.resolveResource(resourceType, resourceId);
 
 		// 3. 본인의 컨텐츠인지 확인
 		if (ownerChecker.isOwner(member, resource)) {
 			throw new SocialException(SocialErrorCode.CANNOT_PERFORM_ON_SELF, "자신의 컨텐츠에는 좋아요를 할 수 없습니다.");
 		}
 
-		// 4. Redis 키 생성
-		String upperResourceType = resourceType.toUpperCase();
+		// 4. Redis 키 생성 및 리소스 타입 정규화
+		String upperResourceType = resourceResolver.normalizeResourceType(resourceType);
 		String likeKey = RedisKeyUtil.getLikeKey(upperResourceType, resourceId, memberId);
 		String countKey = RedisKeyUtil.getLikeCountKey(upperResourceType, resourceId);
 
 		// 5. 현재 좋아요 상태 확인
-		boolean currentlyLiked = false;
-		boolean isNewLike = false;
-
-		Boolean hasKey = redisTemplate.hasKey(likeKey);
-		if (Boolean.TRUE.equals(hasKey)) {
-			// Redis에 키가 있는 경우
-			LikeInfo likeInfo = (LikeInfo) redisTemplate.opsForValue().get(likeKey);
-			if (likeInfo != null) {
-				currentlyLiked = likeInfo.isActive();
-			}
-		} else {
-			// Redis에 없는 경우 DB 확인
-			Optional<LikeEntity> likeOp = likeRepository.findByMemberIdAndResourceIdAndResourceType(memberId, resourceId, upperResourceType);
-			if (likeOp.isPresent()) {
-				currentlyLiked = likeOp.get().isLiked();
-			} else {
-				isNewLike = true;
-			}
-		}
+		RedisLikeService.LikeStateInfo likeStateInfo = redisLikeService.getLikeState(
+			likeKey, memberId, resourceId, upperResourceType);
+		boolean currentlyLiked = likeStateInfo.isCurrentlyLiked();
+		boolean isNewLike = likeStateInfo.isNewLike();
 
 		// 6. 상태 토글
 		boolean newLikedState = !currentlyLiked;
@@ -130,43 +84,19 @@ public class LikeService {
 			newLikedState
 		);
 
-		// Redis에 저장
-		redisTemplate.opsForValue().set(likeKey, likeInfo);
-		redisTemplate.expire(likeKey, CACHE_TTL);
+		// Redis에 좋아요 정보 저장 및 카운트 업데이트
+		redisLikeService.updateLikeInfo(likeKey, likeInfo);
+		redisLikeService.updateLikeCount(countKey, newLikedState);
 
-		// 좋아요 수 업데이트
-		if (newLikedState) {
-			stringRedisTemplate.opsForValue().increment(countKey);
-		} else {
-			stringRedisTemplate.opsForValue().decrement(countKey);
-		}
-		// TTL 설정
-		stringRedisTemplate.expire(countKey, CACHE_TTL);
-
-		// 8. 비동기로 DB 업데이트 스케줄링 (여기서는 메서드만 호출)
-		scheduleSyncToDatabase(memberId, resourceId, upperResourceType, newLikedState, isNewLike);
+		// 8. 비동기로 DB 업데이트 스케줄링
+		likeSyncManager.scheduleSyncToDatabase(memberId, resourceId, upperResourceType, newLikedState, isNewLike);
 
 		// 9. 알림 이벤트 발행
-		Long ownerId = ownerChecker.getOwnerIdFromResource(resource);
-		applicationEventPublisher.publishEvent(
-			LikeEvent.create(member.getUsername(), ownerId, resourceId, upperResourceType)
-		);
+		likeEventPublisher.publishLikeEvent(member, resource, resourceId, upperResourceType);
 
 		// 10. 좋아요 수 조회
-		String countStr = stringRedisTemplate.opsForValue().get(countKey);
-		Long likeCount;
-		if (countStr != null) {
-			likeCount = Long.parseLong(countStr);
-		} else {
-			// Redis에 countKey가 없는 경우, 기본값 설정 또는 DB에서 조회
-			likeCount = 0L;
-		}
+		Long likeCount = redisLikeService.getLikeCount(countKey);
 
 		return LikeConverter.toLikeResponse(likeInfo, likeCount);
-	}
-
-	// 비동기로 DB 업데이트 스케줄링 (구현 필요)
-	private void scheduleSyncToDatabase(Long memberId, Long resourceId, String resourceType, boolean isActive, boolean isNewLike) {
-		// TODO: 실제 비동기 DB 업데이트 로직 구현
 	}
 }

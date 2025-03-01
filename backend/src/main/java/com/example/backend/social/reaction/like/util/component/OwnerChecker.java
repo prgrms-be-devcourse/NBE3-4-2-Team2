@@ -1,4 +1,4 @@
-package com.example.backend.social.reaction.like.service;
+package com.example.backend.social.reaction.like.util.component;
 
 import org.springframework.stereotype.Component;
 
