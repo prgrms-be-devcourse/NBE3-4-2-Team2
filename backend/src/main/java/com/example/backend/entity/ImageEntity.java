@@ -28,9 +28,13 @@ public class ImageEntity extends BaseEntity {
 	PostEntity post;
 
 	public static ImageEntity create(String imageUrl, PostEntity post) {
-		return ImageEntity.builder()
+		ImageEntity image = ImageEntity.builder()
 			.imageUrl(imageUrl)
 			.post(post)
 			.build();
+
+		post.addImage(image);
+
+		return image;
 	}
 }

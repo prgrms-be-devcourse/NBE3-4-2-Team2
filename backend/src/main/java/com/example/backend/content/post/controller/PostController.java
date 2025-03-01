@@ -3,6 +3,7 @@ package com.example.backend.content.post.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,7 +41,7 @@ public class PostController {
 	 * @return 생성된 게시물 정보를 담은 응답 DTO
 	 */
 	@PostMapping
-	public ResponseEntity<PostCreateResponse> createPost(@RequestBody @Valid PostCreateRequest request) {
+	public ResponseEntity<PostCreateResponse> createPost(@ModelAttribute @Valid PostCreateRequest request) {
 		PostCreateResponse response = postService.createPost(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
@@ -52,7 +53,7 @@ public class PostController {
 	 * @param request 게시물 수정 요청 객체
 	 * @return 수정된 게시물 정보를 담은 응답 DTO
 	 */
-	@PutMapping("/modify/{postId}")
+	@PutMapping("/{postId}")
 	public ResponseEntity<PostModifyResponse> modifyPost(
 		@PathVariable Long postId,
 		@RequestBody @Valid PostModifyRequest request
@@ -67,7 +68,7 @@ public class PostController {
 	 * @param postId 삭제할 게시물의 ID
 	 * @return 게시물 삭제 여부 정보를 담은 응답 DTO
 	 */
-	@DeleteMapping("/delete/{postId}")
+	@DeleteMapping("/{postId}")
 	public ResponseEntity<PostDeleteResponse> deletePost(
 		@PathVariable Long postId,
 		@RequestParam Long memberId
@@ -75,5 +76,4 @@ public class PostController {
 		PostDeleteResponse response = postService.deletePost(postId, memberId);
 		return ResponseEntity.ok(response);
 	}
-
 }

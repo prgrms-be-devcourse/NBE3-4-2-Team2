@@ -2,6 +2,9 @@ package com.example.backend.global.rs;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +19,10 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RsData<T> {
+
+	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
 	private final LocalDateTime time;
 	private final boolean isSuccess;
 	private final String message;

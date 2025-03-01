@@ -34,4 +34,19 @@ public class PostHashtagEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	HashtagEntity hashtag;
 
+	@Builder
+	protected PostHashtagEntity(PostEntity post, HashtagEntity hashtag) {
+		this.post = post;
+		this.hashtag = hashtag;
+	}
+
+	public static PostHashtagEntity create(PostEntity post, HashtagEntity hashtag) {
+		return PostHashtagEntity.builder()
+			.post(post)
+			.hashtag(hashtag)
+			.build();
+	}
+
+
+
 }
