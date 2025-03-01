@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "likes")
-public class LikesEntity {
+public class LikeEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -29,8 +29,8 @@ public class LikesEntity {
 	@CreatedDate
 	private LocalDateTime createDate;
 
-	@Column(name = "is_active", nullable = false)
-	private boolean isActive;
+	@Column(name = "is_liked", nullable = false)
+	private boolean isLiked;
 
 	@Column(name = "updated_date")
 	private LocalDateTime updatedDate;
@@ -46,23 +46,23 @@ public class LikesEntity {
 	private MemberEntity member;
 
 	// 게시물 좋아요용 생성자
-	public LikesEntity(MemberEntity member, Long resourceId, String resourceType, boolean isActive) {
+	public LikeEntity(MemberEntity member, Long resourceId, String resourceType, boolean isActive) {
 		this.member = member;
 		this.resourceId = resourceId;
 		this.resourceType = resourceType;
-		this.isActive = isActive;
+		this.isLiked = isLiked();
 		this.createDate = LocalDateTime.now();
 		this.updatedDate = LocalDateTime.now();
 	}
 
 	// 정적 팩토리 메서드
-	public static LikesEntity create(MemberEntity member, Long resourceId, String resourceType) {
-		return new LikesEntity(member, resourceId, resourceType, true);
+	public static LikeEntity create(MemberEntity member, Long resourceId, String resourceType) {
+		return new LikeEntity(member, resourceId, resourceType, true);
 	}
 
 	// 좋아요 상태 업데이트
-	public void updateLikeStatus(boolean isActive) {
-		this.isActive = isActive;
+	public void updateLikeStatus(boolean isLiked) {
+		this.isLiked = isLiked();
 		this.updatedDate = LocalDateTime.now();
 	}
 

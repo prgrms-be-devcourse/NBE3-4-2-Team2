@@ -118,7 +118,7 @@ class AllEventListenerTest {
 	}
 
 	private LikeEvent getLikeEvent() {
-		return LikeEvent.create("A", 1L, 1L);
+		return LikeEvent.create("A", 1L, 1L, "POST");
 	}
 
 	private FollowEvent getFollowEvent() {

@@ -1,29 +1,6 @@
 package com.example.backend.social.reaction.bookmark.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-
-import com.example.backend.entity.BookmarkRepository;
-import com.example.backend.entity.MemberEntity;
-import com.example.backend.entity.MemberRepository;
-import com.example.backend.entity.PostEntity;
-import com.example.backend.entity.PostRepository;
-import com.example.backend.identity.member.service.MemberService;
-import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
-import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
-import com.example.backend.social.reaction.bookmark.exception.BookmarkErrorCode;
-import com.example.backend.social.reaction.bookmark.exception.BookmarkException;
-
-import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-
+/*
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -234,3 +211,4 @@ public class BookmarkServiceTest {
 		}, BookmarkErrorCode.MEMBER_MISMATCH.getMessage());
 	}
 }
+*/

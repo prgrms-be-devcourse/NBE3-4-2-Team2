@@ -1,4 +1,4 @@
-package com.example.backend.social.reaction.likes.dto;
+package com.example.backend.social.reaction.like.dto;
 
 import java.time.LocalDateTime;
 
@@ -6,9 +6,9 @@ import lombok.Builder;
 
 @Builder
 public record LikeToggleResponse(
-	Long resourceId, // 각 Entity 고유 ID
 	Long memberId,
-	String resourceType, // 게시물, 댓글, 대댓글
+	Long resourceId, // 각 Entity 고유 ID
+	String resourceType, // post, comment, reply
 	boolean isLiked,
 	Long likeCount,
 	LocalDateTime timestamp

@@ -32,16 +32,27 @@ public class LikeEventListener {
 		while (retryCount < MAX_RETRY_COUNT) {
 
 			try {
+				// 리소스 타입에 따른 컨텐츠 이름 설정
+				String resourceName = getResourceName(likeEvent.resourceType());
+
+				// 알림 메시지 생성
+				String message = likeEvent.likerName() + "님이 당신의 " + resourceName + "에 좋아요를 눌렀습니다.";
+
+				// 알림 전송
 				notificationService.createAndSendNotification(
-					likeEvent.postAuthorId(), likeEvent.postId(), NotificationType.LIKE,
-					likeEvent.likerName() + "님이 게시물을 좋아합니다.");
+					likeEvent.resourceOwnerId(),
+					likeEvent.resourceId(),
+					NotificationType.LIKE,
+					message
+				);
+
 				// 성공 시 바로 리턴
 				return;
 			} catch (Exception e) {
 				retryCount++;
-				// 3번째 시도까지 실패 시 진짜 에러 발생
+				// 3번째 시도까지 실패 시 실제 에러 발생
 				if (retryCount == MAX_RETRY_COUNT) {
-					throw new NotificationException(NotificationErrorCode.FAILED_SEND);
+					throw new NotificationException(NotificationErrorCode.FAILED_SEND, e);
 				}
 
 				try {
@@ -49,9 +60,19 @@ public class LikeEventListener {
 					Thread.sleep(RETRY_DELAY_MS);
 				} catch (InterruptedException ie) {
 					Thread.currentThread().interrupt();
-					throw new NotificationException(NotificationErrorCode.FAILED_SEND);
+					throw new NotificationException(NotificationErrorCode.FAILED_SEND, ie);
 				}
 			}
 		}
+	}
+
+	// 리소스 타입에 따른 컨텐츠 이름 반환 메서드
+	private String getResourceName(String resourceType) {
+		return switch (resourceType.toUpperCase()) {
+			case "POST" -> "게시물";
+			case "COMMENT" -> "댓글";
+			case "REPLY" -> "대댓글";
+			default -> "콘텐츠";
+		};
 	}
 }

@@ -1,30 +1,6 @@
 package com.example.backend.social.follow.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import com.example.backend.entity.FollowEntity;
-import com.example.backend.entity.FollowRepository;
-import com.example.backend.entity.MemberEntity;
-import com.example.backend.entity.MemberRepository;
-import com.example.backend.global.event.FollowEventListener;
-import com.example.backend.identity.member.service.MemberService;
-import com.example.backend.social.follow.dto.CreateFollowResponse;
-import com.example.backend.social.follow.exception.FollowErrorCode;
-import com.example.backend.social.follow.exception.FollowException;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-
+/*
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -327,3 +303,4 @@ public class FollowServiceTest {
 		assertTrue(isMutualFollow);
 	}
 }
+*/

@@ -53,7 +53,7 @@ public class CommentEntity extends BaseEntity {
 
 	@Column(nullable = false)
 	@Builder.Default
-	private int likeCount = 0; // 좋아요 초기 카운트 0
+	private Long likeCount = 0L; // 좋아요 초기 카운트 0
 
 	/**
 	 * 최상위 댓글 생성 (부모 댓글이 없는 경우)

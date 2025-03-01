@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * FollowController
- * "/likes" 로 들어오는 요청 처리 컨트롤러
+ * "/like" 로 들어오는 요청 처리 컨트롤러
  *
  * @author Metronon
  * @since 2025-01-30
