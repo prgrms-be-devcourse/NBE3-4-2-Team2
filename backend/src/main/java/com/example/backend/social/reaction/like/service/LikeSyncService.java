@@ -10,7 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend.entity.LikeRepositoryCustom;
+import com.example.backend.entity.LikeRepositoryCustomImpl;
 import com.example.backend.social.reaction.like.dto.LikeInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -20,9 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class LikeSyncService {
-    private final LikeRepositoryCustom likeRepositoryCustom;
+    private final LikeRepositoryCustomImpl likeRepositoryCustom;
     private final RedisTemplate<String, Object> redisTemplate;
-    
+
     // 동기화 대기 중인 좋아요 목록을 저장할 큐
     private final Queue<LikeInfo> pendingLikes = new ConcurrentLinkedQueue<>();
     
