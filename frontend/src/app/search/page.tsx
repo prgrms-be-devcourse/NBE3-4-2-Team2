@@ -1,7 +1,10 @@
-export default function SearchPage() {
+import React from "react";
+import ClientPage from "./ClientPage";
+
+export default function Page() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold">검색</h1>
-    </div>
+    <main className="max-w-6xl mx-auto py-8">
+      <ClientPage />
+    </main>
   );
-} 
+}
