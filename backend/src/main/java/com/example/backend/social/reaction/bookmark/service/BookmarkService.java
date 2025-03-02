@@ -47,7 +47,7 @@ public class BookmarkService {
 	public CreateBookmarkResponse createBookmark(Long memberId, Long postId) {
 		// 1. 멤버가 존재하는지 검증하고 엔티티 가져오기
 		MemberEntity member = memberRepository.findById(memberId)
-			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "로그인 정보 확인에 실패했습니다."));
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "회원 검증에 실패했습니다."));
 
 		// 2. 게시물이 존재하는지 검증하고 엔티티 가져오기
 		PostEntity post = postRepository.findById(postId)

@@ -1,6 +1,40 @@
 package com.example.backend.social.follow.controller;
 
-/*
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.ArrayList;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.backend.entity.FollowEntity;
+import com.example.backend.entity.FollowRepository;
+import com.example.backend.entity.MemberEntity;
+import com.example.backend.entity.MemberRepository;
+import com.example.backend.global.event.FollowEventListener;
+import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.identity.security.jwt.AccessTokenService;
+import com.example.backend.identity.security.user.SecurityUser;
+import com.example.backend.social.follow.dto.DeleteFollowRequest;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.persistence.EntityManager;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -48,6 +82,7 @@ public class FollowControllerTest {
 		sender = memberService.join("testSender", "testPassword", "sender@gmail.com");
 		senderToken = accessTokenService.genAccessToken(sender);
 
+		// 테스트용 Receiver 멤버 추가
 		receiver = memberService.join("testReceiver", "testPassword", "receiver@gmail.com");
 
 		// SecurityContext 설정
@@ -146,7 +181,7 @@ public class FollowControllerTest {
 		// Then
 		secondResultActions.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("이미 팔로우 상태입니다."));
+			.andExpect(jsonPath("$.message").value("이미 처리된 요청입니다."));
 	}
 
 	@Test
@@ -168,7 +203,7 @@ public class FollowControllerTest {
 		// Then
 		resultActions.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("팔로우 관계를 찾을 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("팔로우 확인에 실패했습니다."));
 	}
 
 	@Test
@@ -203,7 +238,7 @@ public class FollowControllerTest {
 		// Then Second
 		resultActions.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("팔로우 관계를 찾을 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("팔로우 확인에 실패했습니다."));
 	}
 
 	@Test
@@ -239,7 +274,7 @@ public class FollowControllerTest {
 		// Then Second
 		resultActions.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("잘못된 팔로우 취소 요청입니다."));
+			.andExpect(jsonPath("$.message").value("해당 작업을 수행할 권한이 없습니다."));
 	}
 
 	@Test
@@ -252,7 +287,7 @@ public class FollowControllerTest {
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("자기 자신을 팔로우 할 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("자기 자신에게 해당 작업을 수행할 수 없습니다."));
 	}
 
 	@Test
@@ -275,7 +310,6 @@ public class FollowControllerTest {
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("자기 자신을 언팔로우 할 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("자기 자신에게 해당 작업을 수행할 수 없습니다."));
 	}
 }
-*/

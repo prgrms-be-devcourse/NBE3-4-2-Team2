@@ -1,6 +1,29 @@
 package com.example.backend.social.reaction.bookmark.service;
 
-/*
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.backend.entity.BookmarkRepository;
+import com.example.backend.entity.MemberEntity;
+import com.example.backend.entity.MemberRepository;
+import com.example.backend.entity.PostEntity;
+import com.example.backend.entity.PostRepository;
+import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.social.exception.SocialErrorCode;
+import com.example.backend.social.exception.SocialException;
+import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
+import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
+
+import jakarta.persistence.EntityManager;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -39,13 +62,6 @@ public class BookmarkServiceTest {
 		entityManager.createNativeQuery("ALTER TABLE bookmark ALTER COLUMN id RESTART WITH 1").executeUpdate();
 
 		// 테스트용 멤버 추가
-		// MemberEntity member = MemberEntity.builder()
-		// 	.username("testMember")
-		// 	.email("test@gmail.com")
-		// 	.password("testPassword")
-		// 	.refreshToken(UUID.randomUUID().toString())
-		// 	.build();
-		// testMember = memberRepository.save(member);
 		testMember = memberService.join("testMember","testPassword","test@gmail.com");
 
 		// 테스트용 게시물 추가
@@ -108,9 +124,11 @@ public class BookmarkServiceTest {
 		Long postId = testPost.getId();
 
 		// When & Then
-		assertThrows(BookmarkException.class, () -> {
+		SocialException exception = assertThrows(SocialException.class, () -> {
 			bookmarkService.createBookmark(nonExistMemberId, postId);
-		}, BookmarkErrorCode.MEMBER_NOT_FOUND.getMessage());
+		});
+		assertEquals(SocialErrorCode.NOT_FOUND, exception.getErrorCode());
+		assertEquals("회원 검증에 실패했습니다.", exception.getMessage());
 	}
 
 	@Test
@@ -121,9 +139,11 @@ public class BookmarkServiceTest {
 		Long nonExistPostId = 99L;
 
 		// When & Then
-		assertThrows(BookmarkException.class, () -> {
+		SocialException exception = assertThrows(SocialException.class, () -> {
 			bookmarkService.createBookmark(memberId, nonExistPostId);
-		}, BookmarkErrorCode.POST_NOT_FOUND.getMessage());
+		});
+		assertEquals(SocialErrorCode.NOT_FOUND, exception.getErrorCode());
+		assertEquals("게시물 정보를 확인할 수 없습니다.", exception.getMessage());
 	}
 
 	@Test
@@ -144,9 +164,10 @@ public class BookmarkServiceTest {
 		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
-		assertThrows(BookmarkException.class, () -> {
+		SocialException exception = assertThrows(SocialException.class, () -> {
 			bookmarkService.createBookmark(secondMemberId, secondPostId);
-		}, BookmarkErrorCode.ALREADY_BOOKMARKED.getMessage());
+		});
+		assertEquals(SocialErrorCode.ALREADY_EXISTS, exception.getErrorCode());
 	}
 
 	@Test
@@ -158,9 +179,11 @@ public class BookmarkServiceTest {
 		Long postId = testPost.getId();
 
 		// When & Then
-		assertThrows(BookmarkException.class, () -> {
+		SocialException exception = assertThrows(SocialException.class, () -> {
 			bookmarkService.deleteBookmark(nonExistBookmarkId, memberId, postId);
-		}, BookmarkErrorCode.BOOKMARK_NOT_FOUND.getMessage());
+		});
+		assertEquals(SocialErrorCode.NOT_FOUND, exception.getErrorCode());
+		assertEquals("북마크가 존재하지 않습니다.", exception.getMessage());
 	}
 
 	@Test
@@ -182,9 +205,10 @@ public class BookmarkServiceTest {
 		Long secondPostId = createResponse.postId();
 
 		// When & Then Second
-		assertThrows(BookmarkException.class, () -> {
+		SocialException exception = assertThrows(SocialException.class, () -> {
 			bookmarkService.deleteBookmark(bookmarkId, anotherMemberId, secondPostId);
-		}, BookmarkErrorCode.MEMBER_MISMATCH.getMessage());
+		});
+		assertEquals(SocialErrorCode.ACTION_NOT_ALLOWED, exception.getErrorCode());
 	}
 
 	@Test
@@ -206,9 +230,10 @@ public class BookmarkServiceTest {
 		Long anotherPostId = 5L;
 
 		// When & Then Second
-		assertThrows(BookmarkException.class, () -> {
+		SocialException exception = assertThrows(SocialException.class, () -> {
 			bookmarkService.deleteBookmark(bookmarkId, memberId, anotherPostId);
-		}, BookmarkErrorCode.MEMBER_MISMATCH.getMessage());
+		});
+		assertEquals(SocialErrorCode.DATA_MISMATCH, exception.getErrorCode());
 	}
 }
-*/
+

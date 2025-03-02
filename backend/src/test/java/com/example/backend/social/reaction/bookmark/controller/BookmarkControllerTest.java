@@ -1,6 +1,40 @@
 package com.example.backend.social.reaction.bookmark.controller;
 
-/*
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.ArrayList;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.backend.entity.BookmarkRepository;
+import com.example.backend.entity.MemberEntity;
+import com.example.backend.entity.MemberRepository;
+import com.example.backend.entity.PostEntity;
+import com.example.backend.entity.PostRepository;
+import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.identity.security.jwt.AccessTokenService;
+import com.example.backend.identity.security.user.SecurityUser;
+import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkRequest;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.persistence.EntityManager;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -130,7 +164,7 @@ public class BookmarkControllerTest {
 		// Then
 		resultActions.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("게시물 정보를 찾을 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("게시물 정보를 확인할 수 없습니다."));
 	}
 
 	@Test
@@ -153,7 +187,7 @@ public class BookmarkControllerTest {
 		// Then
 		resultActions.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("이미 등록된 북마크 입니다."));
+			.andExpect(jsonPath("$.message").value("이미 처리된 요청입니다."));
 	}
 
 	@Test
@@ -175,7 +209,7 @@ public class BookmarkControllerTest {
 		// Then
 		resultActions.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("북마크 정보를 찾을 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("북마크가 존재하지 않습니다."));
 	}
 
 	@Test
@@ -224,7 +258,7 @@ public class BookmarkControllerTest {
 		// Then Second
 		resultActions2.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("북마크에 접근할 권한이 없습니다."));
+			.andExpect(jsonPath("$.message").value("해당 작업을 수행할 권한이 없습니다."));
 	}
 
 	@Test
@@ -271,8 +305,6 @@ public class BookmarkControllerTest {
 		// Then Second
 		resultActions.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("북마크 정보와 요청 게시물 정보가 다릅니다."));
+			.andExpect(jsonPath("$.message").value("요청한 정보가 일치하지 않습니다."));
 	}
 }
-
-*/
