@@ -90,7 +90,7 @@ public class LikeServiceTest {
 
 	@Test
 	@DisplayName("1. 좋아요 토글 - 좋아요 적용 테스트")
-	public void toggleLikeToLiked() {
+	public void t001() {
 		// Given
 		long memberId = testMember.getId();  // 좋아요 주체는 testMember
 		String resourceType = "post";
@@ -112,7 +112,7 @@ public class LikeServiceTest {
 
 	@Test
 	@DisplayName("2. 좋아요 토글 - 좋아요 취소 테스트")
-	public void toggleLikeToUnliked() {
+	public void t002() {
 		// Given - 먼저 좋아요 적용
 		long memberId = testMember.getId();  // 좋아요 주체는 testMember
 		String resourceType = "post";
@@ -135,7 +135,7 @@ public class LikeServiceTest {
 
 	@Test
 	@DisplayName("3. 존재하지 않는 멤버가 좋아요 요청 테스트")
-	public void nonExistentMemberToggleLike() {
+	public void t003() {
 		// Given
 		long nonExistMemberId = 999L;
 		String resourceType = "post";
@@ -149,7 +149,7 @@ public class LikeServiceTest {
 
 	@Test
 	@DisplayName("4. 존재하지 않는 리소스에 좋아요 요청 테스트")
-	public void nonExistentResourceToggleLike() {
+	public void t004() {
 		// Given
 		long memberId = testMember.getId();
 		String resourceType = "post";
@@ -163,7 +163,7 @@ public class LikeServiceTest {
 
 	@Test
 	@DisplayName("5. 자신의 컨텐츠에 좋아요 요청 테스트")
-	public void toggleLikeOnOwnContent() {
+	public void t005() {
 		// Given - testMember가 작성한 게시물 생성
 		PostEntity myPost = PostEntity.builder()
 			.content("myContent")
@@ -183,7 +183,7 @@ public class LikeServiceTest {
 
 	@Test
 	@DisplayName("6. 다양한 리소스 타입에 대한 좋아요 토글 테스트")
-	public void toggleLikeForDifferentResourceTypes() {
+	public void t006() {
 		// Given
 		long memberId = testMember.getId();
 		Long resourceId = testPost.getId();

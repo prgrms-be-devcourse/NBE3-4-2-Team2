@@ -101,8 +101,8 @@ public class LikeControllerTest {
 	}
 
 	@Test
-	@DisplayName("좋아요 토글 - 좋아요 적용 성공")
-	public void toggleLikeToLiked() throws Exception {
+	@DisplayName("1. 좋아요 토글 - 좋아요 적용 성공")
+	public void t001() throws Exception {
 		// When
 		ResultActions resultActions = mockMvc.perform(post("/api-v1/like/{id}", testPost.getId())
 			.header("Authorization", "Bearer " + accessToken)
@@ -119,8 +119,8 @@ public class LikeControllerTest {
 	}
 
 	@Test
-	@DisplayName("좋아요 토글 - 좋아요 취소 성공")
-	public void toggleLikeToUnliked() throws Exception {
+	@DisplayName("2. 좋아요 토글 - 좋아요 취소 성공")
+	public void t002() throws Exception {
 		// Given - 먼저 좋아요 적용
 		mockMvc.perform(post("/api-v1/like/{id}", testPost.getId())
 				.header("Authorization", "Bearer " + accessToken)
@@ -145,8 +145,8 @@ public class LikeControllerTest {
 	}
 
 	@Test
-	@DisplayName("다양한 리소스 타입에 대한 좋아요 토글 테스트")
-	public void toggleLikeForDifferentResourceTypes() throws Exception {
+	@DisplayName("3. 다양한 리소스 타입에 대한 좋아요 토글 테스트")
+	public void t003() throws Exception {
 		// 댓글에 대한 좋아요 테스트 (리소스 타입만 변경)
 		ResultActions commentLikeResult = mockMvc.perform(post("/api-v1/like/{id}", testPost.getId())
 			.header("Authorization", "Bearer " + accessToken)
@@ -173,8 +173,8 @@ public class LikeControllerTest {
 	}
 
 	@Test
-	@DisplayName("자신의 게시물에 좋아요 요청 실패 테스트")
-	public void toggleLikeOnOwnContentFails() throws Exception {
+	@DisplayName("4. 자신의 게시물에 좋아요 요청 실패 테스트")
+	public void t004() throws Exception {
 		// Given - testMember가 작성한 게시물 생성
 		PostEntity ownPost = PostEntity.builder()
 			.content("ownContent")
