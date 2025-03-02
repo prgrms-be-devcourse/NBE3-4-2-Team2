@@ -1,6 +1,7 @@
 package com.example.backend.social.reaction.likes.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +11,8 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.global.event.LikeEvent;
+import com.example.backend.social.reaction.likes.converter.LikesConverter;
 import com.example.backend.social.reaction.likes.dto.CreateLikeResponse;
 import com.example.backend.social.reaction.likes.dto.DeleteLikeResponse;
 import com.example.backend.social.reaction.likes.exception.LikesErrorCode;
@@ -27,14 +30,17 @@ public class LikesService {
 	private final LikesRepository likesRepository;
 	private final MemberRepository memberRepository;
 	private final PostRepository postRepository;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
-	public LikesService(LikesRepository likesRepository, MemberRepository memberRepository, PostRepository postRepository) {
+	public LikesService(LikesRepository likesRepository, MemberRepository memberRepository,
+		PostRepository postRepository, ApplicationEventPublisher applicationEventPublisher
+	) {
 		this.likesRepository = likesRepository;
 		this.memberRepository = memberRepository;
 		this.postRepository = postRepository;
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
-
 	/**
 	 * 좋아요 생성 메서드
 	 * memberId와 postId를 받아 LikesEntity 생성
@@ -44,26 +50,38 @@ public class LikesService {
 	 */
 	@Transactional
 	public CreateLikeResponse createLike(Long memberId, Long postId) {
-		// 1. 멤버가 존재하는지 검증
+		// 1. 멤버가 존재하는지 검증하고 엔티티 가져오기
 		MemberEntity member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new LikesException(LikesErrorCode.MEMBER_NOT_FOUND));
 
-		// 2. 게시물이 존재하는지 검증
+		// 2. 게시물이 존재하는지 검증하고 엔티티 가져오기
 		PostEntity post = postRepository.findById(postId)
 			.orElseThrow(() -> new LikesException(LikesErrorCode.POST_NOT_FOUND));
 
-		// 3. 이미 적용된 좋아요인지 검증
-		if (likesRepository.findByMemberIdAndPostId(memberId, postId).isPresent()) {
+		// 3. 본인의 게시물인지 확인
+		Long authorId = post.getMember().getId();
+		if (authorId.equals(memberId)) {
+			throw new LikesException(LikesErrorCode.CANNOT_LIKE_SELF);
+		}
+
+		// 4. 이미 적용된 좋아요인지 검증
+		if (likesRepository.existsByMemberIdAndPostId(memberId, postId)) {
 			throw new LikesException(LikesErrorCode.ALREADY_LIKED);
 		}
 
-		// 4. id 및 생성 날짜를 포함하기 위해 build
-		LikesEntity like = new LikesEntity(member, post);
+		// 5. id 및 생성 날짜를 포함하기 위해 build
+		LikesEntity like = LikesEntity.create(member, post);
 
-		// 생성 로직
+		// 6. 좋아요 생성 및 좋아요 횟수 증가 반영
+		postRepository.incrementLikeCount(postId);
 		likesRepository.save(like);
 
-		return CreateLikeResponse.toResponse(like);
+		// 이벤트 발생
+		if (!memberId.equals(post.getMember().getId())) {
+			applicationEventPublisher.publishEvent(
+				LikeEvent.create(member.getUsername(), post.getMember().getId(), postId));
+		}
+		return LikesConverter.toCreateResponse(like);
 	}
 
 	/**
@@ -80,18 +98,19 @@ public class LikesService {
 			.orElseThrow(() -> new LikesException(LikesErrorCode.LIKE_NOT_FOUND));
 
 		// 2. 좋아요의 멤버 ID와 요청한 멤버 ID가 동일한지 검증
-		if (!like.getMember().getId().equals(memberId)) {
+		if (!like.getMemberId().equals(memberId)) {
 			throw new LikesException(LikesErrorCode.MEMBER_MISMATCH);
 		}
 
 		// 3. 좋아요의 게시물 ID와 요청한 게시물 ID가 동일한지 검증
-		if (!like.getPost().getId().equals(postId)) {
+		if (!like.getPostId().equals(postId)) {
 			throw new LikesException(LikesErrorCode.POST_MISMATCH);
 		}
 
-		// 삭제 로직
+		// 4. 좋아요 취소 및 좋아요 횟수 감소 반영
+		postRepository.decrementLikeCount(postId);
 		likesRepository.delete(like);
 
-		return DeleteLikeResponse.toResponse(like);
+		return LikesConverter.toDeleteResponse(like);
 	}
 }

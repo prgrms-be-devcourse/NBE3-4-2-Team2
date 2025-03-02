@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.stereotype.Service;
 
 import com.example.backend.entity.HashtagEntity;
@@ -25,21 +26,12 @@ public class PostHashtagService {
 	private final HashtagService hashtagService;
 	private final PostHashtagRepository postHashtagRepository;
 
-	public List<PostHashtagEntity> create(PostEntity post, Set<String> contents) {
+	public void create(PostEntity post, Set<String> contents) {
 		List<HashtagEntity> hashtags = contents.stream()
 			.map(hashtagService::createIfNotExists)
-			.collect(Collectors.toList());
+			.toList();
 
-		List<PostHashtagEntity> postHashtags = hashtags.stream()
-			.map(hashtag ->
-				PostHashtagEntity.builder()
-					.post(post)
-					.hashtag(hashtag)
-					.build()
-			).collect(Collectors.toList());
-
-		return postHashtagRepository.saveAll(postHashtags);
-
+		postHashtagRepository.bulkInsert(post, hashtags);
 	}
 
 	public void deleteByHashtagIds(List<Long> oldHashtagIds) {
@@ -58,24 +50,18 @@ public class PostHashtagService {
 			ph -> ph.getHashtag().getContent()
 		).collect(Collectors.toSet());
 
-		// 새로운 해시태그들에 포함되지 않는 현재 해시태그는 삭제될 해시태그 컨텐츠로 추출
-		Set<String> deletedHashtagContents = currentHashtags.stream()
-			.filter(currentHashtag -> !newHashtags.contains(currentHashtag))
-			.collect(Collectors.toSet());
+		Set<String> deletedHashtagContents = SetUtils.difference(currentHashtags, newHashtags);
+		Set<String> updatedHashtags = SetUtils.difference(newHashtags, currentHashtags);
 
 		// 없어진 해시태그들이 있으면 연결관계를 삭제
 		if (!deletedHashtagContents.isEmpty()) {
 			postHashtagRepository.deleteByPostIdAndHashtagContent(post.getId(), deletedHashtagContents);
 		}
 
-		// 새로운 해시태그들 추출
-		Set<String> updatedHashtags = newHashtags.stream()
-			.filter(newHashtag -> !currentHashtags.contains(newHashtag))
-			.collect(Collectors.toSet());
-
 		// 새로운 해시태그들이 존재하면 저장
 		if (!updatedHashtags.isEmpty()) {
 			create(post, updatedHashtags);
 		}
 	}
+
 }

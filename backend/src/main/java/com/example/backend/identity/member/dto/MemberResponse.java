@@ -4,7 +4,7 @@ public record MemberResponse(
 	long id,
 	String username,
 	String profileUrl,
-	int followerCount,
-	int followingCount
+	long followerCount,
+	long followingCount
 ) {
 }

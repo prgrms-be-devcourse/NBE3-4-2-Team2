@@ -2,7 +2,11 @@ package com.example.backend.content.post.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
 import com.example.backend.content.post.dto.PostDeleteResponse;
@@ -17,10 +22,15 @@ import com.example.backend.content.post.dto.PostModifyRequest;
 import com.example.backend.content.post.dto.PostModifyResponse;
 import com.example.backend.content.post.exception.PostErrorCode;
 import com.example.backend.content.post.exception.PostException;
+import com.example.backend.entity.ImageRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.identity.member.service.MemberService;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @SpringBootTest
 @Transactional
@@ -36,57 +46,72 @@ class PostServiceTest {
 	@Autowired
 	private MemberRepository memberRepository;
 
+	@Autowired
+	private ImageRepository imageRepository;
+
+	@Autowired
+	private ImageService imageService;
+
+	@PersistenceContext
+	private EntityManager entityManager;
+
 	private MemberEntity testMember;
 	private PostEntity testPost;
+	@Autowired
+	private MemberService memberService;
 
 	@BeforeEach
 	void setUp() {
-		testMember = MemberEntity.builder()
-			.username("testUser")
-			.email("test@example.com")
-			.password("password")
-			.build();
+		// testMember = MemberEntity.builder()
+		// 	.username("testUser")
+		// 	.email("test@example.com")
+		// 	.refreshToken("")
+		// 	.password("password")
+		// 	.build();
+		//
+		// memberRepository.save(testMember);
+		testMember = memberService.join("testUser","password","test@example.com");
 
-		memberRepository.save(testMember);
 
 		testPost = PostEntity.builder()
 			.content("테스트 게시물")
 			.member(testMember)
 			.isDeleted(false)
+			.images(new ArrayList<>())
 			.build();
-
 		postRepository.save(testPost);
-
 	}
 
 	@Test
-	void 게시물_생성_테스트() {
-		// given
-		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물");
+	@DisplayName("게시물 생성 테스트")
+	void t1() {
+		//given
+		PostCreateRequest request = new PostCreateRequest(testMember.getId(), "테스트 게시물", Collections.emptyList());
 
 		// when
 		PostCreateResponse response = postService.createPost(request);
 
 		// then
 		assertNotNull(response);
-		assertEquals("테스트 게시물", response.getContent());
-		assertEquals(testMember.getId(), response.getMemberId());
+		assertEquals("테스트 게시물", response.content());
+		assertEquals(testMember.getId(), response.memberId());
 
-		System.out.println("게시물 생성 성공: " + response.getContent());
+		System.out.println("게시물 생성 성공: " + response.content());
 	}
 
 	@Test
-	void 게시물_수정_테스트() {
+	@DisplayName("게시물 수정 테스트")
+	void t2() {
 		// given
 		String updatedContent = "수정된 게시물 내용";
-		PostModifyRequest request = new PostModifyRequest(testPost.getId(), updatedContent, testMember.getId());
+		PostModifyRequest request = new PostModifyRequest(testPost.getId(), updatedContent, testMember.getId(),Collections.emptyList());
 
 		// when
 		PostModifyResponse response = postService.modifyPost(testPost.getId(), request);
 
 		// then
 		assertNotNull(response);
-		assertEquals(updatedContent, response.getContent()); // 응답 DTO 값 검증
+		assertEquals(updatedContent, response.content()); // 응답 DTO 값 검증
 
 		PostEntity updatedPost = postRepository.findById(testPost.getId()).orElseThrow();
 		assertEquals(updatedContent, updatedPost.getContent()); // 실제 DB 반영 확인
@@ -95,7 +120,8 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 게시물_삭제_테스트() {
+	@DisplayName("게시물 삭제 테스트")
+	void t3() {
 		// given
 		Long postId = testPost.getId();
 		Long memberId = testMember.getId();
@@ -105,7 +131,7 @@ class PostServiceTest {
 
 		// then
 		assertNotNull(response);
-		assertEquals(postId, response.getPostId()); // 응답 DTO 값 검증
+		assertEquals(postId, response.postId()); // 응답 DTO 값 검증
 
 		PostEntity deletedPost = postRepository.findById(postId).orElseThrow();
 		assertTrue(deletedPost.getIsDeleted()); // 실제 DB에서 isDeleted 값이 true인지 검증
@@ -114,7 +140,8 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 존재하지_않는_게시물_삭제시_예외발생() {
+	@DisplayName("존재하지 않는 게시물 삭제시 예외발생")
+	void t4() {
 		// given
 		Long nonExistentPostId = 999L; // 존재하지 않는 게시물 ID
 		Long memberId = testMember.getId();
@@ -130,10 +157,11 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 존재하지_않는_게시물_수정시_예외발생() {
+	@DisplayName("존재하지 않는 게시물 수정시 예외발생")
+	void t5() {
 		// given
 		Long nonExistentPostId = 999L; // 존재하지 않는 게시물 ID
-		PostModifyRequest request = new PostModifyRequest(nonExistentPostId, "수정된 내용", testMember.getId());
+		PostModifyRequest request = new PostModifyRequest(nonExistentPostId, "수정된 내용", testMember.getId(),null);
 
 		// when & then
 		PostException exception = assertThrows(PostException.class, () -> {
@@ -147,17 +175,21 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 다른_사용자의_게시물_수정시_예외발생() {
+	@DisplayName("다른 사용자의 게시물 수정시 예외발생")
+	void t6() {
 		// given
-		MemberEntity anotherUser = memberRepository.save(
-			MemberEntity.builder()
-				.username("otherUser")
-				.email("other@example.com")
-				.password("password")
-				.build()
-		);
+		MemberEntity anotherUser = memberService.join("otherUser","password","other@example.com");
+		// 	memberRepository.save(
+		// 	MemberEntity.builder()
+		// 		.username("otherUser")
+		// 		.email("other@example.com")
+		// 		.refreshToken("dummyToken") // ✅ NULL 방지: 빈 문자열 또는 더미 값 추가
+		// 		.password("password")
+		// 		.build()
+		// );
 
-		PostModifyRequest request = new PostModifyRequest(testPost.getId(), "허가되지 않은 수정", anotherUser.getId());
+
+		PostModifyRequest request = new PostModifyRequest(testPost.getId(), "허가되지 않은 수정", anotherUser.getId(),null);
 
 		// when & then
 		PostException exception = assertThrows(PostException.class, () -> {
@@ -169,15 +201,18 @@ class PostServiceTest {
 	}
 
 	@Test
-	void 다른_사용자의_게시물_삭제시_예외발생() {
+	@DisplayName("다른 사용자의 게시물 삭제시 예외발생")
+	void t7() {
 		// given
-		MemberEntity anotherUser = memberRepository.save(
-			MemberEntity.builder()
-				.username("otherUser")
-				.email("other@example.com")
-				.password("password")
-				.build()
-		);
+		MemberEntity anotherUser = memberService.join("otherUser","password","other@example.com");
+		// 	memberRepository.save(
+		// 	MemberEntity.builder()
+		// 		.username("otherUser")
+		// 		.email("other@example.com")
+		// 		.refreshToken("dummyToken") // ✅ NULL 방지: 빈 문자열 또는 더미 값 추가
+		// 		.password("password")
+		// 		.build()
+		// );
 
 		// when & then
 		PostException exception = assertThrows(PostException.class, () -> {
@@ -187,5 +222,4 @@ class PostServiceTest {
 		assertEquals(PostErrorCode.POST_DELETE_FORBIDDEN, exception.getPostErrorCode());
 		System.out.println("✅ 다른 사용자의 게시물 삭제 시 예외 발생 테스트 통과");
 	}
-
 }

@@ -1,12 +1,12 @@
 package com.example.backend.content.post.dto;
 
-import com.example.backend.entity.MemberEntity;
-import com.example.backend.entity.PostEntity;
+import java.util.List;
 
-import lombok.AllArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * 게시물 생성 관련 DTO
@@ -16,26 +16,8 @@ import lombok.NoArgsConstructor;
  * @since 2025-01-31
  */
 @Builder
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public class PostCreateRequest {
-
-	private Long memberId;
-	private String content;
-
-	/**
-	 * PostCreateRequest를 PostEntity 객체로 변환
-	 *
-	 * @param memberEntity 게시물 작성자 (MemberEntity 객체)
-	 * @return PostEntity 객체
-	 */
-	public PostEntity toEntity(MemberEntity memberEntity) {
-		return PostEntity.builder()
-			.content(content)
-			.member(memberEntity)
-			.isDeleted(false)
-			.build();
-	}
-
-}
+public record PostCreateRequest (
+	@NotNull(message = "회원 번호는 필수 입력 값입니다.") Long memberId,
+	@NotNull(message = "게시물 내용은 필수 입력 값입니다.") String content,
+	@Nullable List<MultipartFile> images
+){ }
