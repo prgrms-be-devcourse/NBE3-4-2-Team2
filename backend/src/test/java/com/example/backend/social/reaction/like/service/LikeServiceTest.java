@@ -1,6 +1,32 @@
 package com.example.backend.social.reaction.like.service;
 
-/*
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.backend.entity.LikeRepository;
+import com.example.backend.entity.MemberEntity;
+import com.example.backend.entity.MemberRepository;
+import com.example.backend.entity.PostEntity;
+import com.example.backend.entity.PostRepository;
+import com.example.backend.global.event.LikeEventListener;
+import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.social.exception.SocialException;
+import com.example.backend.social.reaction.like.dto.LikeToggleResponse;
+import com.example.backend.social.reaction.like.scheduler.LikeSyncManager;
+import com.example.backend.social.reaction.like.util.RedisKeyUtil;
+import com.example.backend.social.reaction.like.util.component.RedisLikeService;
+
+import jakarta.persistence.EntityManager;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -13,6 +39,12 @@ public class LikeServiceTest {
 	private LikeService likeService;
 
 	@Autowired
+	private RedisLikeService redisLikeService;
+
+	@Autowired
+	private LikeSyncManager likeSyncManager;
+
+	@Autowired
 	private LikeRepository likeRepository;
 
 	@Autowired
@@ -21,11 +53,13 @@ public class LikeServiceTest {
 	@Autowired
 	private PostRepository postRepository;
 
-	private MemberEntity testMember;
-	private MemberEntity anotherMember;
+	private MemberEntity testMember;      // 좋아요 주체
+	private MemberEntity contentMember;   // 컨텐츠 작성 주체
 	private PostEntity testPost;
+
 	@Autowired
 	private MemberService memberService;
+
 	@MockitoBean
 	LikeEventListener likeEventListener;
 
@@ -36,234 +70,136 @@ public class LikeServiceTest {
 		postRepository.deleteAll();
 		memberRepository.deleteAll();
 
-		// 시퀀스 초기화 (테스트 데이터 재 생성시 아이디 값이 올라가기 때문)
+		// 시퀀스 초기화
 		entityManager.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate();
 		entityManager.createNativeQuery("ALTER TABLE post ALTER COLUMN id RESTART WITH 1").executeUpdate();
 		entityManager.createNativeQuery("ALTER TABLE like ALTER COLUMN id RESTART WITH 1").executeUpdate();
 
-		// 테스트용 멤버 추가
-		// MemberEntity member = MemberEntity.builder()
-		// 	.username("testMember")
-		// 	.email("test@gmail.com")
-		// 	.password("testPassword")
-		// 	.refreshToken(UUID.randomUUID().toString())
-		// 	.build();
-		// testMember = memberRepository.save(member);
-		testMember = memberService.join("testMember","testPassword","test@gmail.com");
+		// 테스트용 멤버 추가 (testMember는 좋아요를 누르는 주체)
+		testMember = memberService.join("testMember", "testPassword", "test@gmail.com");
+		// contentMember는 컨텐츠를 작성하는 주체
+		contentMember = memberService.join("contentMember", "testPassword", "content@gmail.com");
 
-
-		// MemberEntity anotherMember = MemberEntity.builder()
-		// 	.username("anotherMember")
-		// 	.email("another@gmail.com")
-		// 	.password("testPassword")
-		// 	.refreshToken(UUID.randomUUID().toString())
-		// 	.build();
-		// anotherMember = memberRepository.save(anotherMember);
-		anotherMember = memberService.join("anotherMember","testPassword","another@gmail.com");
-
-
-		// 테스트용 게시물 추가
+		// 테스트용 게시물 추가 (contentMember가 작성)
 		PostEntity post = PostEntity.builder()
 			.content("testContent")
-			.member(anotherMember)
+			.member(contentMember)  // 컨텐츠 작성자는 contentMember
 			.build();
 		testPost = postRepository.save(post);
 	}
 
 	@Test
-	@DisplayName("1. 좋아요 적용 테스트")
-	public void t001() {
-		// Given First
-		Long memberId = testMember.getId();
-		Long postId = testPost.getId();
-
-		// When First
-		CreateLikeResponse createResponse = likeService.createLike(memberId, postId);
-
-		// Then First
-		assertNotNull(createResponse);
-		assertEquals(memberId, createResponse.memberId());
-		assertEquals(postId, createResponse.postId());
-
-		// When Second
-		Optional<PostEntity> post = postRepository.findById(postId);
-
-		// Then Second
-		assertTrue(post.isPresent());
-		assertEquals(1, post.get().getLikeCount());
-
-	}
-
-	@Test
-	@DisplayName("2. 좋아요 취소 테스트")
-	public void t002() {
-		// Given First
-		Long firstMemberId = testMember.getId();
-		Long firstPostId = testPost.getId();
-
-		// When First
-		CreateLikeResponse createResponse = likeService.createLike(firstMemberId, firstPostId);
-
-		// Then First
-		assertNotNull(createResponse);
-
-		// Given Second
-		Long secondMemberId = createResponse.memberId();
-		Long secondPostId = createResponse.postId();
-
-		// When Second
-		DeleteLikeResponse deleteResponse = likeService.deleteLike(
-			createResponse.likeId(), secondMemberId, secondPostId
-		);
-
-		// Then Second
-		assertNotNull(deleteResponse);
-		assertEquals(firstMemberId, deleteResponse.memberId());
-		assertEquals(firstPostId, deleteResponse.postId());
-
-		// When Third
-		Optional<PostEntity> post = postRepository.findById(secondPostId);
-
-		// Then Third
-		assertTrue(post.isPresent());
-		assertEquals(0, post.get().getLikeCount());
-	}
-
-	@Test
-	@DisplayName("3. 존재하지 않는 멤버 좋아요 요청 테스트")
-	public void t003() {
+	@DisplayName("1. 좋아요 토글 - 좋아요 적용 테스트")
+	public void toggleLikeToLiked() {
 		// Given
-		Long nonExistMemberId = 999L;
-		Long postId = testPost.getId();
+		long memberId = testMember.getId();  // 좋아요 주체는 testMember
+		String resourceType = "post";
+		Long resourceId = testPost.getId();
+
+		// When
+		LikeToggleResponse response = likeService.toggleLike(memberId, resourceType, resourceId);
+
+		// Then
+		assertNotNull(response);
+		assertTrue(response.isLiked());
+		assertEquals(1L, response.likeCount());
+
+		// Redis 상태 확인
+		String countKey = RedisKeyUtil.getLikeCountKey("POST", resourceId);
+		Long redisCount = redisLikeService.getLikeCount(countKey);
+		assertEquals(1L, redisCount);
+	}
+
+	@Test
+	@DisplayName("2. 좋아요 토글 - 좋아요 취소 테스트")
+	public void toggleLikeToUnliked() {
+		// Given - 먼저 좋아요 적용
+		long memberId = testMember.getId();  // 좋아요 주체는 testMember
+		String resourceType = "post";
+		Long resourceId = testPost.getId();
+		likeService.toggleLike(memberId, resourceType, resourceId);
+
+		// When - 다시 토글하여 좋아요 취소
+		LikeToggleResponse response = likeService.toggleLike(memberId, resourceType, resourceId);
+
+		// Then
+		assertNotNull(response);
+		assertFalse(response.isLiked());
+		assertEquals(0L, response.likeCount());
+
+		// Redis 상태 확인
+		String countKey = RedisKeyUtil.getLikeCountKey("POST", resourceId);
+		Long redisCount = redisLikeService.getLikeCount(countKey);
+		assertEquals(0L, redisCount);
+	}
+
+	@Test
+	@DisplayName("3. 존재하지 않는 멤버가 좋아요 요청 테스트")
+	public void nonExistentMemberToggleLike() {
+		// Given
+		long nonExistMemberId = 999L;
+		String resourceType = "post";
+		Long resourceId = testPost.getId();
 
 		// When & Then
-		assertThrows(LikeException.class, () -> {
-			likeService.createLike(nonExistMemberId, postId);
-		}, LikeErrorCode.MEMBER_NOT_FOUND.getMessage());
+		assertThrows(SocialException.class, () -> {
+			likeService.toggleLike(nonExistMemberId, resourceType, resourceId);
+		});
 	}
 
 	@Test
-	@DisplayName("4. 존재하지 않는 게시물 좋아요 요청 테스트")
-	public void t004() {
+	@DisplayName("4. 존재하지 않는 리소스에 좋아요 요청 테스트")
+	public void nonExistentResourceToggleLike() {
 		// Given
-		Long memberId = testMember.getId();
-		Long nonExistPostId = 999L;
+		long memberId = testMember.getId();
+		String resourceType = "post";
+		Long nonExistResourceId = 999L;
 
 		// When & Then
-		assertThrows(LikeException.class, () -> {
-			likeService.createLike(memberId, nonExistPostId);
-		}, LikeErrorCode.POST_NOT_FOUND.getMessage());
+		assertThrows(SocialException.class, () -> {
+			likeService.toggleLike(memberId, resourceType, nonExistResourceId);
+		});
 	}
 
 	@Test
-	@DisplayName("5. 좋아요 중복 적용 테스트")
-	public void t005() {
-		// Given First
-		Long firstMemberId = testMember.getId();
-		Long firstPostId = testPost.getId();
-
-		// When First
-		CreateLikeResponse createResponse = likeService.createLike(firstMemberId, firstPostId);
-
-		// Then First
-		assertNotNull(createResponse);
-
-		// Given Second
-		Long secondMemberId = createResponse.memberId();
-		Long secondPostId = createResponse.postId();
-
-		// When & Then Second
-		assertThrows(LikeException.class, () -> {
-			likeService.createLike(secondMemberId, secondPostId);
-		}, LikeErrorCode.ALREADY_LIKED.getMessage());
-
-		// When Third
-		Optional<PostEntity> post = postRepository.findById(secondPostId);
-
-		// Then Third
-		assertTrue(post.isPresent());
-		assertEquals(1, post.get().getLikeCount());
-	}
-
-	@Test
-	@DisplayName("6. 적용되지 않은 좋아요 취소 테스트")
-	public void t006() {
-		// Given
-		Long nonExistLikeId = 999L;
-		Long memberId = testMember.getId();
-		Long postId = testPost.getId();
-
-		// When & Then
-		assertThrows(LikeException.class, () -> {
-			likeService.deleteLike(nonExistLikeId, memberId, postId);
-		}, LikeErrorCode.LIKE_NOT_FOUND.getMessage());
-	}
-
-	@Test
-	@DisplayName("7. 좋아요 취소 요청시 다른 유저가 요청하는 테스트")
-	public void t007() {
-		// Given First
-		Long firstMemberId = testMember.getId();
-		Long firstPostid = testPost.getId();
-
-		// When First
-		CreateLikeResponse createResponse = likeService.createLike(firstMemberId, firstPostid);
-
-		// Then First
-		assertNotNull(createResponse);
-
-		// Given Second
-		Long likeId = createResponse.likeId();
-		Long anotherMemberId = 999L;
-		Long secondPostId = createResponse.postId();
-
-		// When & Then Second
-		assertThrows(LikeException.class, () -> {
-			likeService.deleteLike(likeId, anotherMemberId, secondPostId);
-		}, LikeErrorCode.MEMBER_MISMATCH.getMessage());
-	}
-
-	@Test
-	@DisplayName("8. 다른 게시물 번호의 좋아요 삭제를 요청하는 테스트")
-	public void t008() {
-		// Given First
-		Long firstMemberId = testMember.getId();
-		Long firstPostid = testPost.getId();
-
-		// When First
-		CreateLikeResponse createResponse = likeService.createLike(firstMemberId, firstPostid);
-
-		// Then First
-		assertNotNull(createResponse);
-
-		// Given Second
-		Long likeId = createResponse.likeId();
-		Long memberId = createResponse.memberId();
-		Long anotherPostId = 999L;
-
-		// When & Then Second
-		assertThrows(LikeException.class, () -> {
-			likeService.deleteLike(likeId, memberId, anotherPostId);
-		}, LikeErrorCode.MEMBER_MISMATCH.getMessage());
-	}
-
-	@Test
-	@DisplayName("9. 자신의 게시물에 좋아요를 요청하는 테스트")
-	public void t009() {
-		// Given First
+	@DisplayName("5. 자신의 컨텐츠에 좋아요 요청 테스트")
+	public void toggleLikeOnOwnContent() {
+		// Given - testMember가 작성한 게시물 생성
 		PostEntity myPost = PostEntity.builder()
-			.content("testContent")
-			.member(testMember)
+			.content("myContent")
+			.member(testMember)  // 본인이 작성한 게시물
 			.build();
-		postRepository.save(myPost);
+		myPost = postRepository.save(myPost);
 
-		Long memberId = testMember.getId();
-		Long postId = 2L; // myPost 의 memberId
+		long memberId = testMember.getId();
+		String resourceType = "post";
+		Long resourceId = myPost.getId();
 
 		// When & Then
-		assertThrows(LikeException.class, () -> {
-			likeService.createLike(memberId, postId);
-		}, LikeErrorCode.CANNOT_LIKE_SELF.getMessage());
+		assertThrows(SocialException.class, () -> {
+			likeService.toggleLike(memberId, resourceType, resourceId);
+		}, "자신의 컨텐츠에는 좋아요를 할 수 없습니다.");
+	}
+
+	@Test
+	@DisplayName("6. 다양한 리소스 타입에 대한 좋아요 토글 테스트")
+	public void toggleLikeForDifferentResourceTypes() {
+		// Given
+		long memberId = testMember.getId();
+		Long resourceId = testPost.getId();
+
+		// When - 댓글에 좋아요
+		LikeToggleResponse commentResponse = likeService.toggleLike(memberId, "comment", resourceId);
+
+		// Then
+		assertTrue(commentResponse.isLiked());
+		assertEquals(1L, commentResponse.likeCount());
+
+		// When - 대댓글에 좋아요
+		LikeToggleResponse replyResponse = likeService.toggleLike(memberId, "reply", resourceId);
+
+		// Then
+		assertTrue(replyResponse.isLiked());
+		assertEquals(1L, replyResponse.likeCount());
 	}
 }
-*/
