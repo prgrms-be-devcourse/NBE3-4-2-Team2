@@ -155,7 +155,7 @@ public class FollowControllerTest {
 		// Then
 		resultActions.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("사용자 정보를 찾을 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("응답측 클라이언트 검증에 실패했습니다."));
 	}
 
 	@Test
@@ -272,9 +272,9 @@ public class FollowControllerTest {
 			.accept(MediaType.APPLICATION_JSON));
 
 		// Then Second
-		resultActions.andExpect(status().isForbidden())
+		resultActions.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("해당 작업을 수행할 권한이 없습니다."));
+			.andExpect(jsonPath("$.message").value("요청한 정보가 일치하지 않습니다."));
 	}
 
 	@Test
@@ -292,7 +292,7 @@ public class FollowControllerTest {
 
 	@Test
 	@DisplayName("9. 자기 자신을 언팔로우 하는 테스트")
-	public void t09() throws Exception {
+	public void t009() throws Exception {
 		// Given
 		FollowEntity follow = FollowEntity.create(sender, sender);
 		followRepository.save(follow);

@@ -93,7 +93,7 @@ public class FollowService {
 			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "팔로우 확인에 실패했습니다."));
 
 		// 2. sender, receiver 검증
-		if (!follow.getSenderId().equals(senderId) && !follow.getReceiverId().equals(receiverId)) {
+		if (!follow.getSenderId().equals(senderId) || !follow.getReceiverId().equals(receiverId)) {
 			throw new SocialException(SocialErrorCode.DATA_MISMATCH);
 		}
 
