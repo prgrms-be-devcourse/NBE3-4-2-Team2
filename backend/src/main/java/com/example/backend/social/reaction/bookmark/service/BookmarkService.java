@@ -1,5 +1,7 @@
 package com.example.backend.social.reaction.bookmark.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +15,7 @@ import com.example.backend.entity.PostRepository;
 import com.example.backend.social.exception.SocialErrorCode;
 import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.reaction.bookmark.converter.BookmarkConverter;
+import com.example.backend.social.reaction.bookmark.dto.BookmarkListResponse;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
 
@@ -94,5 +97,26 @@ public class BookmarkService {
 		bookmarkRepository.delete(bookmark);
 
 		return BookmarkConverter.toDeleteResponse(bookmark);
+	}
+
+	/**
+	 * 회원의 모든 북마크 리스트를 가져오는 메서드
+	 * memberId를 받아 해당 회원의 북마크 목록 반환
+	 *
+	 * @param memberId
+	 * @return List<BookmarkListResponse> (DTO)
+	 */
+	@Transactional(readOnly = true)
+	public List<BookmarkListResponse> getBookmarkList(Long memberId) {
+		// 1. 멤버가 존재하는지 검증
+		if (!memberRepository.existsById(memberId)) {
+			throw new SocialException(SocialErrorCode.NOT_FOUND, "유저 정보를 확인할 수 없습니다.");
+		}
+
+		// 2. 해당 멤버의 북마크 목록 조회
+		List<BookmarkEntity> bookmarks = bookmarkRepository.findAllByMemberId(memberId);
+
+		// 3. DTO로 변환하여 반환
+		return BookmarkConverter.toBookmarkListResponseList(bookmarks);
 	}
 }
