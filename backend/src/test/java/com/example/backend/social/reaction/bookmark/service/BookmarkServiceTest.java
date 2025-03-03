@@ -2,6 +2,8 @@ package com.example.backend.social.reaction.bookmark.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import com.example.backend.entity.PostRepository;
 import com.example.backend.identity.member.service.MemberService;
 import com.example.backend.social.exception.SocialErrorCode;
 import com.example.backend.social.exception.SocialException;
+import com.example.backend.social.reaction.bookmark.dto.BookmarkListResponse;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
 
@@ -234,6 +237,72 @@ public class BookmarkServiceTest {
 			bookmarkService.deleteBookmark(bookmarkId, memberId, anotherPostId);
 		});
 		assertEquals(SocialErrorCode.DATA_MISMATCH, exception.getErrorCode());
+	}
+
+	@Test
+	@DisplayName("9. 북마크 리스트 조회 테스트")
+	public void t009() {
+		// Given - 북마크 여러 개 생성
+		Long memberId = testMember.getId();
+
+		// 첫 번째 북마크 생성
+		bookmarkService.createBookmark(memberId, testPost.getId());
+
+		// 두 번째 게시물 및 북마크 생성
+		PostEntity secondPost = PostEntity.builder()
+			.content("second test content")
+			.member(testMember)
+			.build();
+		secondPost = postRepository.save(secondPost);
+		bookmarkService.createBookmark(memberId, secondPost.getId());
+
+		// When
+		List<BookmarkListResponse> bookmarkList = bookmarkService.getBookmarkList(memberId);
+
+		// Then
+		assertNotNull(bookmarkList);
+		assertEquals(2, bookmarkList.size());
+
+		// 최신 북마크가 먼저 나오는지 확인 (createDate 기준 내림차순)
+		assertEquals(secondPost.getId(), bookmarkList.get(0).postId());
+		assertEquals(testPost.getId(), bookmarkList.get(1).postId());
+
+		// 각 응답의 내용 확인
+		for (BookmarkListResponse response : bookmarkList) {
+			assertNotNull(response.bookmarkId());
+			assertNotNull(response.postId());
+			assertNotNull(response.postContent());
+			assertNotNull(response.imageUrls());
+			assertNotNull(response.bookmarkedAt());
+		}
+	}
+
+	@Test
+	@DisplayName("10. 존재하지 않는 멤버의 북마크 리스트 조회 테스트")
+	public void t010() {
+		// Given
+		Long nonExistentMemberId = 99L;
+
+		// When & Then
+		SocialException exception = assertThrows(SocialException.class, () -> {
+			bookmarkService.getBookmarkList(nonExistentMemberId);
+		});
+		assertEquals(SocialErrorCode.NOT_FOUND, exception.getErrorCode());
+		assertEquals("유저 정보를 확인할 수 없습니다.", exception.getMessage());
+	}
+
+	@Test
+	@DisplayName("11. 북마크가 없는 멤버의 북마크 리스트 조회 테스트")
+	public void t011() {
+		// Given
+		Long memberId = testMember.getId();
+
+		// When
+		List<BookmarkListResponse> bookmarkList = bookmarkService.getBookmarkList(memberId);
+
+		// Then
+		assertNotNull(bookmarkList);
+		assertTrue(bookmarkList.isEmpty());
 	}
 }
 
