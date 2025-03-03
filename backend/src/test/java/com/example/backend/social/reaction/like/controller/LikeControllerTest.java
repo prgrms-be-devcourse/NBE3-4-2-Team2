@@ -12,12 +12,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.entity.CommentEntity;
+import com.example.backend.entity.CommentRepository;
 import com.example.backend.entity.LikeRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
@@ -35,6 +38,7 @@ import jakarta.persistence.EntityManager;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class LikeControllerTest {
 
 	@Autowired
@@ -68,6 +72,10 @@ public class LikeControllerTest {
 	private MemberEntity testMember;      // 좋아요 주체
 	private MemberEntity contentMember;   // 컨텐츠 작성 주체
 	private PostEntity testPost;
+	private CommentEntity testComment;
+	private CommentEntity testReply;
+	@Autowired
+	private CommentRepository commentRepository;
 
 	@BeforeEach
 	public void setup() {
@@ -79,7 +87,7 @@ public class LikeControllerTest {
 		// 시퀀스 초기화
 		entityManager.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate();
 		entityManager.createNativeQuery("ALTER TABLE post ALTER COLUMN id RESTART WITH 1").executeUpdate();
-		entityManager.createNativeQuery("ALTER TABLE like ALTER COLUMN id RESTART WITH 1").executeUpdate();
+		entityManager.createNativeQuery("ALTER TABLE likes ALTER COLUMN id RESTART WITH 1").executeUpdate();
 
 		// 테스트용 멤버 추가 (testMember는 좋아요를 누르는 주체)
 		testMember = memberService.join("testMember", "testPassword", "test@gmail.com");
@@ -93,6 +101,21 @@ public class LikeControllerTest {
 			.member(contentMember)  // contentMember가 작성
 			.build();
 		testPost = postRepository.save(testPost);
+
+		// 테스트용 댓글 추가
+		testComment = CommentEntity.builder()
+			.content("testComment")
+			.member(contentMember)
+			.build();
+		testComment = commentRepository.save(testComment);
+
+		// 테스트용 대댓글 추가
+		testComment = CommentEntity.builder()
+			.content("testComment")
+			.member(contentMember)
+			.parentNum(1L)
+			.build();
+		testComment = commentRepository.save(testComment);
 
 		// SecurityContext 설정
 		CustomUser securityUser = new CustomUser(testMember, null);
@@ -190,7 +213,7 @@ public class LikeControllerTest {
 			.accept(MediaType.APPLICATION_JSON));
 
 		// Then
-		resultActions.andExpect(status().isConflict())  // 충돌 상태코드 반환 예상
+		resultActions.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value("자신의 컨텐츠에는 좋아요를 할 수 없습니다."));
 	}
