@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.FollowEntity;
 import com.example.backend.entity.FollowRepository;
@@ -17,13 +18,12 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.global.event.FollowEventListener;
 import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.social.exception.SocialErrorCode;
+import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.follow.dto.CreateFollowResponse;
-import com.example.backend.social.follow.exception.FollowErrorCode;
-import com.example.backend.social.follow.exception.FollowException;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -60,24 +60,9 @@ public class FollowServiceTest {
 		entityManager.createNativeQuery("ALTER TABLE follow ALTER COLUMN id RESTART WITH 1").executeUpdate();
 
 		// 테스트용 Followee 멤버 추가
-		// MemberEntity member1 = MemberEntity.builder()
-		// 	.username("testSender")
-		// 	.email("testSender@gmail.com")
-		// 	.password("testPassword")
-		// 	.refreshToken(UUID.randomUUID().toString())
-		// 	.build();
-		// testSender = memberRepository.save(member1);
 		testSender = memberService.join("testSender","testPassword","testSender@gmail.com");
 
-
 		// 테스트용 Follower 멤버 추가
-		// MemberEntity member2 = MemberEntity.builder()
-		// 	.username("testReceiver")
-		// 	.email("testReceiver@gmail.com")
-		// 	.password("testPassword")
-		// 	.refreshToken(UUID.randomUUID().toString())
-		// 	.build();
-		// testReceiver = memberRepository.save(member2);
 		testReceiver = memberService.join("testReceiver","testPassword","testReceiver@gmail.com");
 
 	}
@@ -130,7 +115,7 @@ public class FollowServiceTest {
 
 		// Given Second
 		FollowEntity follow = followRepository.findById(createResponse.followId())
-			.orElseThrow(() -> new FollowException(FollowErrorCode.FOLLOW_NOT_FOUND));
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND));
 
 		// When & Then Second
 		followService.deleteFollow(
@@ -161,9 +146,12 @@ public class FollowServiceTest {
 		Long receiverId = testReceiver.getId();
 
 		// When & Then
-		assertThrows(FollowException.class, () -> {
+		SocialException exception = assertThrows(SocialException.class, () -> {
 			followService.createFollow(nonExistSenderId, receiverId);
-		}, FollowErrorCode.MEMBER_NOT_FOUND.getMessage());
+		});
+		assertEquals(SocialErrorCode.NOT_FOUND, exception.getErrorCode());
+		assertEquals("요청측 클라이언트 검증에 실패했습니다.", exception.getMessage());
+
 	}
 
 	@Test
@@ -174,9 +162,11 @@ public class FollowServiceTest {
 		Long nonExistReceiverId = 999L;
 
 		// When & Then
-		assertThrows(FollowException.class, () -> {
+		SocialException exception = assertThrows(SocialException.class, () -> {
 			followService.createFollow(senderId, nonExistReceiverId);
-		}, FollowErrorCode.MEMBER_NOT_FOUND.getMessage());
+		});
+		assertEquals(SocialErrorCode.NOT_FOUND, exception.getErrorCode());
+		assertEquals("응답측 클라이언트 검증에 실패했습니다.", exception.getMessage());
 	}
 
 	@Test
@@ -199,9 +189,9 @@ public class FollowServiceTest {
 		Long receiverId2 = createResponse.receiverId();
 
 		// When & Then Second
-		assertThrows(FollowException.class, () -> {
+		assertThrows(SocialException.class, () -> {
 			followService.createFollow(senderId2, receiverId2);
-		}, FollowErrorCode.ALREADY_FOLLOWED.getMessage());
+		}, SocialErrorCode.ALREADY_EXISTS.getMessage());
 
 		// When Third
 		MemberEntity sender = memberRepository.findById(senderId2)
@@ -228,9 +218,11 @@ public class FollowServiceTest {
 		Long receiverId = testReceiver.getId();
 
 		// When & Then First
-		assertThrows(FollowException.class, () -> {
+		SocialException exception = assertThrows(SocialException.class, () -> {
 			followService.deleteFollow(nonExistFollowId, senderId, receiverId);
-		}, FollowErrorCode.FOLLOW_NOT_FOUND.getMessage());
+		});
+		assertEquals(SocialErrorCode.NOT_FOUND, exception.getErrorCode());
+		assertEquals("팔로우 확인에 실패했습니다.", exception.getMessage());
 
 		// When Second
 		Long senderFollowerCount = testSender.getFollowerCount();
@@ -262,9 +254,9 @@ public class FollowServiceTest {
 		Long correctReceiverId = createResponse.receiverId();
 
 		// When & Then Second
-		assertThrows(FollowException.class, () -> {
+		assertThrows(SocialException.class, () -> {
 			followService.deleteFollow(followId, anotherSenderId, correctReceiverId);
-		}, FollowErrorCode.SENDER_MISMATCH.getMessage());
+		}, SocialErrorCode.DATA_MISMATCH.getMessage());
 	}
 
 	@Test
@@ -288,9 +280,9 @@ public class FollowServiceTest {
 		Long anotherReceiverId = 999L;
 
 		// When & Then Second
-		assertThrows(FollowException.class, () -> {
+		assertThrows(SocialException.class, () -> {
 			followService.deleteFollow(followId, correctSenderId, anotherReceiverId);
-		}, FollowErrorCode.RECEIVER_MISMATCH.getMessage());
+		}, SocialErrorCode.DATA_MISMATCH.getMessage());
 	}
 
 	@Test

@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
 import com.example.backend.identity.security.user.CustomUser;
+import com.example.backend.social.exception.SocialErrorCode;
+import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.follow.dto.CreateFollowResponse;
 import com.example.backend.social.follow.dto.DeleteFollowRequest;
 import com.example.backend.social.follow.dto.DeleteFollowResponse;
 import com.example.backend.social.follow.dto.MutualFollowResponse;
-import com.example.backend.social.follow.exception.FollowErrorCode;
-import com.example.backend.social.follow.exception.FollowException;
 import com.example.backend.social.follow.service.FollowService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * FollowController
- * "/likes" 로 들어오는 요청 처리 컨트롤러
+ * "/like" 로 들어오는 요청 처리 컨트롤러
  *
  * @author Metronon
  * @since 2025-01-30
@@ -56,7 +56,7 @@ public class FollowController {
 		@AuthenticationPrincipal CustomUser securityUser
 	) {
 		if (receiverId.equals(securityUser.getId())) {
-			throw new FollowException(FollowErrorCode.CANNOT_FOLLOW_SELF);
+			throw new SocialException(SocialErrorCode.CANNOT_PERFORM_ON_SELF);
 		}
 		CreateFollowResponse createResponse = followService.createFollow(
 			securityUser.getId(), receiverId
@@ -78,7 +78,7 @@ public class FollowController {
 		@PathVariable Long receiverId
 	) {
 		if (receiverId.equals(securityUser.getId())) {
-			throw new FollowException(FollowErrorCode.CANNOT_UNFOLLOW_SELF);
+			throw new SocialException(SocialErrorCode.CANNOT_PERFORM_ON_SELF);
 		}
 		DeleteFollowResponse deleteResponse = followService.deleteFollow(
 			deleteRequest.followId(), securityUser.getId(), receiverId

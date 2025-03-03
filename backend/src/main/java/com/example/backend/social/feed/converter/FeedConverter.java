@@ -22,7 +22,7 @@ public class FeedConverter {
 			.imgUrlList(feed.getImageUrlList())
 			.postId(feed.getPost().getId())
 			.content(feed.getPost().getContent())
-			.likesCount(feed.getPost().getLikeCount())
+			.likeCount(feed.getPost().getLikeCount())
 			.commentCount(feed.getCommentCount())
 			.createdDate(feed.getPost().getCreateDate())
 			.hashTagList(feed.getHashTagList())

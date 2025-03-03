@@ -42,7 +42,7 @@ class NotificationServiceTest {
 		Long memberId = 1L;
 		Long targetId = 2L;
 		NotificationType type = NotificationType.LIKE;
-		String message = "A님이 좋아요를 누르셨습니다.";
+		String message = "A님이 당신의 게시물에 좋아요를 눌렀습니다.";
 
 		// when
 		notificationService.createAndSendNotification(memberId, targetId, type, message);
@@ -66,7 +66,7 @@ class NotificationServiceTest {
 		Long memberId = 1L;
 		Long targetId = 2L;
 		NotificationType type = NotificationType.LIKE;
-		String message = "A님이 좋아요를 누르셨습니다.";
+		String message = "A님이 당신의 게시물에 좋아요를 눌렀습니다.";
 
 		NotificationEntity notification = NotificationEntity.create(message, memberId, type, targetId);
 		NotificationEntity newNotification = notificationRepository.save(notification);
