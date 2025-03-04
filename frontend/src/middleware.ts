@@ -20,5 +20,6 @@ export const config = {
     '/notice/:path*',
     '/search/:path*',
     // 보호하고 싶은 다른 경로들...
+    '/',
   ]
 } 
