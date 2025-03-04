@@ -19,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.BookmarkRepository;
 import com.example.backend.entity.MemberEntity;
@@ -33,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -164,7 +164,7 @@ public class BookmarkControllerTest {
 		// Then
 		resultActions.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("게시물 정보를 찾을 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("게시물 정보를 확인할 수 없습니다."));
 	}
 
 	@Test
@@ -187,7 +187,7 @@ public class BookmarkControllerTest {
 		// Then
 		resultActions.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("이미 등록된 북마크 입니다."));
+			.andExpect(jsonPath("$.message").value("이미 처리된 요청입니다."));
 	}
 
 	@Test
@@ -209,7 +209,7 @@ public class BookmarkControllerTest {
 		// Then
 		resultActions.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("북마크 정보를 찾을 수 없습니다."));
+			.andExpect(jsonPath("$.message").value("북마크가 존재하지 않습니다."));
 	}
 
 	@Test
@@ -258,7 +258,7 @@ public class BookmarkControllerTest {
 		// Then Second
 		resultActions2.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("북마크에 접근할 권한이 없습니다."));
+			.andExpect(jsonPath("$.message").value("해당 작업을 수행할 권한이 없습니다."));
 	}
 
 	@Test
@@ -305,7 +305,68 @@ public class BookmarkControllerTest {
 		// Then Second
 		resultActions.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.message").value("북마크 정보와 요청 게시물 정보가 다릅니다."));
+			.andExpect(jsonPath("$.message").value("요청한 정보가 일치하지 않습니다."));
+	}
+
+	@Test
+	@DisplayName("8. 북마크 리스트 조회 테스트")
+	public void t008() throws Exception {
+		// Given - 북마크 여러 개 생성
+		// 첫 번째 북마크 생성
+		mockMvc.perform(post("/api-v1/bookmark/{postId}", testPost.getId())
+				.header("Authorization", "Bearer " + accessToken)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk());
+
+		// 두 번째 게시물 생성 및 북마크
+		PostEntity secondPost = PostEntity.builder()
+			.content("second test content")
+			.member(testMember)
+			.build();
+		secondPost = postRepository.save(secondPost);
+
+		mockMvc.perform(post("/api-v1/bookmark/{postId}", secondPost.getId())
+				.header("Authorization", "Bearer " + accessToken)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk());
+
+		// When - 북마크 리스트 조회
+		ResultActions resultActions = mockMvc.perform(get("/api-v1/bookmark/list")
+			.header("Authorization", "Bearer " + accessToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON));
+
+		// Then - 응답 검증
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.message").value("북마크 목록을 성공적으로 가져왔습니다."))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data.length()").value(2)) // 북마크 2개 검증
+			.andExpect(jsonPath("$.data[0].bookmarkId").exists())
+			.andExpect(jsonPath("$.data[0].postId").exists())
+			.andExpect(jsonPath("$.data[0].postContent").exists())
+			.andExpect(jsonPath("$.data[0].imageUrls").exists())
+			.andExpect(jsonPath("$.data[0].bookmarkedAt").exists());
+	}
+
+	@Test
+	@DisplayName("9. 북마크가 없는 유저의 북마크 리스트 조회 테스트")
+	public void t009() throws Exception {
+		// Given - 아무 북마크도 추가하지 않은 상태
+
+		// When - 북마크 리스트 조회
+		ResultActions resultActions = mockMvc.perform(get("/api-v1/bookmark/list")
+			.header("Authorization", "Bearer " + accessToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.accept(MediaType.APPLICATION_JSON));
+
+		// Then - 빈 리스트 검증
+		resultActions.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.message").value("북마크 목록을 성공적으로 가져왔습니다."))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data.length()").value(0)); // 빈 배열
 	}
 }
-

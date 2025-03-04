@@ -248,4 +248,3 @@ db_dev.trace.db
 /out/
 /generated/
 /src/main/generated/
-**/Q*.java

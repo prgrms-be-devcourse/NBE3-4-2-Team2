@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useRef } from "react";
@@ -35,12 +36,16 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   const handleLike = (e: React.MouseEvent): void => {
     e.stopPropagation(); // 이벤트 전파 중지
     setIsLiked(!isLiked);
+    console.log(isLiked ? "좋아요를 누릅니다." : "좋아요를 취소합니다.");
+
     // API 호출은 여기에 구현
   };
 
   // 북마크 기능
   const handleBookmark = (e: React.MouseEvent): void => {
     e.stopPropagation(); // 이벤트 전파 중지
+
+    console.log(isBookmarked ? "북마크를 추가합니다." : "북마크를 취소합니다.");
     setIsBookmarked(!isBookmarked);
     // API 호출은 여기에 구현
   };
@@ -48,7 +53,23 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   // 댓글 버튼 클릭 시 상세 페이지로 이동
   const handleCommentClick = (e: React.MouseEvent): void => {
     e.stopPropagation(); // 이벤트 전파 중지
+    navigateToDetail();
+  };
+
+  // 피드 아이템 클릭 시 상호작용 시 이곳에서 처리
+  const handleFeedClick = (): void => {
+    //navigateToDetail();
+  };
+
+  // 상세 페이지 이동 함수
+  const navigateToDetail = (): void => {
+    console.log("상세 페이지로 이동합니다.");
     router.push(`/feed/${feed.postId}`);
+  };
+
+  const handleProfileImage = (e: React.MouseEvent): void => {
+    e.stopPropagation();
+    console.log("프로필로 이동합니다." + feed.authorId);
   };
 
   // 이미지 슬라이더 이동
@@ -81,11 +102,6 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
     setShowAllContent(!showAllContent);
   };
 
-  // 피드 아이템 클릭 시 상세 페이지로 이동
-  const handleFeedClick = (): void => {
-    router.push(`/feed/${feed.postId}`);
-  };
-
   // 날짜 포맷팅
   const formattedDate = feed.createdDate ? formatDate(feed.createdDate) : "";
 
@@ -112,17 +128,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
     >
       {/* 작성자 정보 */}
       <div className="flex items-center justify-between p-3">
-        <div className="flex items-center">
+        <div className="flex items-center" onClick={handleProfileImage}>
           <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0"></div>
           <span className="ml-2 font-medium text-sm">{feed.authorName}</span>
-        </div>
-        <div>
-          <button
-            className="text-gray-500 px-1"
-            onClick={(e) => e.stopPropagation()}
-          >
-            ⋮
-          </button>
         </div>
       </div>
 
