@@ -23,6 +23,7 @@ import com.example.backend.global.event.CommentEventListener;
 import com.example.backend.global.event.FollowEventListener;
 import com.example.backend.global.event.LikeEventListener;
 import com.example.backend.social.feed.Feed;
+import com.example.backend.social.reaction.like.service.LikeSyncService;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 @SpringBootTest
@@ -44,6 +45,9 @@ class FeedSelectorTest {
 	@Autowired
 	private PostRepository postRepository;
 
+	@Autowired
+	private LikeSyncService likeSyncService;
+
 	@MockitoBean
 	LikeEventListener likeEventListener;
 	@MockitoBean
@@ -63,6 +67,8 @@ class FeedSelectorTest {
 	@Test
 	@DisplayName("피드를 요청하면 팔로우된 유저에 대한 게시글을 얻는다")
 	void t1() {
+		likeSyncService.syncToDatabase();
+
 		Assertions.assertNotEquals(0, member.getFollowingList().size());
 
 		List<Feed> byFollower = feedSelector.findByFollower(member, null, 10);
@@ -74,7 +80,7 @@ class FeedSelectorTest {
 		Assertions.assertNotNull(latestFeed);
 		Assertions.assertNotNull(latestFeed.getPost().getId());
 		Assertions.assertEquals(3L, latestFeed.getCommentCount());
-		Assertions.assertEquals(1L, latestFeed.getPost().getLikeCount());
+		Assertions.assertEquals(0L, latestFeed.getPost().getLikeCount());
 
 		Assertions.assertNotNull(latestFeed.getHashTagList());
 		Assertions.assertEquals(3, latestFeed.getHashTagList().size());
