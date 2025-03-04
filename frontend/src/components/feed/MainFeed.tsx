@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import FeedItem from "./FeedItem";
 import { components } from "../../lib/backend/apiV1/schema";
+import client from "@/lib/backend/client";
 
 // 타입 정의
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
@@ -96,15 +97,15 @@ export default function MainFeed() {
       queryParams.append("maxSize", requestData.maxSize.toString());
 
       // API 호출 - GET 요청으로 쿼리 파라미터 전달
-      const response = await fetch(
-        `http://localhost:8080/api-v1/feed?${queryParams.toString()}`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
+      const response = await client.GET("/api-v1/feed", {
+        params: {
+          query: { 
+            timestamp: requestData.timestamp,
+            lastPostId: requestData.lastPostId.toString(),
+            maxSize: requestData.maxSize.toString()
+          }
         }
-      );
+      });
 
       if (!response.ok) {
         throw new Error(`API 응답 오류: ${response.status}`);
