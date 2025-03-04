@@ -96,23 +96,23 @@ export default function MainFeed() {
       queryParams.append("lastPostId", requestData.lastPostId.toString());
       queryParams.append("maxSize", requestData.maxSize.toString());
 
-      // API 호출 - GET 요청으로 쿼리 파라미터 전달
+      // API 호출 - GET 요청으로 쿼리 파라미터 전달 (백엔드 서버 주소 사용)
       const response = await client.GET("/api-v1/feed", {
         params: {
-          query: { 
+          query: {
             timestamp: requestData.timestamp,
             lastPostId: requestData.lastPostId.toString(),
-            maxSize: requestData.maxSize.toString()
-          }
-        }
+            maxSize: requestData.maxSize.toString(),
+          },
+        },
       });
 
-      if (!response.ok) {
-        throw new Error(`API 응답 오류: ${response.status}`);
+      if (!response.data) {
+        throw new Error(`API 응답 오류: ${response.error}`);
       }
 
       // 응답 데이터 반환
-      return await response.json();
+      return await response.data;
     } catch (error) {
       console.error("API 호출 중 오류 발생:", error);
       throw error;
@@ -125,17 +125,29 @@ export default function MainFeed() {
       setLoading(true);
 
       // 처음 요청하는 경우: timestamp에는 현재 시간, lastPostId에는 0을 넣음
-      const now = new Date().toISOString(); // ISO 문자열 형식 (LocalDateTime과 호환)
+      // Java LocalDateTime 형식에 맞는 날짜 문자열 생성 (yyyy-MM-dd'T'HH:mm:ss)
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const seconds = String(now.getSeconds()).padStart(2, "0");
+
+      // LocalDateTime 형식에 맞는 포맷: "yyyy-MM-dd'T'HH:mm:ss"
+      const date = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+
       const requestData: FeedRequest = {
-        timestamp: now,
+        timestamp: date,
         lastPostId: 0,
         maxSize: PAGE_SIZE,
       };
 
       const response = await fetchFeedsFromApi(requestData);
 
-      // 응답 데이터 처리
-      const apiFeeds = response.feedList || [];
+      // 응답 데이터 처리 - 수정된 응답 구조에 맞춤
+      const apiFeeds = response.data?.feedList || [];
+      console.log(apiFeeds);
 
       // ID 추적 세트에 추가
       apiFeeds.forEach((feed: FeedInfoResponse) => {
@@ -155,6 +167,13 @@ export default function MainFeed() {
         setLastTimestamp(lastFeed.createdDate);
         setLastPostId(lastFeed.postId);
       } else {
+        // 응답에서 받은 lastTimestamp와 lastPostId 사용
+        if (response.data?.lastTimestamp) {
+          setLastTimestamp(response.data.lastTimestamp);
+        }
+        if (response.data?.lastPostId !== undefined) {
+          setLastPostId(response.data.lastPostId);
+        }
         // 피드가 없는 경우 더 불러올 내용 없음
         setHasMore(false);
       }
@@ -186,8 +205,8 @@ export default function MainFeed() {
 
         const response = await fetchFeedsFromApi(requestData);
 
-        // 응답 데이터 처리
-        const newApiFeeds = response.feedList || [];
+        // 응답 데이터 처리 - 수정된 응답 구조에 맞춤
+        const newApiFeeds = response.data?.feedList || [];
 
         if (newApiFeeds.length > 0) {
           // 중복 데이터 필터링
@@ -211,6 +230,14 @@ export default function MainFeed() {
             const lastFeed = filteredFeeds[filteredFeeds.length - 1];
             setLastTimestamp(lastFeed.createdDate);
             setLastPostId(lastFeed.postId);
+          } else {
+            // 응답에서 받은 lastTimestamp와 lastPostId 사용
+            if (response.data?.lastTimestamp) {
+              setLastTimestamp(response.data.lastTimestamp);
+            }
+            if (response.data?.lastPostId !== undefined) {
+              setLastPostId(response.data.lastPostId);
+            }
           }
 
           // 응답에서 받은 피드 리스트가 비어있지 않으면 더 불러올 데이터가 있다고 판단
