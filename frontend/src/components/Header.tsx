@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { logout } from '@/lib/auth';
+import { Globe2 } from 'lucide-react';
 
 export function Header() {
   const { isAuthenticated, logout: clearAuth } = useAuth();
@@ -13,7 +14,7 @@ export function Header() {
     try {
       await logout();
       clearAuth();
-      router.replace('/login');
+      router.replace('/');
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -21,7 +22,10 @@ export function Header() {
 
   return (
     <div className="flex justify-between items-center px-4 py-4 border-b">
-      <Link href="/" className="text-xl font-bold">InstaKgram</Link>
+      <Link href="/" className="text-2xl font-bold flex items-center">
+        <Globe2 className="mr-2 text-blue-600" />
+        <span>InstaKgram</span>
+      </Link>
       <div className="flex gap-4">
         {isAuthenticated ? (
           <button onClick={handleLogout} className="hover:text-gray-600">
