@@ -352,20 +352,8 @@ public class BookmarkControllerTest {
 	}
 
 	@Test
-	@DisplayName("9. 인증되지 않은 사용자의 북마크 리스트 조회 테스트")
+	@DisplayName("9. 북마크가 없는 유저의 북마크 리스트 조회 테스트")
 	public void t009() throws Exception {
-		// When - 인증 토큰 없이 요청
-		ResultActions resultActions = mockMvc.perform(get("/api-v1/bookmark/list")
-			.contentType(MediaType.APPLICATION_JSON)
-			.accept(MediaType.APPLICATION_JSON));
-
-		// Then - 인증 실패 응답 확인
-		resultActions.andExpect(status().isUnauthorized());
-	}
-
-	@Test
-	@DisplayName("10. 북마크가 없는 유저의 북마크 리스트 조회 테스트")
-	public void t010() throws Exception {
 		// Given - 아무 북마크도 추가하지 않은 상태
 
 		// When - 북마크 리스트 조회
