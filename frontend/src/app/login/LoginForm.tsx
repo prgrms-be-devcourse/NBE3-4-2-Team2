@@ -1,31 +1,53 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import client from "@/lib/backend/client";
+import { useAuth } from '@/contexts/AuthContext'
+import { useEffect } from "react";
+import { loginWithCredentials, loginWithRefreshToken } from '@/lib/auth';
 
 export default function LoginForm() {
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
 
-    const response = await client.POST("/api-v1/members/login", {
-      body: {
-        username: form.username.value,
-        password: form.password.value,
-      },
-    });
-
-    if (!response.response.ok) {
+    try {
+      const accessToken = await loginWithCredentials(
+        form.username.value,
+        form.password.value
+      );
+      
+      if (accessToken) {
+        login(accessToken);
+        router.replace("/");
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
       alert("로그인에 실패했습니다.");
-      return;
-    }
-
-    if (response.data) {
-      router.replace("/");
     }
   };
+
+  useEffect(() => {
+    const isOAuth2 = new URLSearchParams(window.location.search).has('oauth2');
+    
+    if (isOAuth2) {
+      const handleOAuth2Login = async () => {
+        try {
+          const accessToken = await loginWithRefreshToken();
+          if (accessToken) {
+            login(accessToken);
+            router.replace('/');
+          }
+        } catch (error) {
+          console.error('OAuth2 login failed:', error);
+        }
+      };
+      
+      handleOAuth2Login();
+    }
+  }, [router, login]);
 
   return (
     <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-md">
