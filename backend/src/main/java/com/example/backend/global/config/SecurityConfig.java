@@ -2,14 +2,11 @@ package com.example.backend.global.config;
 
 import static com.example.backend.global.config.SpringDocConfig.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -19,16 +16,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.example.backend.identity.security.config.CustomUsernamePasswordAuthenticationFilter;
 import com.example.backend.identity.security.config.handler.CustomAccessDeniedHandler;
 import com.example.backend.identity.security.config.handler.CustomAuthenticationEntryPoint;
-import com.example.backend.identity.security.config.handler.CustomAuthenticationFailureHandler;
-import com.example.backend.identity.security.config.handler.CustomAuthenticationSuccessHandler;
-import com.example.backend.identity.security.config.handler.CustomLogoutSuccessHandler;
+import com.example.backend.identity.security.config.handler.OAuth2FailureHandler;
+import com.example.backend.identity.security.config.handler.OAuth2SuccessHandler;
 import com.example.backend.identity.security.jwt.JwtAuthenticationFilter;
 import com.example.backend.identity.security.oauth.service.CustomOAuth2UserService;
 
@@ -50,9 +44,8 @@ public class SecurityConfig {
 	private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 	private final CustomAccessDeniedHandler accessDeniedHandler;
 	private final CustomOAuth2UserService oAuth2UserService;
-	private final CustomAuthenticationSuccessHandler authenticationSuccessHandler;
-	private final CustomAuthenticationFailureHandler authenticationFailureHandler;
-	private final CustomLogoutSuccessHandler logoutSuccessHandler;
+	private final OAuth2SuccessHandler authenticationSuccessHandler;
+	private final OAuth2FailureHandler authenticationFailureHandler;
 
 
 	@Bean
