@@ -136,5 +136,15 @@ public class MemberController {
 				),
 				"%s님의 정보 입니다.".formatted(member.getUsername()));
 	}
+
+	@GetMapping("/auth/refresh")
+	@ResponseStatus(HttpStatus.OK)
+	@Operation(summary = "액세스 토큰 재발급")
+	public RsData<Void> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+		return RsData.success(
+			null,
+			"액세스 토큰이 재발급 되었습니다.");
+	}
+
 }
 
