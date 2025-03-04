@@ -45,7 +45,7 @@ class AllEventListenerTest {
 
 		// then
 		verify(notificationService, times(1))
-			.createAndSendNotification(1L, 1L, NotificationType.LIKE, "A님이 게시물을 좋아합니다.");
+			.createAndSendNotification(1L, 1L, NotificationType.LIKE, "A님이 당신의 게시물에 좋아요를 눌렀습니다.");
 	}
 
 	@Test
@@ -86,7 +86,7 @@ class AllEventListenerTest {
 			.hasMessageContaining("알림 전송에 실패하였습니다.");
 
 		verify(notificationService, times(1))
-			.createAndSendNotification(1L, 1L, NotificationType.LIKE, "A님이 게시물을 좋아합니다.");
+			.createAndSendNotification(1L, 1L, NotificationType.LIKE, "A님이 당신의 게시물에 좋아요를 눌렀습니다.");
 	}
 
 	@Test
@@ -118,7 +118,7 @@ class AllEventListenerTest {
 	}
 
 	private LikeEvent getLikeEvent() {
-		return LikeEvent.create("A", 1L, 1L);
+		return LikeEvent.create("A", 1L, 1L, "POST");
 	}
 
 	private FollowEvent getFollowEvent() {

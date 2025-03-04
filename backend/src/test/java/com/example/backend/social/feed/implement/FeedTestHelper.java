@@ -18,7 +18,7 @@ import com.example.backend.entity.HashtagEntity;
 import com.example.backend.entity.HashtagRepository;
 import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.ImageRepository;
-import com.example.backend.entity.LikesRepository;
+import com.example.backend.entity.LikeRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
@@ -29,7 +29,7 @@ import com.example.backend.global.event.CommentEventListener;
 import com.example.backend.global.event.FollowEventListener;
 import com.example.backend.global.event.LikeEventListener;
 import com.example.backend.identity.member.service.MemberService;
-import com.example.backend.social.reaction.likes.service.LikesService;
+import com.example.backend.social.reaction.like.service.LikeService;
 
 import jakarta.persistence.EntityManager;
 
@@ -52,7 +52,7 @@ public class FeedTestHelper {
 	// private ImageRepository imageRepository;
 	//
 	// @Autowired
-	// private LikesRepository likesRepository;
+	// private LikeRepository likeRepository;
 	//
 	// @Autowired
 	// private CommentRepository commentRepository;
@@ -61,7 +61,7 @@ public class FeedTestHelper {
 	// private FollowRepository followRepository;
 	//
 	// @Autowired
-	// private LikesService likesService;
+	// private LikeService likeService;
 	//
 	// @Autowired
 	// EntityManager entityManager;
@@ -166,7 +166,7 @@ public class FeedTestHelper {
 	// 	// 7. 좋아요 추가 (각 게시글에 첫 5명의 사용자가 좋아요)
 	// 	for (long i = 1; i <= 20; i++) {
 	// 		for (int j = 0; j < 5; j++) {
-	// 			likesService.createLike(i, posts.get(((int)(i % 20) * 5 + j)).getId());
+	// 			likeService.createLike(i, posts.get(((int)(i % 20) * 5 + j)).getId());
 	// 		}
 	// 	}
 	//

@@ -59,6 +59,11 @@ public class SecurityConfig {
 			new CustomUsernamePasswordAuthenticationFilter(authenticationManager, authenticationSuccessHandler, authenticationFailureHandler);
 
 		http
+			// ✅ H2 CONSOLE 허용
+			.headers(headers -> headers
+				.frameOptions(frameOptions -> frameOptions.disable()) // X-Frame-Options 비활성화
+			)
+
 			// ✅ 보안 관련 설정 (CSRF, CORS, 세션)
 			.csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화 (JWT 사용 시 불필요)
 			.cors(cors -> corsConfigurationSource()) // CORS 설정 적용
