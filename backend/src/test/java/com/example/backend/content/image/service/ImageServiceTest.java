@@ -184,4 +184,39 @@ class ImageServiceTest {
         verify(fileStorageService, times(2)).deleteFile(imageUrl);  // deleteFile이 두 번 호출되어야 함
         verify(imageRepository, times(1)).deleteAll(any());  // imageRepository의 deleteAll이 한 번 호출되어야 함
     }
+    @Test
+    @DisplayName("여러 이미지 업로드 후 각 URL 반환")
+    void t8() {
+        // Given
+        MockMultipartFile image1 = new MockMultipartFile("file", "image1.jpg", "image/jpeg", new byte[1]);
+        MockMultipartFile image2 = new MockMultipartFile("file", "image2.jpg", "image/jpeg", new byte[1]);
+        List<MultipartFile> images = Arrays.asList(image1, image2);
+
+        // 각 이미지에 대한 URL을 설정
+        String imageUrl1 = "http://example.com/image1.jpg";
+        String imageUrl2 = "http://example.com/image2.jpg";
+
+        // 파일 업로드 시 URL 반환을 Mocking
+        when(fileStorageService.uploadFile(image1)).thenReturn(imageUrl1);
+        when(fileStorageService.uploadFile(image2)).thenReturn(imageUrl2);
+
+        // ImageEntity 객체 생성 시 create 메서드 사용
+        ImageEntity imageEntity1 = ImageEntity.create(imageUrl1, post);
+        ImageEntity imageEntity2 = ImageEntity.create(imageUrl2, post);
+
+        // 이미지 저장 시 반환값 설정
+        when(imageRepository.save(any(ImageEntity.class)))
+            .thenReturn(imageEntity1)
+            .thenReturn(imageEntity2);
+
+        // When
+        List<ImageEntity> uploadedImages = imageService.uploadImages(post, images);
+
+        // Then
+        assertNotNull(uploadedImages);
+        assertEquals(2, uploadedImages.size());
+        assertEquals(imageUrl1, uploadedImages.get(0).getImageUrl());
+        assertEquals(imageUrl2, uploadedImages.get(1).getImageUrl());
+        verify(imageRepository, times(2)).save(any());  // imageRepository의 save가 두 번 호출되어야 함
+    }
 }

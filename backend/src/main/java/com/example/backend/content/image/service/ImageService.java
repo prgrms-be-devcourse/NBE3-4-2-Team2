@@ -1,8 +1,8 @@
 package com.example.backend.content.image.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Collections;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,5 +75,17 @@ public class ImageService {
 			.orElseThrow(() -> new RuntimeException("Image not found with id " + imageId));
 
 		return imageEntity.getImageUrl();  // ImageEntity에서 imageUrl만 반환
+	}
+	/**
+	 * 게시물에 연관된 모든 이미지 조회
+	 * @param postId 조회할 게시물 ID
+	 * @return 해당 게시물에 연관된 이미지 URL 리스트
+	 */
+	@Transactional(readOnly = true)
+	public List<String> getImagesByPostId(Long postId) {
+		List<ImageEntity> images = imageRepository.findAllByPostId(postId);
+		return images.stream()
+			.map(ImageEntity::getImageUrl)
+			.collect(Collectors.toList());
 	}
 }
