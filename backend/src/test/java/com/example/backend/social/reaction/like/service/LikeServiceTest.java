@@ -2,17 +2,21 @@ package com.example.backend.social.reaction.like.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.entity.CommentEntity;
+import com.example.backend.entity.CommentRepository;
 import com.example.backend.entity.LikeRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
@@ -38,6 +42,9 @@ public class LikeServiceTest {
 	private EntityManager entityManager;
 
 	@Autowired
+	private RedisTemplate<String, Object> redisTemplate;
+
+	@Autowired
 	private LikeService likeService;
 
 	@Autowired
@@ -55,9 +62,14 @@ public class LikeServiceTest {
 	@Autowired
 	private PostRepository postRepository;
 
+	@Autowired
+	private CommentRepository commentRepository;
+
 	private MemberEntity testMember;      // 좋아요 주체
 	private MemberEntity contentMember;   // 컨텐츠 작성 주체
 	private PostEntity testPost;
+	private CommentEntity testComment;
+	private CommentEntity testReply;
 
 	@Autowired
 	private MemberService memberService;
@@ -66,6 +78,7 @@ public class LikeServiceTest {
 	LikeEventListener likeEventListener;
 
 	@BeforeEach
+	@Transactional
 	public void setup() {
 		// 테스트 전에 데이터 초기화
 		likeRepository.deleteAll();
@@ -88,6 +101,41 @@ public class LikeServiceTest {
 			.member(contentMember)  // 컨텐츠 작성자는 contentMember
 			.build();
 		testPost = postRepository.save(post);
+
+		// 테스트용 댓글 추가
+		testComment = CommentEntity.builder()
+			.content("testComment")
+			.post(testPost)
+			.member(contentMember)
+			.ref(1L)
+			.step(0)
+			.refOrder(1)
+			.answerNum(1L)
+			.isDeleted(false)
+			.likeCount(0L)
+			.build();
+		testComment = commentRepository.save(testComment);
+
+		// 테스트용 대댓글 추가
+		testReply = CommentEntity.builder()
+			.content("testComment")
+			.post(testPost)
+			.member(contentMember)
+			.ref(1L)
+			.step(0)
+			.refOrder(1)
+			.answerNum(0L)
+			.parentNum(1L)
+			.isDeleted(false)
+			.likeCount(0L)
+			.build();
+		testReply = commentRepository.save(testReply);
+	}
+
+	@AfterEach
+	public void tearDown() {
+		// Redis 데이터 초기화
+		redisTemplate.getConnectionFactory().getConnection().flushDb();
 	}
 
 	@Test
@@ -188,17 +236,18 @@ public class LikeServiceTest {
 	public void t006() {
 		// Given
 		long memberId = testMember.getId();
-		Long resourceId = testPost.getId();
+		Long commentId = testComment.getId();
+		Long replyId = testReply.getId();
 
 		// When - 댓글에 좋아요
-		LikeToggleResponse commentResponse = likeService.toggleLike(memberId, "comment", resourceId);
+		LikeToggleResponse commentResponse = likeService.toggleLike(memberId, "comment", commentId);
 
 		// Then
 		assertTrue(commentResponse.isLiked());
 		assertEquals(1L, commentResponse.likeCount());
 
 		// When - 대댓글에 좋아요
-		LikeToggleResponse replyResponse = likeService.toggleLike(memberId, "reply", resourceId);
+		LikeToggleResponse replyResponse = likeService.toggleLike(memberId, "reply", replyId);
 
 		// Then
 		assertTrue(replyResponse.isLiked());

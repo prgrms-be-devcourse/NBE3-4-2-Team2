@@ -66,12 +66,12 @@ public class LikeRepositoryCustomImpl implements LikeRepositoryCustom {
 
 			// 새로운 좋아요 (삽입 필요)
 			List<LikeInfo> newLikes = likes.stream()
-				.filter(like -> like.createDate() != null) // getCreateDate() -> getCreatedAt()
+				.filter(like -> like.createDate() != null)
 				.collect(Collectors.toList());
 
 			// 기존 좋아요 (업데이트 필요)
 			List<LikeInfo> existingLikes = likes.stream()
-				.filter(like -> like.createDate() == null) // getCreateDate() -> getCreatedAt()
+				.filter(like -> like.createDate() == null)
 				.collect(Collectors.toList());
 
 			// 새 좋아요 일괄 삽입
@@ -90,7 +90,7 @@ public class LikeRepositoryCustomImpl implements LikeRepositoryCustom {
 
 	private int bulkInsertLikes(List<LikeInfo> newLikes, String resourceType) {
 		// Bulk insert 구현
-		String sql = "INSERT INTO likes (member_id, resource_id, resource_type, created_at, updated_at, is_liked) " +
+		String sql = "INSERT INTO likes (member_id, resource_id, resource_type, create_date, updated_date, is_liked) " +
 			"VALUES (?, ?, ?, ?, ?, ?)";
 
 		int[] result = jdbcTemplate.batchUpdate(
@@ -133,7 +133,7 @@ public class LikeRepositoryCustomImpl implements LikeRepositoryCustom {
 		}
 
 		sb.append("ELSE is_liked END, ");
-		sb.append("updated_at = CASE ");
+		sb.append("updated_date = CASE ");
 
 		for (int i = 0; i < existingLikes.size(); i++) {
 			LikeInfo likeInfo = existingLikes.get(i);
@@ -144,7 +144,7 @@ public class LikeRepositoryCustomImpl implements LikeRepositoryCustom {
 			params.add(Timestamp.valueOf(likeInfo.modifyDate()));
 		}
 
-		sb.append("ELSE updated_at END ");
+		sb.append("ELSE updated_date END ");
 		sb.append("WHERE (");
 
 		for (int i = 0; i < existingLikes.size(); i++) {

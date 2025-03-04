@@ -3,12 +3,14 @@ package com.example.backend.social.reaction.like.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +47,9 @@ public class LikeControllerTest {
 	private MockMvc mockMvc;
 
 	@Autowired
+	private RedisTemplate<String, Object> redisTemplate;
+
+	@Autowired
 	private ObjectMapper objectMapper;
 
 	@Autowired
@@ -78,6 +83,7 @@ public class LikeControllerTest {
 	private CommentRepository commentRepository;
 
 	@BeforeEach
+	@Transactional
 	public void setup() {
 		// 테스트 전에 데이터 초기화
 		likeRepository.deleteAll();
@@ -105,22 +111,42 @@ public class LikeControllerTest {
 		// 테스트용 댓글 추가
 		testComment = CommentEntity.builder()
 			.content("testComment")
+			.post(testPost)
 			.member(contentMember)
+			.ref(1L)
+			.step(0)
+			.refOrder(1)
+			.answerNum(1L)
+			.isDeleted(false)
+			.likeCount(0L)
 			.build();
 		testComment = commentRepository.save(testComment);
 
 		// 테스트용 대댓글 추가
-		testComment = CommentEntity.builder()
+		testReply = CommentEntity.builder()
 			.content("testComment")
+			.post(testPost)
 			.member(contentMember)
+			.ref(1L)
+			.step(0)
+			.refOrder(1)
+			.answerNum(0L)
 			.parentNum(1L)
+			.isDeleted(false)
+			.likeCount(0L)
 			.build();
-		testComment = commentRepository.save(testComment);
+		testReply = commentRepository.save(testReply);
 
 		// SecurityContext 설정
 		CustomUser securityUser = new CustomUser(testMember, null);
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
 		SecurityContextHolder.getContext().setAuthentication(authentication);
+	}
+
+	@AfterEach
+	public void tearDown() {
+		// Redis 데이터 초기화
+		redisTemplate.getConnectionFactory().getConnection().flushDb();
 	}
 
 	@Test
@@ -137,7 +163,7 @@ public class LikeControllerTest {
 		resultActions.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.message").value("좋아요가 성공적으로 적용되었습니다."))
-			.andExpect(jsonPath("$.data.liked").value(true))
+			.andExpect(jsonPath("$.data.isLiked").value(true))
 			.andExpect(jsonPath("$.data.likeCount").exists());
 	}
 
@@ -163,7 +189,7 @@ public class LikeControllerTest {
 		resultActions.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.message").value("좋아요가 성공적으로 취소되었습니다."))
-			.andExpect(jsonPath("$.data.liked").value(false))
+			.andExpect(jsonPath("$.data.isLiked").value(false))
 			.andExpect(jsonPath("$.data.likeCount").exists());
 	}
 
@@ -171,7 +197,7 @@ public class LikeControllerTest {
 	@DisplayName("3. 다양한 리소스 타입에 대한 좋아요 토글 테스트")
 	public void t003() throws Exception {
 		// 댓글에 대한 좋아요 테스트 (리소스 타입만 변경)
-		ResultActions commentLikeResult = mockMvc.perform(post("/api-v1/like/{id}", testPost.getId())
+		ResultActions commentLikeResult = mockMvc.perform(post("/api-v1/like/{id}", testComment.getId())
 			.header("Authorization", "Bearer " + accessToken)
 			.param("resourceType", "comment")
 			.contentType(MediaType.APPLICATION_JSON)
@@ -183,7 +209,7 @@ public class LikeControllerTest {
 			.andExpect(jsonPath("$.message").value("좋아요가 성공적으로 적용되었습니다."));
 
 		// 대댓글에 대한 좋아요 테스트
-		ResultActions replyLikeResult = mockMvc.perform(post("/api-v1/like/{id}", testPost.getId())
+		ResultActions replyLikeResult = mockMvc.perform(post("/api-v1/like/{id}", testReply.getId())
 			.header("Authorization", "Bearer " + accessToken)
 			.param("resourceType", "reply")
 			.contentType(MediaType.APPLICATION_JSON)
