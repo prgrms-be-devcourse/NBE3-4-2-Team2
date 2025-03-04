@@ -34,9 +34,34 @@ public class PostEntity extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private MemberEntity member;
 
+	@Column(nullable = false)
+	@Builder.Default
+	private Boolean isDeleted = false; // true : 삭제, false : 활성
+
 	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
 	@Builder.Default
 	private List<ImageEntity> images = new ArrayList<>();
+
+	@Column(nullable = false)
+	@Builder.Default
+	private Long likeCount = 0L; // 좋아요 초기 카운트 0 설정
+
+	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<CommentEntity> comments;
+
+	/**
+	 *  PostEntity create 메소드
+	 *
+	 * @param memberEntity 게시물 작성자 (MemberEntity 객체)
+	 * @return PostEntity 객체
+	 */
+	public static PostEntity create(String content, MemberEntity memberEntity) {
+		return PostEntity.builder()
+			.content(content)
+			.member(memberEntity)
+			.isDeleted(false)
+			.build();
+	}
 
 	/**
 	 * 게시물 내용 수정 메소드
@@ -55,24 +80,10 @@ public class PostEntity extends BaseEntity {
 	 * 게시물 삭제시 이미지 삭제 로직 추가
 	 * Soft Delete를 위해 삭제 여부를 변경하는 메소드 추가
 	 *
-	 * @param content 변경할 게시물 내용
 	 */
-	@Column(nullable = false)
-	private Boolean isDeleted = false; // true : 삭제, false : 활성
-
 	public void deleteContent() {
 		this.isDeleted = true;
-		this.images.clear(); // 관련 이미지 수동 삭제
-	}
-
-	/**
-	 * 이미지 삭제 메소드
-	 * 게시물에서 개별 이미지 삭제 로직
-	 *
-	 * @param image 삭제할 개별 이미지
-	 */
-	public void removeImage(ImageEntity image) {
-		this.images.remove(image);
+		// this.images.clear(); // 관련 이미지 수동 삭제
 	}
 
 	/**
@@ -83,6 +94,16 @@ public class PostEntity extends BaseEntity {
 	 */
 	public void addImage(ImageEntity image) {
 		this.images.add(image);
+	}
+
+	/**
+	 * 이미지 삭제 메소드
+	 * 게시물에서 개별 이미지 삭제 로직
+	 *
+	 * @param image 삭제할 개별 이미지
+	 */
+	public void removeImage(ImageEntity image) {
+		this.images.remove(image);
 	}
 
 }

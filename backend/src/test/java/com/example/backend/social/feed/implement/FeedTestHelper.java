@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.CommentEntity;
@@ -17,14 +18,20 @@ import com.example.backend.entity.HashtagEntity;
 import com.example.backend.entity.HashtagRepository;
 import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.ImageRepository;
-import com.example.backend.entity.LikesEntity;
-import com.example.backend.entity.LikesRepository;
+import com.example.backend.entity.LikeRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostHashtagEntity;
 import com.example.backend.entity.PostHashtagRepository;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.global.event.CommentEventListener;
+import com.example.backend.global.event.FollowEventListener;
+import com.example.backend.global.event.LikeEventListener;
+import com.example.backend.identity.member.service.MemberService;
+import com.example.backend.social.reaction.like.service.LikeService;
+
+import jakarta.persistence.EntityManager;
 
 @Component
 public class FeedTestHelper {
@@ -45,7 +52,7 @@ public class FeedTestHelper {
 	private ImageRepository imageRepository;
 
 	@Autowired
-	private LikesRepository likesRepository;
+	private LikeRepository likeRepository;
 
 	@Autowired
 	private CommentRepository commentRepository;
@@ -53,19 +60,34 @@ public class FeedTestHelper {
 	@Autowired
 	private FollowRepository followRepository;
 
+	@Autowired
+	private LikeService likeService;
+
+	@Autowired
+	EntityManager entityManager;
+	@Autowired
+	private MemberService memberService;
+
+	@MockitoBean
+	LikeEventListener likeEventListener;
+
+	@MockitoBean
+	FollowEventListener followEventListener;
+
+	@MockitoBean
+	CommentEventListener commentEventListener;
+
 	@Transactional
 	public void setData() {
+
+		entityManager.createNativeQuery("ALTER TABLE member ALTER COLUMN id RESTART WITH 1").executeUpdate();
+
 		// 1. 멤버 생성 (20명)
 		List<MemberEntity> members = new ArrayList<>();
 		for (int i = 1; i <= 20; i++) {
-			members.add(MemberEntity.builder()
-				.username("user" + i)
-				.email("user" + i + "@test.com")
-				.password("password" + i)
-				.refreshToken("refresh" + i)
-				.build());
+			MemberEntity member = memberService.join("user" + i, "password" + i, "user" + i + "@test.com");
+			members.add(member);
 		}
-		memberRepository.saveAll(members);
 		memberRepository.flush();
 
 		// 2. 해시태그 생성 (20개)
@@ -144,28 +166,23 @@ public class FeedTestHelper {
 		imageRepository.flush();
 
 		// 7. 좋아요 추가 (각 게시글에 첫 5명의 사용자가 좋아요)
-		List<LikesEntity> likes = new ArrayList<>();
-		for (PostEntity post : posts) {
-			for (int i = 0; i < 5; i++) {
-				likes.add(new LikesEntity(members.get(i), post));
+		for (long i = 1; i <= 20; i++) {
+			for (int j = 0; j < 5; j++) {
+				likeService.toggleLike(i,"post", posts.get(((int)(i % 20) * 5 + j)).getId());
 			}
 		}
-		likesRepository.saveAll(likes);
-		likesRepository.flush();
 
 		// 8. 댓글 추가 (각 게시글에 첫 3명의 사용자가 댓글)
 		List<CommentEntity> comments = new ArrayList<>();
 		for (PostEntity post : posts) {
 			for (int i = 0; i < 3; i++) {
-				comments.add(CommentEntity.builder()
-					.content("댓글 " + members.get(i).getUsername() + " -> " + post.getMember().getUsername())
-					.post(post)
-					.member(members.get(i))
-					.build());
+				comments.add(CommentEntity.createParentComment(
+					"댓글 " + members.get(i).getUsername() + " -> " + post.getMember().getUsername(),
+					post, members.get(i), 0L
+				));
 			}
 		}
 		commentRepository.saveAll(comments);
 		commentRepository.flush();
 	}
-
 }

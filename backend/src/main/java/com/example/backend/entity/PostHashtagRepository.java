@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface PostHashtagRepository extends JpaRepository<PostHashtagEntity, Long> {
+public interface PostHashtagRepository extends JpaRepository<PostHashtagEntity, Long>, PostHashtagRepositoryCustom {
 
 	/**
 	 * hashtagIds 를 기반으로 postHashtag 일괄 삭제
@@ -59,4 +59,5 @@ public interface PostHashtagRepository extends JpaRepository<PostHashtagEntity, 
 		WHERE ph.post.id = :id
 		""")
 	List<PostHashtagEntity> findByPostId(@Param("id") Long id);
+
 }
