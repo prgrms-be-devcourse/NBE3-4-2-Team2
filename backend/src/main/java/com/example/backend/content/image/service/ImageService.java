@@ -38,18 +38,17 @@ public class ImageService {
 	 */
 	@Transactional
 	public List<ImageEntity> uploadImages(PostEntity post, List<MultipartFile> images) {
-
 		if (images == null || images.isEmpty()) {
 			return Collections.emptyList();
 		}
 
 		return images.stream()
-				.map(file -> {
-					//서버(NGINX)에 파일 업로드 후 URL 반환
-					String imageUrl = fileStorageService.uploadFile(file);
-					//DB에 저장할 ImageEntity 생성
-					return ImageEntity.create(imageUrl, post);
-				})
+			.map(file -> {
+				// 서버(NGINX)에 파일 업로드 후 URL 반환
+				String imageUrl = fileStorageService.uploadFile(file);
+				// DB에 저장할 ImageEntity 생성
+				return ImageEntity.create(imageUrl, post);
+			})
 			.map(imageRepository::save)
 			.collect(Collectors.toList());
 	}
@@ -65,4 +64,16 @@ public class ImageService {
 		imageRepository.deleteAll(images);
 	}
 
+	/**
+	 * 이미지 단건 조회
+	 * @param imageId 조회할 이미지 ID
+	 * @return 조회된 이미지 URL
+	 */
+	@Transactional(readOnly = true)
+	public String getImageUrlById(Long imageId) {
+		ImageEntity imageEntity = imageRepository.findById(imageId)
+			.orElseThrow(() -> new RuntimeException("Image not found with id " + imageId));
+
+		return imageEntity.getImageUrl();  // ImageEntity에서 imageUrl만 반환
+	}
 }
