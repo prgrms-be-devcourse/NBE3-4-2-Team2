@@ -195,20 +195,21 @@ public class GlobalExceptionHandler {
 			.body(response);
 	}
 
-	@ExceptionHandler(AuthenticationException.class)
-	public ResponseEntity<RsData<?>> handleAuthenticationException(AuthenticationException ex) {
-		RsData<?> response = RsData.error(null, "인증 정보가 일치하지 않습니다.");
-		return ResponseEntity
-			.status(HttpStatus.UNAUTHORIZED)
-			.body(response);
-	}
-
-	@ExceptionHandler(AccessDeniedException.class)
-	public ResponseEntity<RsData<?>> handleAccessDeniedException(AccessDeniedException ex) {
-		RsData<?> response = RsData.error(null, "접근 권한이 없습니다..");
-		return ResponseEntity
-			.status(HttpStatus.FORBIDDEN)
-			.body(response);
-	}
+	// @ExceptionHandler(AuthenticationException.class)
+	// public ResponseEntity<RsData<?>> handleAuthenticationException(AuthenticationException ex) {
+	// 	log.error(ex.getMessage(), ex); // 에러 표시
+	// 	RsData<?> response = RsData.error(null, "인증 정보가 일치하지 않습니다.");
+	// 	return ResponseEntity
+	// 		.status(HttpStatus.UNAUTHORIZED)
+	// 		.body(response);
+	// }
+	//
+	// @ExceptionHandler(AccessDeniedException.class)
+	// public ResponseEntity<RsData<?>> handleAccessDeniedException(AccessDeniedException ex) {
+	// 	RsData<?> response = RsData.error(null, "접근 권한이 없습니다..");
+	// 	return ResponseEntity
+	// 		.status(HttpStatus.FORBIDDEN)
+	// 		.body(response);
+	// }
 
 }
