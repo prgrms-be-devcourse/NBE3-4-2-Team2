@@ -21,5 +21,6 @@ export const config = {
     '/search/:path*',
     
     // 보호하고 싶은 다른 경로들...
+    '/',
   ]
 } 
