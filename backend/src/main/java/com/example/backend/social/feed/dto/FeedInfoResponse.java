@@ -22,7 +22,7 @@ public record FeedInfoResponse(
 	Long postId,
 	List<String> imgUrlList,
 	String content,
-	Long likesCount,
+	Long likeCount,
 	Long commentCount,
 	LocalDateTime createdDate,
 
