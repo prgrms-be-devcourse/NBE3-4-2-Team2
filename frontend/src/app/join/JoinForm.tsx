@@ -9,6 +9,10 @@ export default function JoinForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
+    // 비밀번호 정규표현식 (10자 이상, 숫자와 특수문자(@, $, !, %, *, ?, &)를 포함해야함)
+    const passwordPattern = /^(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/;
+    // 이메일 정규표현식 (이메일의 형식을 지켜야함)
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (form.username.value.length === 0) {
       alert("아이디를 입력해주세요.");
@@ -38,12 +42,19 @@ export default function JoinForm() {
       return;
     }
 
-    if (form.email.value.length === 0) {
-      alert("이메일을 입력해주세요.");
-      form.email.focus();
+    if (!passwordPattern.test(form.password.value)) {
+      alert("비밀번호는 10자 이상이어야 하고,\n숫자 및 특수문자를 포함하여야 합니다. \n(@, $, !, %, *, ?, &)")
+      form.password.focus();
 
       return;
     }
+
+    if (form.email.value.length === 0 || !emailPattern.test(form.email.value)) {
+      alert("유효한 이메일을 입력해주세요.");
+      form.email.focus();
+
+      return;
+  }
 
     const response = await client.POST("/api-v1/members/join", {
       body: {
