@@ -2,6 +2,7 @@ package com.example.backend.social.feed.dto;
 
 import java.time.LocalDateTime;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 /**
@@ -14,8 +15,14 @@ import lombok.Builder;
  */
 @Builder
 public record FeedRequest(
+
+	@NotNull
 	LocalDateTime timestamp,
+
+	@NotNull
 	Long lastPostId,
+
+	@NotNull
 	Integer maxSize
 ) {
 }

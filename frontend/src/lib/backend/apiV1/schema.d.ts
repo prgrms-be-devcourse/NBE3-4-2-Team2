@@ -585,11 +585,11 @@ export interface components {
         };
         FeedRequest: {
             /** Format: date-time */
-            timestamp?: string;
+            timestamp: string;
             /** Format: int64 */
-            lastPostId?: number;
+            lastPostId: number;
             /** Format: int32 */
-            maxSize?: number;
+            maxSize: number;
         };
         FeedInfoResponse: {
             /** Format: int64 */
@@ -631,10 +631,16 @@ export interface components {
             success?: boolean;
         };
         FeedMemberRequest: {
-            /** Format: int64 */
-            lastPostId?: number;
-            /** Format: int32 */
-            maxSize?: number;
+            /**
+             * Format: int64
+             * @description 마지막으로 받은 게시물의 번호
+             */
+            lastPostId: number;
+            /**
+             * Format: int32
+             * @description 최대 요청 크기
+             */
+            maxSize: number;
         };
         FeedMemberResponse: {
             feedList?: components["schemas"]["FeedInfoResponse"][];
@@ -665,10 +671,10 @@ export interface components {
             ref?: number;
         };
         PageCommentResponse: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["CommentResponse"][];
@@ -695,8 +701,8 @@ export interface components {
         };
         Sortnull: {
             empty?: boolean;
-            sorted?: boolean;
             unsorted?: boolean;
+            sorted?: boolean;
         };
         BookmarkListResponse: {
             /** Format: int64 */
@@ -782,9 +788,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -807,12 +811,10 @@ export interface operations {
     deletePost: {
         parameters: {
             query: {
-                memberId: number;
+                arg1: number;
             };
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -832,9 +834,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                commentId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -857,12 +857,10 @@ export interface operations {
     deleteComment: {
         parameters: {
             query: {
-                memberId: number;
+                arg1: number;
             };
             header?: never;
-            path: {
-                commentId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -881,7 +879,7 @@ export interface operations {
     createPost: {
         parameters: {
             query: {
-                request: components["schemas"]["PostCreateRequest"];
+                arg0: components["schemas"]["PostCreateRequest"];
             };
             header?: never;
             path?: never;
@@ -951,12 +949,10 @@ export interface operations {
     toggleLike: {
         parameters: {
             query: {
-                resourceType: string;
+                arg1: string;
             };
             header?: never;
-            path: {
-                id: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -976,9 +972,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                receiverId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -998,9 +992,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                receiverId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -1048,9 +1040,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1070,9 +1060,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -1095,10 +1083,10 @@ export interface operations {
     search: {
         parameters: {
             query: {
-                type: "AUTHOR" | "HASHTAG";
-                keyword: string;
-                lastPostId?: number;
-                size?: number;
+                arg0: "AUTHOR" | "HASHTAG";
+                arg1: string;
+                arg2?: number;
+                arg3?: number;
             };
             header?: never;
             path?: never;
@@ -1163,9 +1151,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                memberId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1183,16 +1169,14 @@ export interface operations {
     };
     findFeedList: {
         parameters: {
-            query?: never;
+            query: {
+                arg0: components["schemas"]["FeedRequest"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FeedRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -1209,9 +1193,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1229,16 +1211,14 @@ export interface operations {
     };
     findMemberFeedList: {
         parameters: {
-            query?: never;
+            query: {
+                arg0: components["schemas"]["FeedMemberRequest"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FeedMemberRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -1254,13 +1234,11 @@ export interface operations {
     getReplies: {
         parameters: {
             query?: {
-                page?: number;
-                size?: number;
+                arg1?: number;
+                arg2?: number;
             };
             header?: never;
-            path: {
-                parentId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1279,13 +1257,11 @@ export interface operations {
     getComments: {
         parameters: {
             query?: {
-                page?: number;
-                size?: number;
+                arg1?: number;
+                arg2?: number;
             };
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import FeedItem from "./FeedItem";
-import { dummyFeeds } from "./dummyData";
 import { components } from "../../lib/backend/apiV1/schema";
+import client from "@/lib/backend/client";
 
 // 타입 정의
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
@@ -27,12 +27,8 @@ export default function MainFeed() {
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const observer = useRef<IntersectionObserver | null>(null);
-  const PAGE_SIZE = 5; // 한 번에 표시할 피드 개수
-  const [page, setPage] = useState<number>(0);
+  const PAGE_SIZE = 2; // 한 번에 표시할 피드 개수
   const feedContainerRef = useRef<HTMLDivElement>(null);
-
-  // API 사용 여부 설정 (true: API 사용, false: 더미 데이터 사용)
-  const useApi = false; // 현재는 더미 데이터 사용
 
   // 이미 로드된 피드 ID를 추적
   const loadedPostIds = useRef<Set<number>>(new Set());
@@ -86,31 +82,37 @@ export default function MainFeed() {
 
   // 콘솔로그 디버깅용
   useEffect(() => {
-    console.log(
-      `Feed count: ${feeds.length}, hasMore: ${hasMore}, page: ${page}`
-    );
-  }, [feeds, hasMore, page]);
+    console.log(`Feed count: ${feeds.length}, hasMore: ${hasMore}`);
+  }, [feeds, hasMore]);
 
   // API로 피드 데이터 요청하는 함수 (fetch 사용)
   const fetchFeedsFromApi = async (requestData: FeedRequest) => {
     try {
       console.log("API 요청 데이터:", requestData);
 
-      // API 호출 (fetch 사용)
-      const response = await fetch("/api-v1/feed", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      // 쿼리 파라미터 생성
+      const queryParams = new URLSearchParams();
+      queryParams.append("timestamp", requestData.timestamp);
+      queryParams.append("lastPostId", requestData.lastPostId.toString());
+      queryParams.append("maxSize", requestData.maxSize.toString());
+
+      // API 호출 - GET 요청으로 쿼리 파라미터 전달 (백엔드 서버 주소 사용)
+      const response = await client.GET("/api-v1/feed", {
+        params: {
+          query: {
+            timestamp: requestData.timestamp.toString(),
+            lastPostId: requestData.lastPostId.toString(),
+            maxSize: requestData.maxSize.toString(),
+          },
         },
-        body: JSON.stringify(requestData),
       });
 
-      if (!response.ok) {
-        throw new Error(`API 응답 오류: ${response.status}`);
+      if (!response.data) {
+        throw new Error(`API 응답 오류: ${response.error}`);
       }
 
       // 응답 데이터 반환
-      return await response.json();
+      return await response.data;
     } catch (error) {
       console.error("API 호출 중 오류 발생:", error);
       throw error;
@@ -122,60 +124,60 @@ export default function MainFeed() {
     try {
       setLoading(true);
 
-      if (useApi) {
-        // API를 사용할 경우
-        // 처음 요청하는 경우: timestamp에는 현재 시간, lastPostId에는 0을 넣음
-        const now = new Date().toISOString(); // ISO 문자열 형식 (LocalDateTime과 호환)
-        const requestData: FeedRequest = {
-          timestamp: now,
-          lastPostId: 0,
-          maxSize: PAGE_SIZE,
-        };
+      // 처음 요청하는 경우: timestamp에는 현재 시간, lastPostId에는 0을 넣음
+      // Java LocalDateTime 형식에 맞는 날짜 문자열 생성 (yyyy-MM-dd'T'HH:mm:ss)
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const seconds = String(now.getSeconds()).padStart(2, "0");
 
-        const response = await fetchFeedsFromApi(requestData);
+      // LocalDateTime 형식에 맞는 포맷: "yyyy-MM-dd'T'HH:mm:ss"
+      const date = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
-        // 응답 데이터 처리
-        const apiFeeds = response.feedList || [];
+      const requestData: FeedRequest = {
+        timestamp: date,
+        lastPostId: 0,
+        maxSize: PAGE_SIZE,
+      };
 
-        // ID 추적 세트에 추가
-        apiFeeds.forEach((feed: FeedInfoResponse) => {
-          if (feed.postId !== undefined) {
-            loadedPostIds.current.add(feed.postId);
-          }
-        });
+      const response = await fetchFeedsFromApi(requestData);
 
-        setFeeds(apiFeeds);
+      // 응답 데이터 처리 - 수정된 응답 구조에 맞춤
+      const apiFeeds = response.data?.feedList || [];
+      console.log(apiFeeds);
 
-        // 마지막 피드의 타임스탬프와 ID 설정
-        if (apiFeeds.length > 0) {
-          const lastFeed = apiFeeds[apiFeeds.length - 1];
-          setLastTimestamp(lastFeed.createdDate);
-          setLastPostId(lastFeed.postId);
+      // ID 추적 세트에 추가
+      apiFeeds.forEach((feed: FeedInfoResponse) => {
+        if (feed.postId !== undefined) {
+          loadedPostIds.current.add(feed.postId);
         }
+      });
+
+      setFeeds(apiFeeds);
+
+      // 더 피드가 있는지 확인 (feedList 길이로 판단)
+      setHasMore(apiFeeds.length > 0);
+
+      // 마지막 피드의 타임스탬프와 ID 설정
+      if (apiFeeds.length > 0) {
+        const lastFeed = apiFeeds[apiFeeds.length - 1];
+        setLastTimestamp(lastFeed.createdDate);
+        setLastPostId(lastFeed.postId);
       } else {
-        // 더미 데이터 사용 - 처음 5개 항목
-        const initialFeeds = dummyFeeds.feedList?.slice(0, PAGE_SIZE) || [];
-
-        // ID 추적 세트에 추가
-        initialFeeds.forEach((feed) => {
-          if (feed.postId !== undefined) {
-            loadedPostIds.current.add(feed.postId);
-          }
-        });
-
-        setFeeds(initialFeeds);
-
-        // 마지막 피드의 타임스탬프와 ID 설정
-        if (initialFeeds.length > 0) {
-          const lastFeed = initialFeeds[initialFeeds.length - 1];
-          setLastTimestamp(lastFeed.createdDate);
-          setLastPostId(lastFeed.postId);
+        // 응답에서 받은 lastTimestamp와 lastPostId 사용
+        if (response.data?.lastTimestamp) {
+          setLastTimestamp(response.data.lastTimestamp);
         }
-
-        setHasMore((dummyFeeds.feedList?.length || 0) > initialFeeds.length);
+        if (response.data?.lastPostId !== undefined) {
+          setLastPostId(response.data.lastPostId);
+        }
+        // 피드가 없는 경우 더 불러올 내용 없음
+        setHasMore(false);
       }
 
-      setPage(1);
       console.log("Initial load complete");
     } catch (error) {
       console.error("피드를 불러오는 중 오류가 발생했습니다:", error);
@@ -193,8 +195,7 @@ export default function MainFeed() {
     try {
       setLoading(true);
 
-      if (useApi && lastTimestamp && lastPostId !== undefined) {
-        // API를 사용할 경우
+      if (lastTimestamp && lastPostId !== undefined) {
         // 이후 요청부터는 Response로 전달받은 값을 다시 전달하여 다음 게시물을 받음
         const requestData: FeedRequest = {
           timestamp: lastTimestamp,
@@ -204,8 +205,8 @@ export default function MainFeed() {
 
         const response = await fetchFeedsFromApi(requestData);
 
-        // 응답 데이터 처리
-        const newApiFeeds = response.feedList || [];
+        // 응답 데이터 처리 - 수정된 응답 구조에 맞춤
+        const newApiFeeds = response.data?.feedList || [];
 
         if (newApiFeeds.length > 0) {
           // 중복 데이터 필터링
@@ -229,59 +230,26 @@ export default function MainFeed() {
             const lastFeed = filteredFeeds[filteredFeeds.length - 1];
             setLastTimestamp(lastFeed.createdDate);
             setLastPostId(lastFeed.postId);
+          } else {
+            // 응답에서 받은 lastTimestamp와 lastPostId 사용
+            if (response.data?.lastTimestamp) {
+              setLastTimestamp(response.data.lastTimestamp);
+            }
+            if (response.data?.lastPostId !== undefined) {
+              setLastPostId(response.data.lastPostId);
+            }
           }
 
-          // API에서 더 불러올 데이터가 있는지 여부
-          setHasMore(response.hasMore || newApiFeeds.length >= PAGE_SIZE);
+          // 응답에서 받은 피드 리스트가 비어있지 않으면 더 불러올 데이터가 있다고 판단
+          setHasMore(newApiFeeds.length > 0);
         } else {
+          // 피드가 없는 경우 더 불러올 내용 없음
           setHasMore(false);
         }
       } else {
-        // 더미 데이터 사용 - 다음 페이지 항목들
-        const start = page * PAGE_SIZE;
-        const end = start + PAGE_SIZE;
-
-        console.log(`Slicing from index ${start} to ${end}`);
-
-        const nextFeeds = dummyFeeds.feedList?.slice(start, end) || [];
-
-        if (nextFeeds.length > 0) {
-          // 중복 데이터 필터링
-          const newFeeds = nextFeeds.filter(
-            (feed) =>
-              feed.postId !== undefined &&
-              !loadedPostIds.current.has(feed.postId)
-          );
-
-          // 새 피드가 없으면 더 이상 불러올 데이터가 없음을 표시
-          if (newFeeds.length === 0) {
-            console.log("No new feeds to load, ending infinite scroll");
-            setHasMore(false);
-            return;
-          }
-
-          // ID 추적 세트에 추가
-          newFeeds.forEach((feed) => {
-            if (feed.postId !== undefined) {
-              loadedPostIds.current.add(feed.postId);
-            }
-          });
-
-          setFeeds((prevFeeds) => [...prevFeeds, ...newFeeds]);
-
-          // 마지막 피드의 타임스탬프와 ID 설정
-          const lastFeed = newFeeds[newFeeds.length - 1];
-          setLastTimestamp(lastFeed.createdDate);
-          setLastPostId(lastFeed.postId);
-
-          setHasMore(end < (dummyFeeds.feedList?.length || 0));
-        } else {
-          console.log("No more feeds available");
-          setHasMore(false);
-        }
+        console.log("No timestamp or postId available for cursor pagination");
+        setHasMore(false);
       }
-
-      setPage((prevPage) => prevPage + 1);
     } catch (error) {
       console.error("추가 피드를 불러오는 중 오류가 발생했습니다:", error);
     } finally {
@@ -291,8 +259,6 @@ export default function MainFeed() {
 
   return (
     <div className="w-full max-w-[500px] mx-auto" ref={feedContainerRef}>
-      <h2 className="text-xl font-bold mb-4">SNS 피드</h2>
-
       <div className="feed-list">
         {feeds.map((feed, index) => {
           // 마지막 요소에만 ref 설정
@@ -316,7 +282,7 @@ export default function MainFeed() {
         </div>
       )}
 
-      {!hasMore && feeds.length > 0 && (
+      {!hasMore && (
         <div className="no-more-feeds mt-4 text-center text-gray-500">
           더 이상 피드가 없습니다.
         </div>
