@@ -46,7 +46,7 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
               onClick={handleLike}
               className="hover:text-white flex items-center"
             >
-              <span>{comment.likes} 좋아요</span>
+              <span>{comment.likeCount} 좋아요</span>
             </button>
             <button onClick={toggleReplyForm} className="hover:text-white">
               답글
@@ -81,7 +81,7 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
         </div>
 
         {/* 좋아요 버튼 - 좋아요가 있는 경우만 표시 */}
-        {comment.likes > 0 && (
+        {comment.likeCount > 0 && (
           <button
             onClick={handleLike}
             className="ml-2 text-gray-500 hover:text-white"
