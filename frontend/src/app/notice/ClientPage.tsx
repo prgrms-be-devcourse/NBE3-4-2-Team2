@@ -27,7 +27,7 @@ interface NotificationPageResponse {
 
 interface RsData<T> {
   time: string;
-  isSuccess: boolean;
+  success: boolean;
   message: string | null;
   data: T;
 }
@@ -74,7 +74,7 @@ const ClientPage = () => {
 
       const data: RsData<NotificationPageResponse> = await response.json();
 
-      if (data.isSuccess) {
+      if (data.success) {
         setNotifications(data.data.responses);
         setCurrentPage(data.data.currentPage);
         setTotalPages(data.data.totalPageCount);
