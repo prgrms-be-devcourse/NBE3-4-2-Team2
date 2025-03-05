@@ -27,7 +27,7 @@ export function useComments(feedId: number) {
       username: "You",
       content: content,
       time: "Just now",
-      likes: 0,
+      likeCount: 0,
     };
     
     // 실제 구현에서는 API 호출 후 응답으로 업데이트
@@ -64,7 +64,7 @@ export function useComments(feedId: number) {
     setComments(prevComments => 
       prevComments.map(comment => 
         comment.id === commentId
-          ? { ...comment, likes: comment.likes + 1 }
+          ? { ...comment, likeCount: comment.likeCount + 1 }
           : comment
       )
     );
@@ -86,7 +86,7 @@ export function useComments(feedId: number) {
       username: "You",
       content: `@${comments.find(c => c.id === commentId)?.username || ''} ${content}`,
       time: "Just now",
-      likes: 0,
+      likeCount: 0,
     };
     
     // 답글도 최신순으로 맨 위에 추가

@@ -61,10 +61,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * 로그인
-         * @description username, password를 받아 로그인을 진행합니다.
-         */
+        /** 로그인 */
         post: operations["login"];
         delete?: never;
         options?: never;
@@ -81,10 +78,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * 회원가입
-         * @description username, password, email을 받아 회원가입을 진행합니다.
-         */
+        /** 회원가입 */
         post: operations["join"];
         delete?: never;
         options?: never;
@@ -92,7 +86,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api-v1/likes/{postId}": {
+    "/api-v1/like/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -102,15 +96,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 게시물 좋아요 요청
-         * @description 게시물에 좋아요 요청을 보냅니다.
+         * 좋아요 토글
+         * @description 게시물, 댓글, 대댓글의 좋아요를 토글합니다.
          */
-        post: operations["likePost"];
-        /**
-         * 게시물 좋아요 취소
-         * @description 게시물에 좋아요 취소 요청을 보냅니다.
-         */
-        delete: operations["unlikePost"];
+        post: operations["toggleLike"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -203,11 +193,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * 멤버 정보 조회
-         * @description 멤버의 정보를 조회합니다.
-         */
+        /** 회원 정보 조회 */
         get: operations["publicMemberDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api-v1/members/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 액세스 토큰 재발급 */
+        get: operations["refreshAccessToken"];
         put?: never;
         post?: never;
         delete?: never;
@@ -328,6 +332,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api-v1/bookmark/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 북마크 목록 조회
+         * @description 자신이 북마크한 게시물 목록을 조회합니다.
+         */
+        get: operations["getBookmarkList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api-v1/members/logout": {
         parameters: {
             query?: never;
@@ -338,10 +362,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * 로그아웃
-         * @description 로그아웃을 진행합니다.
-         */
+        /** 로그아웃 */
         delete: operations["logout"];
         options?: never;
         head?: never;
@@ -397,15 +418,9 @@ export interface components {
             memberId: number;
         };
         MemberLoginRequest: {
-            /**
-             * @description 유저 이름
-             * @example testuser
-             */
+            /** @description 사용자 이름 */
             username: string;
-            /**
-             * @description 비밀번호
-             * @example @test1234!@
-             */
+            /** @description 비밀번호 */
             password: string;
         };
         MemberLoginResponse: {
@@ -422,20 +437,11 @@ export interface components {
             success?: boolean;
         };
         MemberJoinRequest: {
-            /**
-             * @description 이메일
-             * @example testuser@naver.com
-             */
+            /** @description Email */
             email: string;
-            /**
-             * @description 비밀번호
-             * @example @test1234!@
-             */
+            /** @description 비밀번호 */
             password: string;
-            /**
-             * @description 유저 이름
-             * @example testuser
-             */
+            /** @description 사용자 이름 */
             username: string;
         };
         MemberJoinResponse: {
@@ -450,21 +456,23 @@ export interface components {
             data?: components["schemas"]["MemberJoinResponse"];
             success?: boolean;
         };
-        CreateLikeResponse: {
-            /** Format: int64 */
-            likeId?: number;
+        LikeToggleResponse: {
             /** Format: int64 */
             memberId?: number;
             /** Format: int64 */
-            postId?: number;
+            resourceId?: number;
+            resourceType?: string;
+            isLiked?: boolean;
+            /** Format: int64 */
+            likeCount?: number;
             /** Format: date-time */
-            createDate?: string;
+            timestamp?: string;
         };
-        RsDataCreateLikeResponse: {
+        RsDataLikeToggleResponse: {
             /** Format: date-time */
             time?: string;
             message?: string;
-            data?: components["schemas"]["CreateLikeResponse"];
+            data?: components["schemas"]["LikeToggleResponse"];
             success?: boolean;
         };
         CreateFollowResponse: {
@@ -558,6 +566,13 @@ export interface components {
             data?: components["schemas"]["MemberResponse"];
             success?: boolean;
         };
+        RsDataVoid: {
+            /** Format: date-time */
+            time?: string;
+            message?: string;
+            data?: Record<string, never>;
+            success?: boolean;
+        };
         MutualFollowResponse: {
             isMutualFollow?: boolean;
         };
@@ -570,11 +585,11 @@ export interface components {
         };
         FeedRequest: {
             /** Format: date-time */
-            timestamp?: string;
+            timestamp: string;
             /** Format: int64 */
-            lastPostId?: number;
+            lastPostId: number;
             /** Format: int32 */
-            maxSize?: number;
+            maxSize: number;
         };
         FeedInfoResponse: {
             /** Format: int64 */
@@ -585,7 +600,7 @@ export interface components {
             imgUrlList?: string[];
             content?: string;
             /** Format: int64 */
-            likesCount?: number;
+            likeCount?: number;
             /** Format: int64 */
             commentCount?: number;
             /** Format: date-time */
@@ -616,10 +631,16 @@ export interface components {
             success?: boolean;
         };
         FeedMemberRequest: {
-            /** Format: int64 */
-            lastPostId?: number;
-            /** Format: int32 */
-            maxSize?: number;
+            /**
+             * Format: int64
+             * @description 마지막으로 받은 게시물의 번호
+             */
+            lastPostId: number;
+            /**
+             * Format: int32
+             * @description 최대 요청 크기
+             */
+            maxSize: number;
         };
         FeedMemberResponse: {
             feedList?: components["schemas"]["FeedInfoResponse"][];
@@ -654,67 +675,56 @@ export interface components {
             totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
-            first?: boolean;
-            last?: boolean;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["CommentResponse"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["Sortnull"];
-            pageable?: components["schemas"]["Pageablenull"];
+            first?: boolean;
+            last?: boolean;
             /** Format: int32 */
             numberOfElements?: number;
+            pageable?: components["schemas"]["Pageablenull"];
             empty?: boolean;
         };
         Pageablenull: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["Sortnull"];
-            paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
+            paged?: boolean;
             unpaged?: boolean;
         };
         Sortnull: {
             empty?: boolean;
-            sorted?: boolean;
             unsorted?: boolean;
+            sorted?: boolean;
+        };
+        BookmarkListResponse: {
+            /** Format: int64 */
+            bookmarkId?: number;
+            /** Format: int64 */
+            postId?: number;
+            postContent?: string;
+            imageUrls?: string[];
+            /** Format: date-time */
+            bookmarkedAt?: string;
+        };
+        RsDataListBookmarkListResponse: {
+            /** Format: date-time */
+            time?: string;
+            message?: string;
+            data?: components["schemas"]["BookmarkListResponse"][];
+            success?: boolean;
         };
         PostDeleteResponse: {
             /** Format: int64 */
             postId: number;
             message: string;
-        };
-        RsDataVoid: {
-            /** Format: date-time */
-            time?: string;
-            message?: string;
-            data?: Record<string, never>;
-            success?: boolean;
-        };
-        DeleteLikeRequest: {
-            /** Format: int64 */
-            likeId: number;
-        };
-        DeleteLikeResponse: {
-            /** Format: int64 */
-            likeId?: number;
-            /** Format: int64 */
-            memberId?: number;
-            /** Format: int64 */
-            postId?: number;
-            /** Format: date-time */
-            deleteDate?: string;
-        };
-        RsDataDeleteLikeResponse: {
-            /** Format: date-time */
-            time?: string;
-            message?: string;
-            data?: components["schemas"]["DeleteLikeResponse"];
-            success?: boolean;
         };
         DeleteFollowRequest: {
             /** Format: int64 */
@@ -778,9 +788,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -803,12 +811,10 @@ export interface operations {
     deletePost: {
         parameters: {
             query: {
-                memberId: number;
+                arg1: number;
             };
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -828,9 +834,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                commentId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -853,12 +857,10 @@ export interface operations {
     deleteComment: {
         parameters: {
             query: {
-                memberId: number;
+                arg1: number;
             };
             header?: never;
-            path: {
-                commentId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -877,7 +879,7 @@ export interface operations {
     createPost: {
         parameters: {
             query: {
-                request: components["schemas"]["PostCreateRequest"];
+                arg0: components["schemas"]["PostCreateRequest"];
             };
             header?: never;
             path?: never;
@@ -944,13 +946,13 @@ export interface operations {
             };
         };
     };
-    likePost: {
+    toggleLike: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                postId: number;
+            query: {
+                arg1: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -961,33 +963,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RsDataCreateLikeResponse"];
-                };
-            };
-        };
-    };
-    unlikePost: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                postId: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeleteLikeRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RsDataDeleteLikeResponse"];
+                    "application/json": components["schemas"]["RsDataLikeToggleResponse"];
                 };
             };
         };
@@ -996,9 +972,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                receiverId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1018,9 +992,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                receiverId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -1068,9 +1040,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1090,9 +1060,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -1115,10 +1083,10 @@ export interface operations {
     search: {
         parameters: {
             query: {
-                type: "AUTHOR" | "HASHTAG";
-                keyword: string;
-                lastPostId?: number;
-                size?: number;
+                arg0: "AUTHOR" | "HASHTAG";
+                arg1: string;
+                arg2?: number;
+                arg3?: number;
             };
             header?: never;
             path?: never;
@@ -1159,13 +1127,31 @@ export interface operations {
             };
         };
     };
+    refreshAccessToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json;charset=UTF-8": components["schemas"]["RsDataVoid"];
+                };
+            };
+        };
+    };
     isMutualFollow: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                memberId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1183,16 +1169,14 @@ export interface operations {
     };
     findFeedList: {
         parameters: {
-            query?: never;
+            query: {
+                arg0: components["schemas"]["FeedRequest"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FeedRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -1209,9 +1193,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1229,16 +1211,14 @@ export interface operations {
     };
     findMemberFeedList: {
         parameters: {
-            query?: never;
+            query: {
+                arg0: components["schemas"]["FeedMemberRequest"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FeedMemberRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -1254,13 +1234,11 @@ export interface operations {
     getReplies: {
         parameters: {
             query?: {
-                page?: number;
-                size?: number;
+                arg1?: number;
+                arg2?: number;
             };
             header?: never;
-            path: {
-                parentId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1279,13 +1257,11 @@ export interface operations {
     getComments: {
         parameters: {
             query?: {
-                page?: number;
-                size?: number;
+                arg1?: number;
+                arg2?: number;
             };
             header?: never;
-            path: {
-                postId: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1297,6 +1273,26 @@ export interface operations {
                 };
                 content: {
                     "application/json;charset=UTF-8": components["schemas"]["PageCommentResponse"];
+                };
+            };
+        };
+    };
+    getBookmarkList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RsDataListBookmarkListResponse"];
                 };
             };
         };

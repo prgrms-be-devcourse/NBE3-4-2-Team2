@@ -47,6 +47,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
 
     console.log(isBookmarked ? "북마크를 추가합니다." : "북마크를 취소합니다.");
     setIsBookmarked(!isBookmarked);
+
     // API 호출은 여기에 구현
   };
 
@@ -219,7 +220,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
           onClick={handleLike}
         >
           <span className="text-xl mr-1">{isLiked ? "❤️" : "🤍"}</span>
-          <span className="text-sm">{feed.likesCount || 0}</span>
+          <span className="text-sm">{feed.likeCount || 0}</span>
         </button>
         <button
           className="flex items-center mr-4 text-gray-700 hover:text-blue-500"
