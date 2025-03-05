@@ -45,32 +45,12 @@ export default function PostCreatePage() {
     setError(null);
 
     try {
-      // 이미지 업로드
-      const uploadPromises = selectedFiles
-        ? Array.from(selectedFiles).map(async (file) => {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const { data, error } = await client.POST("/api-v1/upload", {
-              body: formData,
-            });
-
-            if (error) throw error;
-            return data?.url;
-          })
-        : [];
-
-      const uploadedImageUrls = await Promise.all(uploadPromises);
-
       // 포스트 생성 요청
       const { data, error } = await client.POST("/api-v1/post", {
         params: {
           query: {
-            request: {
-              memberId: 1, // TODO: 실제 로그인한 사용자 ID로 대체
-              content: postContent,
-              images: uploadedImageUrls.filter((url) => url !== undefined),
-            },
+            memberId: 1, // TODO: 실제 로그인한 사용자 ID로 대체
+            content: postContent,
           },
         },
       });
@@ -79,7 +59,7 @@ export default function PostCreatePage() {
       if (data) {
         router.push("/");
       } else if (error) {
-        setError(error.message || "포스트 생성에 실패했습니다.");
+        setError(error || "포스트 생성에 실패했습니다.");
       }
     } catch (err: any) {
       setError("포스트 생성 중 오류가 발생했습니다.");
