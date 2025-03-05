@@ -38,8 +38,6 @@ public class MemberEntity extends BaseEntity {
 
 	private String phoneNumber;
 
-	// private String refreshToken;
-
 	@Column(nullable = false)
 	@Builder.Default
 	private Long followerCount = 0L; // 팔로워 : 본인이 팔로우중인 인원수
@@ -62,7 +60,7 @@ public class MemberEntity extends BaseEntity {
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
-	private List<LikesEntity> likeList = new ArrayList<>();
+	private List<LikeEntity> likeList = new ArrayList<>();
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default

@@ -128,13 +128,14 @@ const ClientPage = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 h-full">
       <form onSubmit={handleSearch} className="mb-8">
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <select
             value={searchType}
             onChange={(e) => setSearchType(e.target.value as SearchType)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 
+                      dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:focus:ring-blue-400"
           >
             <option value="HASHTAG">해시태그</option>
             <option value="AUTHOR">작성자</option>
@@ -150,17 +151,19 @@ const ClientPage = () => {
                   ? "#태그를 입력하세요"
                   : "작성자를 입력하세요"
               }
-              className="w-full px-4 py-2 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                        dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-blue-400"
             />
             <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"
               size={20}
             />
           </div>
 
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500
+                      dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-400"
             disabled={!keyword.trim() || loading}
           >
             검색
@@ -174,7 +177,7 @@ const ClientPage = () => {
             <div
               key={post.postId}
               ref={index === posts.length - 1 ? lastPostRef : null}
-              className="aspect-square relative overflow-hidden rounded-lg"
+              className="aspect-square relative overflow-hidden rounded-lg border dark:border-gray-700"
             >
               <img
                 src={post.imageUrl}
@@ -185,17 +188,17 @@ const ClientPage = () => {
           ))}
         </div>
       ) : !loading && keyword.trim() ? (
-        <p className="text-center text-gray-500 my-8">검색 결과가 없습니다</p>
+        <p className="text-center text-gray-500 dark:text-gray-400 my-8">검색 결과가 없습니다</p>
       ) : null}
 
       {loading && (
         <div className="flex justify-center my-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 dark:border-blue-400"></div>
         </div>
       )}
 
       {!hasMore && posts.length > 0 && (
-        <p className="text-center text-gray-500 my-8">
+        <p className="text-center text-gray-500 dark:text-gray-400 my-8">
           모든 게시물을 불러왔습니다
         </p>
       )}

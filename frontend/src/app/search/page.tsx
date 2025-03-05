@@ -3,7 +3,7 @@ import ClientPage from "./ClientPage";
 
 export default function Page() {
   return (
-    <main className="max-w-6xl mx-auto py-8">
+    <main className="max-w-6xl mx-auto py-8 h-full">
       <ClientPage />
     </main>
   );

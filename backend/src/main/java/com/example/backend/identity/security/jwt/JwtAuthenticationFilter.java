@@ -3,8 +3,6 @@ package com.example.backend.identity.security.jwt;
 import java.io.IOException;
 import java.util.List;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,6 +15,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>쿠키나 헤더를 통한 Jwt 인증을 담당하는 필터</p>
@@ -25,6 +24,7 @@ import lombok.RequiredArgsConstructor;
  * */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final AccessTokenService accessTokenService;
 	private final CustomUserDetailsService customUserDetailsService;
@@ -43,56 +43,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		// access 토큰이 없다면 다음 필터로 넘어감 (만료된 access 토큰이라도 있어야 refresh토큰 인증)
-		String authorization = request.getHeader("Authorization");
-		if (authorization == null || !authorization.startsWith("Bearer ")) {
+		String accessToken = getAccessToken(request);
+		String refreshToken = getRefreshToken(request);
+
+		if (accessToken == null && refreshToken == null) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 
-		String accessToken = authorization.substring("Bearer ".length());
-
-		CustomUser customUser = customUserDetailsService.getUserByAccessToken(accessToken);
-
-		// access 토큰이 유효하지 않다면 refresh 토큰을 이용하여 다시 생성
-		if (customUser == null) {
-			String refreshToken = null;
-
-			for (Cookie cookie : request.getCookies()) {
-				if (cookie.getName().equals("refresh_token")) {
-					refreshToken = cookie.getValue();
-				}
-			}
-			// refresh 토큰이 존재하지 않다면 다음 로그인 필터로 넘긴다.
-			if (refreshToken == null) {
-				filterChain.doFilter(request, response);
-				return;
-			}
-			// refresh 토큰이 블랙리스트라면 다음 로그인 필터로 넘어간다.
-			boolean blacklisted = refreshTokenService.isBlacklisted(refreshToken);
-			if (blacklisted) {
-				filterChain.doFilter(request, response);
-				return;
-			}
-
-			// refresh 토큰이 유효하지 않다면 다음 로그인 필터로 넘어간다.
-			customUser = customUserDetailsService.getUserByRefreshToken(refreshToken);
-
-			if (customUser == null) {
-				filterChain.doFilter(request, response);
-				return;
-			}
-
-			// refresh 토큰이 유효하다면 새로운 accessToken을 발급한다.
-			String newAccessToken = accessTokenService.genAccessToken(customUser);
-			response.setHeader("Authorization", "Bearer " + newAccessToken);
+		CustomUser user  = null;
+		if(accessToken != null) {
+			user = customUserDetailsService.getUserByAccessToken(accessToken);
 		}
 
-		// 토큰이 유효하면 로그인 처리를 한다.
-		UsernamePasswordAuthenticationToken authentication =
-			new UsernamePasswordAuthenticationToken(customUser, null, customUser.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(authentication);
+		// accessToken이 유효하지 않다면 Refresh토큰을 이용하여 로그인 처리를 한다.
+		if (user == null) {
+			user = customUserDetailsService.getUserByRefreshToken(refreshToken);
+			if (user == null) {
+				filterChain.doFilter(request, response);
+				return;
+			}
+			// 헤더에 accessToken을 추가
+			accessTokenService.genAccessToken(user, response);
+			log.error("accessToken 재발급");
+		}
 
+		// 로그인 처리
+		user.setLogin();
 		filterChain.doFilter(request, response);
+	}
+
+	private String getRefreshToken(HttpServletRequest request) {
+		String refreshToken = null;
+		if(request.getCookies() == null) {
+			return null;
+		}
+		for (Cookie cookie : request.getCookies()) {
+			if (cookie.getName().equals("refresh_token")) {
+				refreshToken = cookie.getValue();
+				break;
+			}
+		}
+		return refreshTokenService.isBlacklisted(refreshToken)? null : refreshToken;
+	}
+
+	private String getAccessToken(HttpServletRequest request) {
+		String authorization = request.getHeader("Authorization");
+		return authorization == null || !authorization.startsWith("Bearer ") ? null : authorization.substring("Bearer ".length());
 	}
 }

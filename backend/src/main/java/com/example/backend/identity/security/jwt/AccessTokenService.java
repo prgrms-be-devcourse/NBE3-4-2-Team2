@@ -10,6 +10,7 @@ import com.example.backend.global.util.JwtUtil;
 import com.example.backend.identity.security.user.CustomUser;
 
 import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 
 @Service
@@ -24,17 +25,25 @@ public class AccessTokenService {
 
 	public String genAccessToken(CustomUser customUser) {
 		return JwtUtil.generateToken(
+			customUser.getUsername(),
+			Map.of("id", customUser.getId()),
 			accessTokenSecretKey,
-			accessTokenExpirationSeconds,
-			Map.of("id", customUser.getId(), "username", customUser.getUsername())
+			accessTokenExpirationSeconds
 		);
 	}
 
+	public void genAccessToken(CustomUser loginUser, HttpServletResponse response) {
+		String accessToken = genAccessToken(loginUser);
+		response.setHeader("Authorization", "Bearer " + accessToken);
+	}
+
+	// todo : Deprecated 예정
 	public String genAccessToken(MemberEntity member) {
 		return JwtUtil.generateToken(
+			member.getUsername(),
+			Map.of("id", member.getId()),
 			accessTokenSecretKey,
-			accessTokenExpirationSeconds,
-			Map.of("id", member.getId(), "username", member.getUsername())
+			accessTokenExpirationSeconds
 		);
 	}
 
@@ -42,4 +51,7 @@ public class AccessTokenService {
 		return JwtUtil.getPayload(accessToken, accessTokenSecretKey);
 	}
 
+	public String getSubject(String accessToken) {
+		return JwtUtil.getSubject(accessToken, accessTokenSecretKey);
+	}
 }

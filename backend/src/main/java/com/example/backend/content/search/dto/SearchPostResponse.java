@@ -13,4 +13,10 @@ public record SearchPostResponse(
 	Long postId,
 	String imageUrl
 ) {
+	public static SearchPostResponse create(Long postId, String imageUrl) {
+		return SearchPostResponse.builder()
+			.postId(postId)
+			.imageUrl(imageUrl)
+			.build();
+	}
 }

@@ -3,7 +3,9 @@ package com.example.backend.identity.security.user;
 import java.util.Collection;
 import java.util.Map;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -44,5 +46,11 @@ public class CustomUser implements OAuth2User, UserDetails {
 
 	public long getId() {
 		return memberEntity.getId();
+	}
+
+	public void setLogin() {
+		SecurityContextHolder.getContext().setAuthentication(
+			new UsernamePasswordAuthenticationToken(this, null, null) // todo : Authorities 설정 후 다시 추가
+		);
 	}
 }
