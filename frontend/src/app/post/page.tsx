@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, ArrowLeft } from "lucide-react";
+import client from "@/lib/backend/client";
 
 export default function PostCreatePage() {
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -13,78 +14,53 @@ export default function PostCreatePage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
 
-  // 모달 닫기 요청 시 확인 모달 열기
-  const handleRequestClose = () => {
-    setIsConfirmModalOpen(true);
-  };
-
-  // 확인 모달에서 "나가기" 선택 시 닫기
+  const handleRequestClose = () => setIsConfirmModalOpen(true);
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setIsConfirmModalOpen(false);
-    router.push("/"); // 홈으로 리디렉션
+    router.push("/");
   };
+  const handleCancelClose = () => setIsConfirmModalOpen(false);
 
-  // 확인 모달에서 "취소" 선택 시 유지
-  const handleCancelClose = () => {
-    setIsConfirmModalOpen(false);
-  };
-
-  // 뒤로가기 버튼 클릭 시 동작
   const handleGoBack = () => {
-    if (selectedFiles && selectedFiles.length > 0) {
-      // 이미지를 선택한 후에는 선택 화면으로 돌아가도록 처리
-      setSelectedFiles(null); // 이미지를 선택한 상태를 초기화
-      setImagePreviews([]); // 미리보기 이미지 초기화
+    if (selectedFiles?.length) {
+      setSelectedFiles(null);
+      setImagePreviews([]);
     } else {
-      // 이미지를 선택하지 않았다면 확인 모달을 띄워야 함
-      handleRequestClose(); // 확인 모달 띄우기
+      handleRequestClose();
     }
   };
 
-  // 게시물 생성 로직 (임시 핸들러)
   const handleCreatePost = () => {
     console.log("게시물 생성!");
-    // 여기에 게시물 업로드 로직 추가 예정
   };
 
-  // 텍스트 변경 시 글자수 업데이트
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (e.target.value.length <= 2200) {
-      setPostContent(e.target.value);
-    }
+    const { value } = e.target;
+    if (value.length <= 2200) setPostContent(value);
   };
 
-  // 파일 선택 핸들러
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      if (e.target.files.length <= 10) {
-        setSelectedFiles(e.target.files);
+    const files = e.target.files;
+    if (files && files.length <= 10) {
+      setSelectedFiles(files);
 
-        const previews: string[] = [];
-        for (let i = 0; i < e.target.files.length; i++) {
-          const file = e.target.files[i];
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            if (reader.result) {
-              previews.push(reader.result as string);
-              if (previews.length === e.target.files?.length) {
-                setImagePreviews(previews);
-              }
-            }
-          };
-          reader.readAsDataURL(file);
-        }
-      } else {
-        alert("이미지는 최대 10개까지만 선택할 수 있습니다.");
-      }
+      const previews: string[] = [];
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (reader.result) previews.push(reader.result as string);
+          if (previews.length === files.length) setImagePreviews(previews);
+        };
+        reader.readAsDataURL(file);
+      });
+    } else {
+      alert("이미지는 최대 10개까지만 선택할 수 있습니다.");
     }
   };
 
   useEffect(() => {
-    if (imagePreviews.length === 0) {
-      setCurrentIndex(0);
-    }
+    if (imagePreviews.length === 0) setCurrentIndex(0);
   }, [imagePreviews]);
 
   return (
@@ -104,15 +80,13 @@ export default function PostCreatePage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 좌측 뒤로가기 버튼 */}
             <button
-              onClick={handleGoBack} // 뒤로가기 버튼 클릭 시 동작
+              onClick={handleGoBack}
               className="absolute top-4 left-4 text-gray-700 hover:text-gray-900 text-3xl"
             >
               <ArrowLeft size={40} />
             </button>
 
-            {/* 게시물 생성 */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-center flex-grow">
                 새 게시물 생성하기
@@ -126,15 +100,14 @@ export default function PostCreatePage() {
             </div>
 
             <hr className="border-t-2 border-gray-300 w-full mb-4" />
-            {/* 이미지 슬라이더 */}
-            {imagePreviews.length > 0 && (
+
+            {imagePreviews.length > 0 ? (
               <div className="relative w-full h-[500px] bg-gray-200 border-2 border-gray-300 rounded-md">
                 <img
                   src={imagePreviews[currentIndex]}
                   alt={`Preview ${currentIndex}`}
                   className="w-full h-full object-contain"
                 />
-                {/* 이전 버튼 */}
                 <button
                   onClick={() =>
                     setCurrentIndex((prev) => Math.max(prev - 1, 0))
@@ -146,7 +119,6 @@ export default function PostCreatePage() {
                 >
                   &lt;
                 </button>
-                {/* 다음 버튼 */}
                 <button
                   onClick={() =>
                     setCurrentIndex((prev) =>
@@ -162,7 +134,6 @@ export default function PostCreatePage() {
                 >
                   &gt;
                 </button>
-                {/* 이미지 번호 도트 표시 */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
                   {imagePreviews.map((_, index) => (
                     <div key={index} className="flex flex-col items-center">
@@ -175,10 +146,7 @@ export default function PostCreatePage() {
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* 파일 선택 버튼 */}
-            {!selectedFiles && (
+            ) : (
               <div
                 className="w-full h-[500px] bg-gray-200 border-2 border-gray-300 rounded-md flex justify-center items-center cursor-pointer relative"
                 onClick={() => document.getElementById("fileInput")?.click()}
@@ -195,7 +163,6 @@ export default function PostCreatePage() {
               </div>
             )}
 
-            {/* 게시물 작성란 */}
             <div className="flex flex-col mb-4">
               <textarea
                 className="w-full p-2 border border-gray-300 rounded-md"
@@ -204,17 +171,14 @@ export default function PostCreatePage() {
                 value={postContent}
                 onChange={handleContentChange}
               />
-              <p
-                className="text-right text-sm text-gray-500 mt-2"
-                style={{ marginTop: "0px", marginBottom: "0px" }}
-              >
+              <p className="text-right text-sm text-gray-500 mt-2">
                 {postContent.length} / 2200
               </p>
             </div>
           </div>
         </div>
       )}
-      {/* 닫기 버튼 */}
+
       <button
         onClick={handleRequestClose}
         className="absolute top-4 right-4 text-white hover:text-gray-700 text-3xl font-extrabold"
@@ -222,7 +186,6 @@ export default function PostCreatePage() {
         <X size={40} />
       </button>
 
-      {/* 확인 모달 */}
       {isConfirmModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">

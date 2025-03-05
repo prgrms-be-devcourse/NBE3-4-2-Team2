@@ -1,5 +1,7 @@
 package com.example.backend.content.post.converter;
 
+import java.util.List;
+
 import com.example.backend.content.post.dto.PostCreateResponse;
 import com.example.backend.content.post.dto.PostDeleteResponse;
 import com.example.backend.content.post.dto.PostModifyResponse;
@@ -15,16 +17,18 @@ public class PostConverter {
 	 * PostEntity 객체를 PostCreateResponse로 변환
 	 *
 	 * @param post 게시물 (PostEntity 객체)
+	 * @param imgUrlList 이미지 URL 리스트
 	 * @return PostCreateResponse 객체
 	 */
-
-	public static PostCreateResponse toCreateResponse(PostEntity post) {
+	public static PostCreateResponse toCreateResponse(PostEntity post, List<String> imgUrlList) {
 		return PostCreateResponse.builder()
 			.id(post.getId())
 			.content(post.getContent())
 			.memberId(post.getMember().getId())
+			.imgUrlList(imgUrlList) // URL 리스트 추가
 			.build();
 	}
+
 	/**
 	 * 삭제 성공 응답 생성
 	 *
@@ -53,3 +57,4 @@ public class PostConverter {
 			.build();
 	}
 }
+

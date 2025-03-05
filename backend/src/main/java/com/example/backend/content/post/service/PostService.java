@@ -1,14 +1,16 @@
 package com.example.backend.content.post.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.hashtag.service.HashtagExtractor;
 import com.example.backend.content.hashtag.service.PostHashtagService;
+import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.post.converter.PostConverter;
 import com.example.backend.content.post.dto.PostCreateRequest;
 import com.example.backend.content.post.dto.PostCreateResponse;
@@ -50,19 +52,27 @@ public class PostService {
 	 */
 	@Transactional
 	public PostCreateResponse createPost(PostCreateRequest request) {
+
 		MemberEntity memberEntity = memberRepository.findById(request.memberId())
 			.orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 회원입니다."));
-		//MEMBER 클래스 EXCEPTION 으로 변경 예정
+
 		PostEntity postEntity = PostEntity.create(request.content(), memberEntity);
 		PostEntity savedPost = postRepository.save(postEntity);
-		imageService.uploadImages(savedPost, request.images());
+
+		// 이미지 업로드 및 URL 리스트 반환
+		List<String> uploadedUrls = new ArrayList<>();
+		if (request.images() != null && !request.images().isEmpty()) {
+			uploadedUrls = imageService.uploadImages(savedPost, request.images());
+		}
 
 		// 해시태그 추출 및 생성
 		Set<String> extractHashtags = hashtagExtractor.extractHashtag(savedPost.getContent());
 		postHashtagService.create(savedPost, extractHashtags);
 
-		return PostConverter.toCreateResponse(savedPost);
+		// PostCreateResponse에 이미지 URL 리스트 추가
+		return PostConverter.toCreateResponse(savedPost, uploadedUrls); // PostConverter 수정 필요
 	}
+
 
 	@Transactional
 	public PostModifyResponse modifyPost(Long postId, PostModifyRequest request) {

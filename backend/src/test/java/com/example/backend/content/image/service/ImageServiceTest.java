@@ -1,222 +1,123 @@
 package com.example.backend.content.image.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.example.backend.entity.ImageEntity;
 import com.example.backend.entity.ImageRepository;
 import com.example.backend.entity.PostEntity;
+import com.example.backend.entity.PostRepository;
 import com.example.backend.global.storage.LocalFileStorageService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
-class ImageServiceTest {
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
-    @Mock
-    private ImageRepository imageRepository;
+import static org.junit.jupiter.api.Assertions.*;
 
-    @Mock
-    private LocalFileStorageService fileStorageService;
+@SpringBootTest
+@Transactional
+public class ImageServiceTest {
 
-    @InjectMocks
+    @Autowired
     private ImageService imageService;
 
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private ImageRepository imageRepository;
+
+    @Autowired
+    private LocalFileStorageService fileStorageService;
+
     private PostEntity post;
-    private ImageEntity imageEntity;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        post = PostEntity.create("Test post content", null);
-        String imageUrl = "http://example.com/image.jpg";
-        imageEntity = ImageEntity.create(imageUrl, post);
+        // 게시물 엔티티 초기화
+        post = new PostEntity();
+        post.setContent("테스트 게시물");
+        postRepository.save(post);
     }
 
     @Test
-    @DisplayName("이미지 업로드 완료")
-    void t1() {
-        // Given
-        MockMultipartFile image = new MockMultipartFile("file", "image.jpg", "image/jpeg", new byte[1]);
-        List<MultipartFile> images = Arrays.asList(image);  // List<MultipartFile>로 변환
+    @DisplayName("t1: 이미지 업로드 테스트")
+    void testUploadImages() throws Exception {
+        // 테스트로 사용할 이미지 파일 생성
+        Path path1 = Paths.get("src/test/resources/test-image-1.jpg");
+        Path path2 = Paths.get("src/test/resources/test-image-2.jpg");
 
-        String imageUrl = "http://example.com/image.jpg";
-        when(fileStorageService.uploadFile(any())).thenReturn(imageUrl);
+        // MockMultipartFile 생성 (이미지 파일 2개 업로드)
+        MockMultipartFile file1 = new MockMultipartFile("files", "test-image-1.jpg", "image/jpeg", Files.readAllBytes(path1));
+        MockMultipartFile file2 = new MockMultipartFile("files", "test-image-2.jpg", "image/jpeg", Files.readAllBytes(path2));
 
-        ImageEntity imageEntity = ImageEntity.create(imageUrl, post);  // create() 메서드 사용
-        when(imageRepository.save(any())).thenReturn(imageEntity);
+        // 이미지 업로드
+        List<String> uploadedUrls = imageService.uploadImages(post, List.of(file1, file2));
 
-        // When
-        List<ImageEntity> uploadedImages = imageService.uploadImages(post, images);
+        // 업로드된 URL 확인
+        assertNotNull(uploadedUrls);
+        assertEquals(2, uploadedUrls.size());
+        assertTrue(uploadedUrls.get(0).startsWith("https://localhost:8080/api-v1/image"));
+        assertTrue(uploadedUrls.get(1).startsWith("https://localhost:8080/api-v1/image"));
 
-        // Then
-        assertNotNull(uploadedImages);
-        assertEquals(1, uploadedImages.size());
-        assertEquals(imageUrl, uploadedImages.get(0).getImageUrl());
-        verify(imageRepository, times(1)).save(any());
+        // 업로드된 이미지가 데이터베이스에 저장되었는지 확인
+        List<ImageEntity> images = imageRepository.findAll();
+        assertEquals(2, images.size());
+
+        // 이미지 엔티티 URL 확인
+        assertTrue(images.get(0).getImageUrl().startsWith("https://localhost:8080/api-v1/image"));
+        assertTrue(images.get(1).getImageUrl().startsWith("https://localhost:8080/api-v1/image"));
     }
 
     @Test
-    @DisplayName("빈 이미지 리스트 처리")
-    void t2() {
-        // Given
-        List<MultipartFile> emptyImages = Arrays.asList();  // 빈 리스트
+    @DisplayName("t2: 이미지 조회 테스트")
+    void testGetImage() throws Exception {
+        // 테스트로 사용할 이미지 파일 생성
+        Path path = Paths.get("src/test/resources/test-image-1.jpg");
+        MockMultipartFile file = new MockMultipartFile("file", "test-image-1.jpg", "image/jpeg", Files.readAllBytes(path));
 
-        // When
-        List<ImageEntity> uploadedImages = imageService.uploadImages(post, emptyImages);
+        // 이미지 업로드
+        List<String> uploadedUrls = imageService.uploadImages(post, List.of(file));
 
-        // Then
-        assertNotNull(uploadedImages);
-        assertTrue(uploadedImages.isEmpty(), "빈 이미지 리스트일 경우 빈 리스트 반환");
-        verify(imageRepository, never()).save(any());  // imageRepository의 save가 호출되지 않아야 함
+        // 업로드된 이미지 URL에서 UUID 추출
+        String imageUrl = uploadedUrls.get(0);
+        String imageId = imageUrl.split("/")[5];  // URL에서 UUID 추출 (예시: photo-1514888286974-6c03e2ca1dba)
+
+        // 실제 이미지 조회
+        byte[] imageBytes = fileStorageService.loadFile(imageId);
+
+        // 이미지 데이터가 반환되는지 확인
+        assertNotNull(imageBytes);
+        assertTrue(imageBytes.length > 0);
     }
 
     @Test
-    @DisplayName("파일 업로드 실패 시 예외 처리")
-    void t3() {
-        // Given
-        MockMultipartFile image = new MockMultipartFile("file", "image.jpg", "image/jpeg", new byte[1]);
-        List<MultipartFile> images = Arrays.asList(image);  // List<MultipartFile>로 변환
+    @DisplayName("t3: 이미지 삭제 테스트")
+    void testDeleteImage() throws Exception {
+        // 테스트로 사용할 이미지 파일 생성
+        Path path = Paths.get("src/test/resources/test-image-1.jpg");
+        MockMultipartFile file = new MockMultipartFile("file", "test-image-1.jpg", "image/jpeg", Files.readAllBytes(path));
 
-        // 파일 업로드가 실패할 경우
-        when(fileStorageService.uploadFile(any())).thenThrow(new RuntimeException("File upload failed"));
+        // 이미지 업로드
+        List<String> uploadedUrls = imageService.uploadImages(post, List.of(file));
+        String imageUrl = uploadedUrls.get(0);
+        String imageId = imageUrl.split("/")[5];  // URL에서 UUID 추출
 
-        // When & Then
-        assertThrows(RuntimeException.class, () -> {
-            imageService.uploadImages(post, images);
-        });
-    }
+        // 업로드된 이미지가 데이터베이스에 저장되었는지 확인
+        List<ImageEntity> imagesBeforeDelete = imageRepository.findAll();
+        assertEquals(1, imagesBeforeDelete.size());
 
-    @Test
-    @DisplayName("유효한 이미지 파일 업로드")
-    void t4() {
-        // Given
-        MockMultipartFile image = new MockMultipartFile("file", "image.jpg", "image/jpeg", new byte[1]);
-        List<MultipartFile> images = Arrays.asList(image);  // List<MultipartFile>로 변환
+        // 이미지 삭제
+        imageService.deleteImage(post.getId(), imagesBeforeDelete.get(0).getId());
 
-        String imageUrl = "http://example.com/image.jpg";
-        when(fileStorageService.uploadFile(any())).thenReturn(imageUrl);
-
-        ImageEntity imageEntity = ImageEntity.create(imageUrl, post);  // create() 메서드 사용
-        when(imageRepository.save(any())).thenReturn(imageEntity);
-
-        // When
-        List<ImageEntity> uploadedImages = imageService.uploadImages(post, images);
-
-        // Then
-        assertNotNull(uploadedImages);
-        assertEquals(1, uploadedImages.size());
-        assertEquals(imageUrl, uploadedImages.get(0).getImageUrl());
-        verify(imageRepository, times(1)).save(any());  // imageRepository의 save가 한 번 호출되어야 함
-    }
-    @Test
-    @DisplayName("이미지 업로드 후 URL만 반환")
-    void t5() {
-        // Given
-        MockMultipartFile image = new MockMultipartFile("file", "image.jpg", "image/jpeg", new byte[1]);
-        List<MultipartFile> images = Arrays.asList(image);
-
-        String imageUrl = "http://example.com/image.jpg";
-        when(fileStorageService.uploadFile(any())).thenReturn(imageUrl);
-
-        // ImageEntity 객체 생성 시 create 메서드 사용
-        ImageEntity imageEntity = ImageEntity.create(imageUrl, post);
-        when(imageRepository.save(any())).thenReturn(imageEntity);
-
-        // When
-        List<ImageEntity> uploadedImages = imageService.uploadImages(post, images);
-
-        // Then
-        assertNotNull(uploadedImages);
-        assertEquals(1, uploadedImages.size());
-        assertEquals(imageUrl, uploadedImages.get(0).getImageUrl());
-        verify(imageRepository, times(1)).save(any());
-
-        // findById가 해당 entity를 반환하도록 Mocking
-        when(imageRepository.findById(uploadedImages.get(0).getId())).thenReturn(java.util.Optional.of(imageEntity));
-
-        // URL만 반환되는지 확인
-        String fetchedImageUrl = imageService.getImageUrlById(uploadedImages.get(0).getId());
-        assertEquals(imageUrl, fetchedImageUrl);  // imageUrl이 반환되는지 확인
-    }
-    @Test
-    @DisplayName("이미지 단건 조회 시 URL 반환")
-    void t6() {
-        // Given
-        String imageUrl = "http://example.com/image.jpg";
-        ImageEntity imageEntity = ImageEntity.create(imageUrl, post);
-
-        // Mock에서 findById가 해당 imageEntity를 반환하도록 설정
-        when(imageRepository.findById(anyLong())).thenReturn(java.util.Optional.of(imageEntity));
-
-        // When
-        String fetchedImageUrl = imageService.getImageUrlById(1L);  // ID 값을 직접 전달
-
-        // Then
-        assertNotNull(fetchedImageUrl);
-        assertEquals(imageUrl, fetchedImageUrl);  // 반환된 URL이 이미지의 URL과 일치하는지 확인
-    }
-    @Test
-    @DisplayName("이미지 삭제 완료")
-    void t7() {
-        String imageUrl = "http://example.com/image.jpg";
-        imageEntity = ImageEntity.create(imageUrl, post);
-
-        when(imageRepository.findById(anyLong())).thenReturn(java.util.Optional.of(imageEntity));
-
-        // 이미지 삭제 시, 이미지 URL이 파일 시스템에서 삭제되는지 확인
-        doNothing().when(fileStorageService).deleteFile(anyString());
-
-        // deleteImages 메서드를 호출하여 이미지 삭제
-        imageService.deleteImages(post);
-
-        // fileStorageService.deleteFile이 한 번 호출된다고 예상했지만, 두 번 호출된 것에 맞게 수정
-        verify(fileStorageService, times(2)).deleteFile(imageUrl);  // deleteFile이 두 번 호출되어야 함
-        verify(imageRepository, times(1)).deleteAll(any());  // imageRepository의 deleteAll이 한 번 호출되어야 함
-    }
-    @Test
-    @DisplayName("여러 이미지 업로드 후 각 URL 반환")
-    void t8() {
-        // Given
-        MockMultipartFile image1 = new MockMultipartFile("file", "image1.jpg", "image/jpeg", new byte[1]);
-        MockMultipartFile image2 = new MockMultipartFile("file", "image2.jpg", "image/jpeg", new byte[1]);
-        List<MultipartFile> images = Arrays.asList(image1, image2);
-
-        // 각 이미지에 대한 URL을 설정
-        String imageUrl1 = "http://example.com/image1.jpg";
-        String imageUrl2 = "http://example.com/image2.jpg";
-
-        // 파일 업로드 시 URL 반환을 Mocking
-        when(fileStorageService.uploadFile(image1)).thenReturn(imageUrl1);
-        when(fileStorageService.uploadFile(image2)).thenReturn(imageUrl2);
-
-        // ImageEntity 객체 생성 시 create 메서드 사용
-        ImageEntity imageEntity1 = ImageEntity.create(imageUrl1, post);
-        ImageEntity imageEntity2 = ImageEntity.create(imageUrl2, post);
-
-        // 이미지 저장 시 반환값 설정
-        when(imageRepository.save(any(ImageEntity.class)))
-            .thenReturn(imageEntity1)
-            .thenReturn(imageEntity2);
-
-        // When
-        List<ImageEntity> uploadedImages = imageService.uploadImages(post, images);
-
-        // Then
-        assertNotNull(uploadedImages);
-        assertEquals(2, uploadedImages.size());
-        assertEquals(imageUrl1, uploadedImages.get(0).getImageUrl());
-        assertEquals(imageUrl2, uploadedImages.get(1).getImageUrl());
-        verify(imageRepository, times(2)).save(any());  // imageRepository의 save가 두 번 호출되어야 함
+        // 이미지가 데이터베이스에서 삭제되었는지 확인
+        List<ImageEntity> imagesAfterDelete = imageRepository.findAll();
+        assertEquals(0, imagesAfterDelete.size());
     }
 }
