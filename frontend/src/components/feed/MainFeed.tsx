@@ -90,29 +90,19 @@ export default function MainFeed() {
     try {
       console.log("API 요청 데이터:", requestData);
 
-      // 쿼리 파라미터 생성
-      const queryParams = new URLSearchParams();
-      queryParams.append("timestamp", requestData.timestamp);
-      queryParams.append("lastPostId", requestData.lastPostId.toString());
-      queryParams.append("maxSize", requestData.maxSize.toString());
-
       // API 호출 - GET 요청으로 쿼리 파라미터 전달
       const response = await client.GET("/api-v1/feed", {
         params: {
-          query: { 
-            timestamp: requestData.timestamp,
-            lastPostId: requestData.lastPostId.toString(),
-            maxSize: requestData.maxSize.toString()
-          }
+          query: requestData // 수정된 부분
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`API 응답 오류: ${response.status}`);
+      if (response.response.status!=200) { // GET의 반환 객체는 ok 속성이 존재하지 않음(ok는 fetch의 반환 객체에만 존재)
+        throw new Error(`API 응답 오류: ${response.response.status}`);
       }
 
       // 응답 데이터 반환
-      return await response.json();
+      return await response.data;
     } catch (error) {
       console.error("API 호출 중 오류 발생:", error);
       throw error;
@@ -135,7 +125,7 @@ export default function MainFeed() {
       const response = await fetchFeedsFromApi(requestData);
 
       // 응답 데이터 처리
-      const apiFeeds = response.feedList || [];
+      const apiFeeds = response?.data?.feedList || [];
 
       // ID 추적 세트에 추가
       apiFeeds.forEach((feed: FeedInfoResponse) => {
@@ -187,7 +177,7 @@ export default function MainFeed() {
         const response = await fetchFeedsFromApi(requestData);
 
         // 응답 데이터 처리
-        const newApiFeeds = response.feedList || [];
+        const newApiFeeds = response?.data?.feedList || [];
 
         if (newApiFeeds.length > 0) {
           // 중복 데이터 필터링

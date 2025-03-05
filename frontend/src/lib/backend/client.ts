@@ -5,7 +5,7 @@ const client = createClient<paths>({
   baseUrl: "http://localhost:8080",
   credentials: "include",
   headers: {
-    get Authorization() {
+    get Authorization() { // Authorization 헤더 getter
       // 서버사이드에서는 localStorage에 접근할 수 없음
       if (typeof window === 'undefined') return '';
       
