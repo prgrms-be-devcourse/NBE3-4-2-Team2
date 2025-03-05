@@ -1,14 +1,23 @@
-'use client'
+"use client";
 
 import Link from "next/link";
-import { Search, Bookmark, Bell, Menu, X, Sun, Moon } from 'lucide-react';
-import { useTheme } from '@/contexts/ThemeContext';
+import {
+  Search,
+  Bookmark,
+  Bell,
+  Menu,
+  X,
+  Sun,
+  Moon,
+  SquarePlus,
+} from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 
-export function Navigation({ 
-  isNavOpen, 
-  setIsNavOpen, 
-  isMobile
-}: { 
+export function Navigation({
+  isNavOpen,
+  setIsNavOpen,
+  isMobile,
+}: {
   isNavOpen: boolean;
   setIsNavOpen: (isOpen: boolean) => void;
   isMobile: boolean;
@@ -21,8 +30,8 @@ export function Navigation({
       {isMobile && (
         <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="font-semibold">메뉴</h2>
-          <button 
-            onClick={() => setIsNavOpen(!isNavOpen)} 
+          <button
+            onClick={() => setIsNavOpen(!isNavOpen)}
             className="focus:outline-none"
             aria-label={isNavOpen ? "닫기" : "메뉴 열기"}
           >
@@ -34,12 +43,12 @@ export function Navigation({
           </button>
         </div>
       )}
-      
+
       <div className="p-4 flex-1">
         <ul className="space-y-4">
           <li>
-            <Link 
-              href="/search" 
+            <Link
+              href="/search"
               className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <Search size={20} />
@@ -47,8 +56,8 @@ export function Navigation({
             </Link>
           </li>
           <li>
-            <Link 
-              href="/bookmark" 
+            <Link
+              href="/bookmark"
               className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <Bookmark size={20} />
@@ -56,20 +65,29 @@ export function Navigation({
             </Link>
           </li>
           <li>
-            <Link 
-              href="/notice" 
+            <Link
+              href="/notice"
               className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <Bell size={20} />
               <span>알림</span>
             </Link>
           </li>
+          <li>
+            <Link
+              href="/post"
+              className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <SquarePlus size={20} />
+              <span>만들기</span>
+            </Link>
+          </li>
         </ul>
       </div>
-      
+
       {/* 다크모드 토글 버튼을 하단에 추가 */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <button 
+        <button
           onClick={toggleDarkMode}
           className="flex items-center gap-2 p-2 w-full rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
           aria-label={darkMode ? "라이트 모드로 전환" : "다크 모드로 전환"}
