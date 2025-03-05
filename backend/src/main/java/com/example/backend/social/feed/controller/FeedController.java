@@ -1,12 +1,13 @@
 package com.example.backend.social.feed.controller;
 
+import java.time.LocalDateTime;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,7 +42,6 @@ public class FeedController {
 
 	/**
 	 * 팔로잉 게시물과 추천 게시물이 혼합된 피드 리스트 요청
-	 * @param request 요청 정보
 	 * @return 피드 Dto 리스트
 	 */
 	@Operation(
@@ -50,10 +50,14 @@ public class FeedController {
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedListResponse> findFeedList(
-		@ModelAttribute FeedRequest request,
+		@RequestParam(name = "timestamp") LocalDateTime timestamp,
+		@RequestParam(name = "lastPostId") Long lastPostId,
+		@RequestParam(name = "maxSize") Integer maxSize,
 		@AuthenticationPrincipal CustomUser securityUser
 	) {
-		FeedListResponse response = feedService.findList(request, securityUser.getId());
+		FeedListResponse response = feedService.findList(
+			new FeedRequest(timestamp, lastPostId, maxSize),
+			securityUser.getId());
 		return RsData.success(response, "피드를 성공적으로 반환했습니다.");
 	}
 
@@ -77,7 +81,6 @@ public class FeedController {
 
 	/**
 	 * 특정 멤버가 작성한 게시글에 대한 피드정보 요청
-	 * @param request 요청 정보
 	 * @return 피드 Dto 리스트
 	 */
 	@Operation(
@@ -86,10 +89,13 @@ public class FeedController {
 	@GetMapping("/member")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedMemberResponse> findMemberFeedList(
-		@RequestBody FeedMemberRequest request,
+		@RequestParam(name = "lastPostId") Long lastPostId,
+		@RequestParam(name = "maxSize") Integer maxSize,
 		@AuthenticationPrincipal CustomUser securityUser
 	) {
-		FeedMemberResponse response = feedService.findMembersList(request, securityUser.getId());
+		FeedMemberResponse response = feedService.findMembersList(
+			new FeedMemberRequest(lastPostId, maxSize),
+			securityUser.getId());
 		return RsData.success(response, "피드를 성공적으로 반환했습니다.");
 	}
 }
