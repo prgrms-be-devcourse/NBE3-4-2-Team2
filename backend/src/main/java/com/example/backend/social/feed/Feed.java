@@ -5,7 +5,7 @@ import java.util.List;
 import com.example.backend.entity.PostEntity;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
 /***
  * Feed
@@ -13,20 +13,24 @@ import lombok.Data;
  * @author ChoiHyunSan
  * @since 2025-01-31
  */
-@Data
+@Getter
 @AllArgsConstructor
 public class Feed {
 	private PostEntity post;
-	private Long likeCount;
 	private Long commentCount;
 	private List<String> hashTagList;
 	private List<String> imageUrlList;
 
 	private Long bookmarkId;
 
-	public Feed(PostEntity post, Long likeCount, Long commentCount) {
+	public Feed(PostEntity post, Long commentCount) {
 		this.post = post;
-		this.likeCount = likeCount;
 		this.commentCount = commentCount;
+	}
+
+	public void fillData(List<String> hashTagList, List<String> imageUrlList, Long bookmarkId) {
+		this.hashTagList = hashTagList;
+		this.imageUrlList = imageUrlList;
+		this.bookmarkId = bookmarkId;
 	}
 }

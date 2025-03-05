@@ -22,6 +22,7 @@ import com.example.backend.entity.PostEntity;
 import com.example.backend.entity.PostHashtagEntity;
 import com.example.backend.entity.PostHashtagRepository;
 import com.example.backend.entity.PostRepository;
+import com.example.backend.identity.member.service.MemberService;
 
 @SpringBootTest
 @DirtiesContext
@@ -42,6 +43,8 @@ class FeedSchedulerTest {
 
 	@Autowired
 	public FeedScheduler feedScheduler;
+	@Autowired
+	private MemberService memberService;
 
 	@BeforeEach
 	void setUp() {
@@ -78,13 +81,14 @@ class FeedSchedulerTest {
 
 	private void setData() {
 		// Member
-		MemberEntity member = MemberEntity.builder()
-			.username("user1")
-			.email("user1@example.com")
-			.password("password")
-			.refreshToken("refresh")
-			.build();
-		memberRepository.save(member);
+		// MemberEntity member = MemberEntity.builder()
+		// 	.username("user1")
+		// 	.email("user1@example.com")
+		// 	.password("password")
+		// 	.refreshToken("refresh")
+		// 	.build();
+		// memberRepository.save(member);
+		MemberEntity member = memberService.join("testReceiver","testPassword","testReceiver@gmail.com");
 
 		// Post
 		List<PostEntity> posts = new ArrayList<>();
@@ -112,7 +116,7 @@ class FeedSchedulerTest {
 		// 10 ~ 29 해시태그 -> 1번 게시물
 		List<PostHashtagEntity> postHashtags = new ArrayList<>();
 		for (int i = 0; i < 30; i++) {
-			if (i < 2) {
+			if (i < 1) {
 				createPostHashtags(postHashtags, posts, hashtags, i, 3);
 			} else if (i < 10) {
 				createPostHashtags(postHashtags, posts, hashtags, i, 2);

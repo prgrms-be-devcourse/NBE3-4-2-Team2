@@ -1,9 +1,9 @@
 package com.example.backend.identity.member.service;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +11,7 @@ import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.global.exception.GlobalException;
 import com.example.backend.identity.member.exception.MemberErrorCode;
+import com.example.backend.identity.security.user.CustomUser;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class MemberService {
-	private final JwtService jwtService;
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
 
@@ -47,10 +47,31 @@ public class MemberService {
 			.username(username)
 			.password(encodedPassword)
 			.email(email)
-			.refreshToken(UUID.randomUUID().toString())
 			.build();
 
 		return memberRepository.save(member);
+	}
+
+	public CustomUser login(String username, String password) {
+		MemberEntity member = memberRepository
+			.findByUsername(username)
+			.orElseThrow(() ->
+				new UsernameNotFoundException("해당 username을 가진 회원을 찾을 수 없습니다.")
+			);
+
+		if (!passwordEncoder.matches(password, member.getPassword())) {
+			throw
+				new BadCredentialsException("비밀번호가 일치하지 않습니다.");
+		}
+
+		CustomUser loginUser = new CustomUser(
+			member,
+			null
+		);
+
+		loginUser.setLogin();
+
+		return loginUser;
 	}
 
 	public Optional<MemberEntity> findByUsername(String username) {
@@ -61,32 +82,4 @@ public class MemberService {
 		return memberRepository.findById(authorId);
 	}
 
-	public Optional<MemberEntity> findByRefreshToken(String refreshToken) {
-		return memberRepository.findByRefreshToken(refreshToken);
-	}
-
-	public String genAccessToken(MemberEntity member) {
-		return jwtService.genAccessToken(member);
-	}
-
-	public MemberEntity getActorFromAccessToken(String accessToken) {
-		Map<String, Object> payload = jwtService.payload(accessToken);
-
-		if (payload == null) return null;
-
-		Long id = (Long) payload.get("id");
-		String username = (String) payload.get("username");
-
-		if (id == null || username == null)
-			return null;
-
-		MemberEntity actor = new MemberEntity(id, username);
-
-		return actor;
-	}
-
-
-	public boolean matchPassword(MemberEntity member, String password) {
-		return passwordEncoder.matches(password, member.getPassword());
-	}
 }

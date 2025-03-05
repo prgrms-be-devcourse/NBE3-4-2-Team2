@@ -36,12 +36,15 @@ public class MemberEntity extends BaseEntity {
 
 	private String profileUrl;
 
-	@Column(unique = true, nullable = false)
-	private String refreshToken;
+	private String phoneNumber;
 
-	private int followerCount;
+	@Column(nullable = false)
+	@Builder.Default
+	private Long followerCount = 0L; // 팔로워 : 본인이 팔로우중인 인원수
 
-	private int followingCount;
+	@Column(nullable = false)
+	@Builder.Default
+	private Long followeeCount = 0L; // 팔로위 : 본인을 팔로우중인 인원수
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
@@ -57,11 +60,7 @@ public class MemberEntity extends BaseEntity {
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
-	private List<NotificationEntity> notificationList = new ArrayList<>();
-
-	@OneToMany(mappedBy = "member")
-	@Builder.Default
-	private List<LikesEntity> likeList = new ArrayList<>();
+	private List<LikeEntity> likeList = new ArrayList<>();
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default

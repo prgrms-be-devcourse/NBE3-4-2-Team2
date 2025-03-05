@@ -1,11 +1,7 @@
 package com.example.backend.content.post.dto;
 
-import com.example.backend.entity.PostEntity;
-
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * 게시물 생성 관련 DTO
@@ -16,27 +12,8 @@ import lombok.NoArgsConstructor;
  */
 
 @Builder
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public class PostCreateResponse {
-
-	private Long id;
-	private String content;
-	private Long memberId;
-
-	/**
-	 * PostEntity 객체를 PostCreateResponse로 변환
-	 *
-	 * @param post 게시물 (PostEntity 객체)
-	 * @return PostCreateResponse 객체
-	 */
-
-	public static PostCreateResponse fromEntity(PostEntity post) {
-		return PostCreateResponse.builder()
-			.id(post.getId())
-			.content(post.getContent())
-			.memberId(post.getMember().getId())
-			.build();
-	}
-}
+public record PostCreateResponse (
+	@NotNull(message = "게시물 번호는 필수 입력 값입니다.") Long id,
+	@NotNull(message = "게시물 내용은 필수 입력 값입니다.") String content,
+	@NotNull(message = "회원 번호는 필수 입력 값입니다.") Long memberId
+){ }
