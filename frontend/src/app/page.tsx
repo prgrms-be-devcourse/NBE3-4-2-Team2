@@ -1,14 +1,10 @@
-import MainFeed from "@/components/feed/MainFeed";
+import { cookies } from 'next/headers';
+import LandingPage from '@/components/LandingPage';
+import Feed from '../components/Feed';
 
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1>홈페이지</h1>
-      <div className="flex justify-center">
-        <div className="w-full max-w-screen-xl flex justify-center px-4">
-          <MainFeed />
-        </div>
-      </div>
-    </main>
-  );
+export default async function HomePage() {
+  const cookieStore = await cookies();
+  const hasRefreshToken = cookieStore.has('refresh_token');
+
+  return hasRefreshToken ? <Feed /> : <LandingPage />;
 }
