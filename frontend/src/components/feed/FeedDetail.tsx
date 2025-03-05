@@ -279,7 +279,7 @@ export default function FeedDetail({ id }: { id: string }) {
               {/* 좋아요 수 */}
               <div className="my-2">
                 <span className="font-medium text-sm">
-                  {feed.likesCount || 0} 좋아요
+                  {feed.likeCount || 0} 좋아요
                 </span>
               </div>
 

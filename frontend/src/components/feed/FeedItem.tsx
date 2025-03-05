@@ -219,7 +219,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
           onClick={handleLike}
         >
           <span className="text-xl mr-1">{isLiked ? "❤️" : "🤍"}</span>
-          <span className="text-sm">{feed.likesCount || 0}</span>
+          <span className="text-sm">{feed.likeCount || 0}</span>
         </button>
         <button
           className="flex items-center mr-4 text-gray-700 hover:text-blue-500"
