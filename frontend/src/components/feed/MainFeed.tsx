@@ -27,7 +27,7 @@ export default function MainFeed() {
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const observer = useRef<IntersectionObserver | null>(null);
-  const PAGE_SIZE = 5; // 한 번에 표시할 피드 개수
+  const PAGE_SIZE = 2; // 한 번에 표시할 피드 개수
   const feedContainerRef = useRef<HTMLDivElement>(null);
 
   // 이미 로드된 피드 ID를 추적
@@ -100,7 +100,7 @@ export default function MainFeed() {
       const response = await client.GET("/api-v1/feed", {
         params: {
           query: {
-            timestamp: requestData.timestamp,
+            timestamp: requestData.timestamp.toString(),
             lastPostId: requestData.lastPostId.toString(),
             maxSize: requestData.maxSize.toString(),
           },
@@ -259,8 +259,6 @@ export default function MainFeed() {
 
   return (
     <div className="w-full max-w-[500px] mx-auto" ref={feedContainerRef}>
-      <h2 className="text-xl font-bold mb-4">SNS 피드</h2>
-
       <div className="feed-list">
         {feeds.map((feed, index) => {
           // 마지막 요소에만 ref 설정
@@ -284,7 +282,7 @@ export default function MainFeed() {
         </div>
       )}
 
-      {!hasMore && feeds.length > 0 && (
+      {!hasMore && (
         <div className="no-more-feeds mt-4 text-center text-gray-500">
           더 이상 피드가 없습니다.
         </div>
