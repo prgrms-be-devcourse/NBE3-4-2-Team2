@@ -9,7 +9,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { darkMode } = useTheme(); // Context에서 darkMode 가져오기
+  const { darkMode } = useTheme();
 
   // 화면 크기에 따라 모바일 상태 감지
   useEffect(() => {
@@ -26,7 +26,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen dark:bg-gray-900 transition-colors duration-200">
+    <div className="flex flex-col h-full">
       <div className="fixed top-0 left-0 right-0 z-20">
         <Header />
       </div>
@@ -66,9 +66,9 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
         <div className={`
           flex-1 overflow-auto transition-all duration-300 
           ${!isMobile ? 'ml-64' : 'ml-0'}
-          dark:bg-gray-900 dark:text-white
+          bg-white dark:bg-gray-900 text-black dark:text-white
         `}>
-          <main className="p-4 w-full">{children}</main>
+          <main className="p-4 w-full h-full">{children}</main>
         </div>
       </div>
     </div>
