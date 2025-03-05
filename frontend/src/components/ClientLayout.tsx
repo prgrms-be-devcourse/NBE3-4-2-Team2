@@ -4,11 +4,12 @@ import { Header } from './Header';
 import { Navigation } from './Navigation';
 import { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode } = useTheme(); // Context에서 darkMode 가져오기
 
   // 화면 크기에 따라 모바일 상태 감지
   useEffect(() => {
@@ -19,39 +20,15 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // 저장된 다크모드 설정 불러오기
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    setDarkMode(savedDarkMode);
-    
-    // 다크모드 상태에 따라 HTML 요소에 클래스 적용
-    if (savedDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  // 다크모드 토글 함수
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', String(newDarkMode));
-    
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-
   return (
     <div className="flex flex-col h-screen dark:bg-gray-900 transition-colors duration-200">
       <div className="fixed top-0 left-0 right-0 z-20">
-        <Header darkMode={darkMode} />
+        <Header />
       </div>
       
       {/* 모바일에서 네비게이션이 열렸을 때 오버레이 */}
@@ -84,8 +61,6 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
             isNavOpen={isNavOpen} 
             setIsNavOpen={setIsNavOpen} 
             isMobile={isMobile}
-            darkMode={darkMode}
-            toggleDarkMode={toggleDarkMode}
           />
         </div>
         <div className={`

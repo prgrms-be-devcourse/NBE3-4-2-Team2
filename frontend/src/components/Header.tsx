@@ -4,9 +4,12 @@ import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { logout } from '@/lib/auth';
+import { Globe2 } from 'lucide-react';
 import Image from 'next/image';
+import { useTheme } from '@/contexts/ThemeContext';
 
-export function Header({ darkMode }: { darkMode: boolean }) {
+export function Header() {
+  const { darkMode } = useTheme(); // Context에서 darkMode 가져오기
   const { isAuthenticated, logout: clearAuth } = useAuth();
   const router = useRouter();
 
@@ -23,10 +26,8 @@ export function Header({ darkMode }: { darkMode: boolean }) {
   return (
     <div className={`
       flex justify-between items-center px-4 py-4 border-b
-      ${darkMode 
-        ? 'bg-gray-800 text-white border-gray-700' 
-        : 'bg-white text-black border-gray-200'
-      }
+      bg-white dark:bg-gray-800 text-black dark:text-white 
+      border-gray-200 dark:border-gray-700
       transition-colors duration-200
     `}>
       <Link href="/" className="text-2xl font-bold flex items-center">
@@ -44,7 +45,7 @@ export function Header({ darkMode }: { darkMode: boolean }) {
         {isAuthenticated ? (
           <button 
             onClick={handleLogout} 
-            className={`${darkMode ? 'hover:text-gray-300' : 'hover:text-gray-600'}`}
+            className="hover:text-gray-600 dark:hover:text-gray-300"
           >
             로그아웃
           </button>
@@ -52,13 +53,13 @@ export function Header({ darkMode }: { darkMode: boolean }) {
           <>
             <Link 
               href="/login" 
-              className={`${darkMode ? 'hover:text-gray-300' : 'hover:text-gray-600'}`}
+              className="hover:text-gray-600 dark:hover:text-gray-300"
             >
               로그인
             </Link>
             <Link 
               href="/join" 
-              className={`${darkMode ? 'hover:text-gray-300' : 'hover:text-gray-600'}`}
+              className="hover:text-gray-600 dark:hover:text-gray-300"
             >
               회원가입
             </Link>

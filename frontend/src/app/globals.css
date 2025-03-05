@@ -4,7 +4,14 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
+  --background-dark: #181818;
+  --foreground-dark: #ffffff;
+}
+
+.dark {
+  --background: var(--background-dark);
+  --foreground: var(--foreground-dark);
 }
 
 @media (prefers-color-scheme: dark) {
