@@ -47,6 +47,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
 
     console.log(isBookmarked ? "북마크를 추가합니다." : "북마크를 취소합니다.");
     setIsBookmarked(!isBookmarked);
+
     // API 호출은 여기에 구현
   };
 

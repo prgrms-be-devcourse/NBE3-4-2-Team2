@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { dummyFeeds } from "@/components/feed/dummyData";
 import { components } from "../../lib/backend/apiV1/schema";
 import { useComments } from "@/components/feed/useComments"; // 커스텀 훅 import
 import CommentsSection from "@/components/feed/CommentsSection"; // 댓글 컴포넌트 import
+import client from "@/lib/backend/client";
 
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
 
@@ -27,17 +27,23 @@ export default function FeedDetail({ id }: { id: string }) {
 
   useEffect(() => {
     // 단일 피드 정보 불러오기
-    const fetchFeedDetail = () => {
+    const fetchFeedDetail = async () => {
       setLoading(true);
 
       try {
         console.log(`피드 ID: ${feedId} 데이터 불러오는 중...`);
+        const response = await client.GET("/api-v1/feed/{postId}", {
+          params: {
+            path: {
+              postId: feedId,
+            },
+          },
+        });
+        if (!response.data) {
+          throw new Error(`API 응답 오류: ${response.error}`);
+        }
 
-        // 실제 구현에서는 API 호출로 대체
-        // 여기서는 더미 데이터에서 해당 ID의 피드를 찾음
-        const foundFeed =
-          dummyFeeds.feedList?.find((feed) => feed.postId === feedId) || null;
-
+        const foundFeed = response.data.data;
         if (foundFeed) {
           console.log("피드를 찾았습니다:", foundFeed);
           setFeed(foundFeed);
@@ -73,6 +79,7 @@ export default function FeedDetail({ id }: { id: string }) {
   const handleLike = (): void => {
     setIsLiked(!isLiked);
     // API 호출은 여기에 구현
+    // 자신의 글에는 좋아요를 할 수 없다.
     // 예: api.post(`/feeds/${feedId}/like`);
   };
 
@@ -80,6 +87,7 @@ export default function FeedDetail({ id }: { id: string }) {
   const handleBookmark = (): void => {
     setIsBookmarked(!isBookmarked);
     // API 호출은 여기에 구현
+    // 자신의 글에도 북마크를 할 수 있다.
     // 예: api.post(`/feeds/${feedId}/bookmark`);
   };
 
