@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, ArrowLeft } from "lucide-react";
 import client from "@/lib/backend/client";
+import type { paths } from "@/lib/backend/apiV1/schema";
 
 export default function PostCreatePage() {
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -12,6 +13,8 @@ export default function PostCreatePage() {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleRequestClose = () => setIsConfirmModalOpen(true);
@@ -31,8 +34,59 @@ export default function PostCreatePage() {
     }
   };
 
-  const handleCreatePost = () => {
-    console.log("게시물 생성!");
+  const handleCreatePost = async () => {
+    // 입력 유효성 검사
+    if (!postContent.trim() && (!selectedFiles || selectedFiles.length === 0)) {
+      setError("게시물 내용이나 이미지를 추가해주세요.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 이미지 업로드
+      const uploadPromises = selectedFiles
+        ? Array.from(selectedFiles).map(async (file) => {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const { data, error } = await client.POST("/api-v1/upload", {
+              body: formData,
+            });
+
+            if (error) throw error;
+            return data?.url;
+          })
+        : [];
+
+      const uploadedImageUrls = await Promise.all(uploadPromises);
+
+      // 포스트 생성 요청
+      const { data, error } = await client.POST("/api-v1/post", {
+        params: {
+          query: {
+            request: {
+              memberId: 1, // TODO: 실제 로그인한 사용자 ID로 대체
+              content: postContent,
+              images: uploadedImageUrls.filter((url) => url !== undefined),
+            },
+          },
+        },
+      });
+
+      // 성공 처리
+      if (data) {
+        router.push("/");
+      } else if (error) {
+        setError(error.message || "포스트 생성에 실패했습니다.");
+      }
+    } catch (err: any) {
+      setError("포스트 생성 중 오류가 발생했습니다.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -93,13 +147,23 @@ export default function PostCreatePage() {
               </h2>
               <button
                 onClick={handleCreatePost}
+                disabled={isLoading}
                 className="text-blue-500 font-bold hover:underline"
               >
-                공유하기
+                {isLoading ? "업로드 중..." : "공유하기"}
               </button>
             </div>
 
             <hr className="border-t-2 border-gray-300 w-full mb-4" />
+
+            {error && (
+              <div
+                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                role="alert"
+              >
+                <span className="block sm:inline">{error}</span>
+              </div>
+            )}
 
             {imagePreviews.length > 0 ? (
               <div className="relative w-full h-[500px] bg-gray-200 border-2 border-gray-300 rounded-md">
@@ -170,6 +234,7 @@ export default function PostCreatePage() {
                 placeholder="내용을 작성해주세요"
                 value={postContent}
                 onChange={handleContentChange}
+                disabled={isLoading}
               />
               <p className="text-right text-sm text-gray-500 mt-2">
                 {postContent.length} / 2200
