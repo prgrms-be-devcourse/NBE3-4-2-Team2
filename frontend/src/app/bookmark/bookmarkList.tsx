@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import client from "@/lib/backend/client";
 
 // 북마크 아이템 타입 정의
 interface BookmarkItem {
@@ -45,19 +46,13 @@ export default function BookmarkList() {
     try {
       setLoading(true);
       
-      const response = await fetch('/api-v1/bookmark/list', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // 토큰 가져오기
-        }
-      });
+      const { data, error, response } = await client.GET("/api-v1/bookmark/list", {});
 
-      if (!response.ok) {
+      if (!response.ok || error) {
         throw new Error('북마크를 가져오는데 실패했습니다.');
       }
 
-      const result: ApiResponse<BookmarkItem[]> = await response.json();
+      const result = data as ApiResponse<BookmarkItem[]>;
       
       // 모든 북마크 데이터 저장
       setAllBookmarks(result.data);
@@ -134,16 +129,11 @@ export default function BookmarkList() {
   // 북마크 삭제 함수
   const handleDeleteBookmark = async (bookmarkId: number, postId: number) => {
     try {
-      const response = await fetch(`/api-v1/bookmark/${postId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ bookmarkId })
+      const { error, response } = await client.DELETE(`/api-v1/bookmark/${postId}`, {
+        body: { bookmarkId }
       });
 
-      if (!response.ok) {
+      if (!response.ok || error) {
         throw new Error('북마크 삭제에 실패했습니다.');
       }
 
