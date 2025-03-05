@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { Search, Bookmark, Bell, SquarePlus } from 'lucide-react';
+import { Search, Bookmark, Bell, SquarePlus } from "lucide-react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,40 +38,50 @@ export default function RootLayout({
             <Link href="/join">회원가입</Link>
           </div>
         </div>
-        
+
         <div className="flex">
           <nav className="w-64 h-[calc(100vh-65px)] border-r p-4">
             <ul className="space-y-4">
               <li>
-                <Link href="/search" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md">
+                <Link
+                  href="/search"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md"
+                >
                   <Search size={20} />
                   <span>검색</span>
                 </Link>
               </li>
               <li>
-                <Link href="/bookmark" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md">
+                <Link
+                  href="/bookmark"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md"
+                >
                   <Bookmark size={20} />
                   <span>북마크</span>
                 </Link>
               </li>
               <li>
-                <Link href="/notice" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md">
+                <Link
+                  href="/notice"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md"
+                >
                   <Bell size={20} />
                   <span>알림</span>
                 </Link>
               </li>
               <li>
-                <Link href="/post" className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md">
+                <Link
+                  href="/post"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md"
+                >
                   <SquarePlus size={20} />
                   <span>만들기</span>
                 </Link>
               </li>
             </ul>
           </nav>
-          
-          <main className="flex-1 p-4">
-            {children}
-          </main>
+
+          <main className="flex-1 p-4">{children}</main>
         </div>
       </body>
     </html>
