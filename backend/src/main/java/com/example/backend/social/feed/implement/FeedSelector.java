@@ -6,6 +6,7 @@ package com.example.backend.social.feed.implement;
  * @author ChoiHyunSan
  * @since 2025-01-31
  */
+
 // @Component
 // @RequiredArgsConstructor
 // public class FeedSelector {
@@ -239,3 +240,4 @@ package com.example.backend.social.feed.implement;
 // 		return postEntity.id.lt(lastPostId);
 // 	}
 // }
+

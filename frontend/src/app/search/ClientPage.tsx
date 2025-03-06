@@ -49,8 +49,12 @@ const ClientPage = () => {
         size: 12,
       };
 
-      if (!isInitial && lastPostId) {
-        searchParams.lastPostId = lastPostId;
+      // 첫 요청이거나 lastPostId가 null인 경우 0으로 설정
+      if (!isInitial) {
+        searchParams.lastPostId = lastPostId !== null ? lastPostId : 0;
+      } else {
+        // 초기 요청에도 lastPostId를 0으로 설정
+        searchParams.lastPostId = 0;
       }
 
       // URL 매개변수로 변환
@@ -61,10 +65,23 @@ const ClientPage = () => {
         }
       });
 
-      const response = await fetch(`/api-v1/search?${params}`);
+      // 백엔드 서버 URL을 직접 사용
+      const baseUrl = "http://localhost:8080";
+      const response = await fetch(`${baseUrl}/api-v1/search?${params}`, {
+        // 크로스 도메인 요청에 쿠키 포함 (인증이 필요한 경우)
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `검색 요청 실패: ${response.status} ${response.statusText}`
+        );
+      }
+
       const result = await response.json();
 
-      if (result.isSuccess) {
+      if (result.success) {
+        // 백엔드가 isSuccess 대신 success 필드를 사용하는 경우
         const data: SearchPostCursorResponse = result.data;
         setPosts((prev) =>
           isInitial
@@ -73,6 +90,8 @@ const ClientPage = () => {
         );
         setLastPostId(data.lastPostId);
         setHasMore(data.hasNext);
+      } else {
+        console.error("검색 실패:", result.message);
       }
     } catch (error) {
       console.error("Failed to fetch posts:", error);
@@ -188,7 +207,9 @@ const ClientPage = () => {
           ))}
         </div>
       ) : !loading && keyword.trim() ? (
-        <p className="text-center text-gray-500 dark:text-gray-400 my-8">검색 결과가 없습니다</p>
+        <p className="text-center text-gray-500 dark:text-gray-400 my-8">
+          검색 결과가 없습니다
+        </p>
       ) : null}
 
       {loading && (
