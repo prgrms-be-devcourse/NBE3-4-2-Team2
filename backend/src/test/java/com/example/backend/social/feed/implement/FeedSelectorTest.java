@@ -32,7 +32,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 class FeedSelectorTest {
 
 	@Autowired
-	private FeedSelector feedSelector;
+	private FeedSelectorCache feedSelector;
 
 	@Autowired
 	private FeedTestHelper feedTestHelper;

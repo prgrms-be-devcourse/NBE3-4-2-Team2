@@ -4,16 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import com.example.backend.entity.FollowEntity;
-import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.global.event.FollowEvent;
 import com.example.backend.social.exception.SocialErrorCode;
 import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.follow.converter.FollowConverter;
-import com.example.backend.social.follow.dto.CreateFollowResponse;
-import com.example.backend.social.follow.dto.DeleteFollowResponse;
+import com.example.backend.social.follow.dto.FollowResponse;
 
 import jakarta.transaction.Transactional;
 
@@ -22,91 +19,109 @@ import jakarta.transaction.Transactional;
  * 팔로우 서비스 관련 로직 구현
  *
  * @author Metronon
- * @since 2025-02-07
+ * @since 2025-03-06
  */
 @Service
 public class FollowService {
-	private final FollowRepository followRepository;
 	private final MemberRepository memberRepository;
 	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
 	public FollowService(
-		FollowRepository followRepository, MemberRepository memberRepository,
+		MemberRepository memberRepository,
 		ApplicationEventPublisher applicationEventPublisher
 	) {
-		this.followRepository = followRepository;
 		this.memberRepository = memberRepository;
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	/**
 	 * 팔로우 요청 메서드
-	 * senderId(memberId1)와 receiverId(memberId2)를 받아 followEntity 생성
-	 * 각 멤버의 followingCount, followeeCount 증가
+	 * sender(followingList add, followingCount ++)
+	 * receiver(followerList add, followerCount ++)
 	 *
-	 * @param senderId, receiverId
-	 * @return CreateFollowResponse (DTO)
+	 * @param senderUsername, receiverUsername
+	 * @return FollowResponse (DTO)
 	 */
 	@Transactional
-	public CreateFollowResponse createFollow(Long senderId, Long receiverId) {
+	public FollowResponse createFollow(String senderUsername, String receiverUsername) {
 		// 1. 팔로우 요청측 검증후 엔티티 가져오기
-		MemberEntity sender = memberRepository.findById(senderId)
-			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "요청측 클라이언트 검증에 실패했습니다."));
+		MemberEntity sender = memberRepository.findByUsername("senderUsername")
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "요청측 회원 검증에 실패했습니다."));
 
-		// 2. 팔로위측 검증후 엔티티 가져오기
-		MemberEntity receiver = memberRepository.findById(receiverId)
-			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 클라이언트 검증에 실패했습니다."));
+		// 2. 팔로잉측(팔로우 받는 회원) 검증 후 엔티티 가져오기
+		MemberEntity receiver = memberRepository.findByUsername("receiverUsername")
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 회원 검증에 실패했습니다."));
 
 		// 3. 이미 팔로우가 되어있는지 검증
-		if (followRepository.existsBySenderIdAndReceiverId(senderId, receiverId)) {
-			throw new SocialException(SocialErrorCode.ALREADY_EXISTS);
+		boolean alreadyFollowed = sender.getFollowingList().stream()
+			.anyMatch(member -> member.equals(receiverUsername));
+
+		if (alreadyFollowed) {
+			throw new SocialException(SocialErrorCode.ALREADY_EXISTS, "이미 팔로우 상태입니다.");
 		}
 
-		// 4. id 및 요청 날짜 포함을 위해 엔티티 생성
-		FollowEntity follow = FollowEntity.create(sender, receiver);
+		// 4. 팔로우 관계 생성 및 팔로우 카운트 증가
+		sender.addFollowing(receiver);
+		receiver.addFollower(sender);
 
-		// 5. 팔로우 요청 및 팔로워, 팔로위 인원수 증가 반영
-		memberRepository.incrementFollowerCount(senderId);
-		memberRepository.incrementFolloweeCount(receiverId);
-		followRepository.save(follow);
-
-		// 이벤트 발생
+		// 5. 팔로우 이벤트 발생
 		applicationEventPublisher.publishEvent(
-			FollowEvent.create(sender.getUsername(), receiverId, senderId));
+			FollowEvent.create(senderUsername, receiver.getId(), sender.getId()));
 
-		return FollowConverter.toCreateResponse(follow);
+		return FollowConverter.toResponse(sender, receiver);
 	}
 
 	/**
 	 * 팔로우 취소 메서드
-	 * senderId(memberId1)와 receiverId(memberId2)를 받아 followEntity 삭제
-	 * 각 멤버의 followingCount, followeeCount 감소
+	 * sender(followingList remove, followingCount --)
+	 * receiver(followerList remove, followerCount --)
 	 *
-	 * @param id, senderId, receiverId
-	 * @return DeleteFollowResponse (DTO)
+	 * @param senderUsername, receiverUsername
+	 * @return FollowResponse (DTO)
 	 */
 	@Transactional
-	public DeleteFollowResponse deleteFollow(Long id, Long senderId, Long receiverId) {
-		// 1. 팔로우 관계가 적용되어 있는지 검증하고 엔티티 가져오기
-		FollowEntity follow = followRepository.findById(id)
-			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "팔로우 확인에 실패했습니다."));
+	public FollowResponse deleteFollow(String senderUsername, String receiverUsername) {
+		// 1. 팔로우 요청측(취소 요청하는 회원) 검증 후 엔티티 가져오기
+		MemberEntity sender = memberRepository.findByUsername(senderUsername)
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "요청측 회원 검증에 실패했습니다."));
 
-		// 2. sender, receiver 검증
-		if (!follow.getSenderId().equals(senderId) || !follow.getReceiverId().equals(receiverId)) {
-			throw new SocialException(SocialErrorCode.DATA_MISMATCH);
+		// 2. 팔로잉측(팔로우 받는 회원) 검증 후 엔티티 가져오기
+		MemberEntity receiver = memberRepository.findByUsername(receiverUsername)
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 회원 검증에 실패했습니다."));
+
+		// 3. 팔로우 관계 존재 여부 검증
+		boolean isFollowing = sender.getFollowingList().stream()
+			.anyMatch(member -> member.equals(receiver.getUsername()));
+		if (!isFollowing) {
+			throw new SocialException(SocialErrorCode.NOT_FOUND, "팔로우 관계를 찾을 수 없습니다.");
 		}
 
-		// 3. 팔로우 취소 및 팔로워, 팔로위 인원수 감소 반영
-		memberRepository.decrementFollowerCount(senderId);
-		memberRepository.decrementFolloweeCount(receiverId);
-		followRepository.delete(follow);
+		// 4. 팔로우 취소 관계 처리 및 팔로우 카운트 감소
+		sender.removeFollowing(receiver);
+		receiver.removeFollower(sender);
 
-		return FollowConverter.toDeleteResponse(follow);
+		return FollowConverter.toResponse(sender, receiver);
 	}
 
+	/**
+	 * 맞팔로우 확인 메서드
+	 *
+	 * @param senderUsername, receiverUsername
+	 * @return boolean
+	 */
 	@Transactional
-	public boolean findMutualFollow(Long currentMemberId, Long memberId) {
-		return followRepository.countMutualFollow(currentMemberId, memberId) == 2;
+	public boolean isMutualFollow(String senderUsername, String receiverUsername) {
+		// 1. 팔로우 요청측(취소 요청하는 회원) 검증 후 엔티티 가져오기
+		MemberEntity sender = memberRepository.findByUsername(senderUsername)
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "요청측 회원 검증에 실패했습니다."));
+
+		// 2. 팔로잉측(팔로우 받는 회원) 검증 후 엔티티 가져오기
+		MemberEntity receiver = memberRepository.findByUsername(receiverUsername)
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 회원 검증에 실패했습니다."));
+
+		// 3. 상대방이 나를 팔로우했는지 확인해서 boolean값으로 반환
+		return receiver.getFollowerList().stream()
+			.anyMatch(member -> member.equals(sender.getUsername()));
 	}
 }
