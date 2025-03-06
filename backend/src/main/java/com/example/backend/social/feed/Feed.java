@@ -20,17 +20,18 @@ public class Feed {
 	private Long commentCount;
 	private List<String> hashTagList;
 	private List<String> imageUrlList;
-
 	private Long bookmarkId;
+	private Boolean isLiked;
 
 	public Feed(PostEntity post, Long commentCount) {
 		this.post = post;
 		this.commentCount = commentCount;
 	}
 
-	public void fillData(List<String> hashTagList, List<String> imageUrlList, Long bookmarkId) {
+	public void fillData(List<String> hashTagList, List<String> imageUrlList, Long bookmarkId, Boolean isLiked) {
 		this.hashTagList = hashTagList;
 		this.imageUrlList = imageUrlList;
 		this.bookmarkId = bookmarkId;
+		this.isLiked = isLiked;
 	}
 }

@@ -19,6 +19,8 @@ public class FeedConverter {
 		return FeedInfoResponse.builder()
 			.authorId(feed.getPost().getMember().getId())
 			.authorName(feed.getPost().getMember().getUsername())
+			.profileImgUrl(feed.getPost().getMember().getProfileUrl())
+			.likeFlag(feed.getIsLiked())
 			.imgUrlList(feed.getImageUrlList())
 			.postId(feed.getPost().getId())
 			.content(feed.getPost().getContent())
