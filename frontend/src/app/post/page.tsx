@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { X, ArrowLeft } from "lucide-react";
 import client from "@/lib/backend/client";
 import { useAuth } from "@/contexts/AuthContext"; // AuthContext에서 로그인 정보 가져오기
-import type { paths } from "@/lib/backend/apiV1/schema";
 
 export default function PostCreatePage() {
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -17,6 +16,7 @@ export default function PostCreatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  // const { user } = useAuth();
 
   const handleRequestClose = () => setIsConfirmModalOpen(true);
   const handleCloseModal = () => {
@@ -46,25 +46,27 @@ export default function PostCreatePage() {
     setError(null);
 
     try {
-      // 포스트 생성 요청
-      const { data, error } = await client.POST("/api-v1/post", {
-        params: {
-          query: {
-            memberId: 1, // TODO: 실제 로그인한 사용자 ID로 대체
-            content: postContent,
-          },
-        },
+      // FormData 생성 및 필드 추가
+      const formData = new FormData();
+      formData.append("memberId", "1"); // memberId를 1로 고정 (나중에 변경 가능)
+      formData.append("content", postContent);
+
+      if (selectedFiles) {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          formData.append("images", selectedFiles[i]);
+        }
+      }
+
+      // client.ts에서 생성한 client의 POST 메서드를 사용하여 요청 전송
+      const result = await client.POST("/api-v1/post", {
+        body: formData,
       });
 
-      // 성공 처리
-      if (data) {
-        router.push("/");
-      } else if (error) {
-        setError(error || "포스트 생성에 실패했습니다.");
-      }
-    } catch (err: any) {
+      console.log("업로드 성공:", result);
+      router.push("/");
+    } catch (err) {
+      console.error("업로드 실패:", err);
       setError("포스트 생성 중 오류가 발생했습니다.");
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
