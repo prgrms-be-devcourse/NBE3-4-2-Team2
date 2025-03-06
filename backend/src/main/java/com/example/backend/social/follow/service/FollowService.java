@@ -46,11 +46,11 @@ public class FollowService {
 	@Transactional
 	public FollowResponse createFollow(String senderUsername, String receiverUsername) {
 		// 1. 팔로우 요청측 검증후 엔티티 가져오기
-		MemberEntity sender = memberRepository.findByUsername("senderUsername")
+		MemberEntity sender = memberRepository.findByUsername(senderUsername)
 			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "요청측 회원 검증에 실패했습니다."));
 
 		// 2. 팔로잉측(팔로우 받는 회원) 검증 후 엔티티 가져오기
-		MemberEntity receiver = memberRepository.findByUsername("receiverUsername")
+		MemberEntity receiver = memberRepository.findByUsername(receiverUsername)
 			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 회원 검증에 실패했습니다."));
 
 		// 3. 이미 팔로우가 되어있는지 검증
