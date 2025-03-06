@@ -65,7 +65,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation(); // 이벤트 전파 중지
 
-    console.log(isBookmarked ? "북마크를 취소합니다." : "북마크를 추가합니다.");
+    console.log(isBookmarked ? "북마크를 추가합니다." : "북마크를 취소합니다.");
     setIsBookmarked(!isBookmarked);
 
     // API 호출
