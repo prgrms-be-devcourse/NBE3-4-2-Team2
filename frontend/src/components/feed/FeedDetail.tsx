@@ -76,19 +76,46 @@ export default function FeedDetail({ id }: { id: string }) {
   };
 
   // 좋아요 기능
-  const handleLike = (): void => {
+  const handleLike = async (e: React.MouseEvent): Promise<void> => {
+    e.stopPropagation(); // 이벤트 전파 중지
+    console.log(isLiked ? "좋아요를 누릅니다." : "좋아요를 취소합니다.");
     setIsLiked(!isLiked);
-    // API 호출은 여기에 구현
-    // 자신의 글에는 좋아요를 할 수 없다.
-    // 예: api.post(`/feeds/${feedId}/like`);
+
+    const response = await client.POST("/api-v1/like/{id}", {
+      params: {
+        path: {
+          id: feed.postId,
+        },
+        query: {
+          resourceType: "post",
+        },
+      },
+    });
+
+    if (!response.data) {
+      console.log(response.error);
+    }
   };
 
   // 북마크 기능
-  const handleBookmark = (): void => {
+  const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
+    e.stopPropagation(); // 이벤트 전파 중지
+
+    console.log(isBookmarked ? "북마크를 추가합니다." : "북마크를 취소합니다.");
     setIsBookmarked(!isBookmarked);
+
     // API 호출은 여기에 구현
-    // 자신의 글에도 북마크를 할 수 있다.
-    // 예: api.post(`/feeds/${feedId}/bookmark`);
+    const response = await client.POST("/api-v1/bookmark/{postId}", {
+      params: {
+        path: {
+          postId: feed.postId,
+        },
+      },
+    });
+
+    if (!response.data) {
+      console.log(response.error);
+    }
   };
 
   // 이미지 다음/이전 이동 기능

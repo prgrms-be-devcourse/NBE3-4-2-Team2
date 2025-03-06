@@ -96,6 +96,7 @@ export default function MainFeed() {
       queryParams.append("lastPostId", requestData.lastPostId.toString());
       queryParams.append("maxSize", requestData.maxSize.toString());
 
+      console.log("메인피드 요청");
       // API 호출 - GET 요청으로 쿼리 파라미터 전달 (백엔드 서버 주소 사용)
       const response = await client.GET("/api-v1/feed", {
         params: {

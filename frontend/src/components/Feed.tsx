@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import MainFeed from "@/components/feed/MainFeed";
 
@@ -13,4 +13,4 @@ export default function Feed() {
       </div>
     </main>
   );
-} 
+}

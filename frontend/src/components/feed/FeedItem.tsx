@@ -4,6 +4,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { components } from "../../lib/backend/apiV1/schema";
+import client from "@/lib/backend/client";
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
 
 interface FeedItemProps {
@@ -33,22 +34,47 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   const sliderRef = useRef<HTMLDivElement>(null);
 
   // 좋아요 기능
-  const handleLike = (e: React.MouseEvent): void => {
+  const handleLike = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation(); // 이벤트 전파 중지
-    setIsLiked(!isLiked);
     console.log(isLiked ? "좋아요를 누릅니다." : "좋아요를 취소합니다.");
+    setIsLiked(!isLiked);
 
     // API 호출은 여기에 구현
+    const response = await client.POST("/api-v1/like/{id}", {
+      params: {
+        path: {
+          id: feed.postId,
+        },
+        query: {
+          resourceType: "post",
+        },
+      },
+    });
+
+    if (!response.data) {
+      console.log(response.error);
+    }
   };
 
   // 북마크 기능
-  const handleBookmark = (e: React.MouseEvent): void => {
+  const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation(); // 이벤트 전파 중지
 
     console.log(isBookmarked ? "북마크를 추가합니다." : "북마크를 취소합니다.");
     setIsBookmarked(!isBookmarked);
 
     // API 호출은 여기에 구현
+    const response = await client.POST("/api-v1/bookmark/{postId}", {
+      params: {
+        path: {
+          postId: feed.postId,
+        },
+      },
+    });
+
+    if (!response.data) {
+      console.log(response.error);
+    }
   };
 
   // 댓글 버튼 클릭 시 상세 페이지로 이동
