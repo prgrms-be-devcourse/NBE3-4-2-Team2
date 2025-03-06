@@ -52,11 +52,11 @@ public class MemberEntity extends BaseEntity {
 
 	@OneToMany(mappedBy = "receiver") // receiver가 자기 자신 => 나를 팔로우하는
 	@Builder.Default
-	private List<FollowEntity> followerList = new ArrayList<>();
+	private List<MemberEntity> followerList = new ArrayList<>();
 
 	@OneToMany(mappedBy = "sender") // sender가 자기 자신 => 내가 팔로잉하는
 	@Builder.Default
-	private List<FollowEntity> followingList = new ArrayList<>();
+	private List<MemberEntity> followingList = new ArrayList<>();
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
@@ -90,5 +90,27 @@ public class MemberEntity extends BaseEntity {
 			authorities.add("ROLE_ADMIN");
 
 		return authorities;
+	}
+
+	public void addFollowing(MemberEntity receiver) {
+		this.followingList.add(receiver);
+		this.followingCount++;
+	}
+
+	public void addFollower(MemberEntity sender) {
+		this.followerList.add(sender);
+		this.followerCount++;
+	}
+
+	public void removeFollowing(MemberEntity receiver) {
+		if(this.followingList.remove(receiver)) {
+			this.followingCount--;
+		}
+	}
+
+	public void removeFollower(MemberEntity sender) {
+		if(this.followerList.remove(sender)) {
+			this.followerCount--;
+		}
 	}
 }

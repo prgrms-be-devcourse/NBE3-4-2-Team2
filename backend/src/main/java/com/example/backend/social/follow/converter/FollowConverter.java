@@ -2,40 +2,21 @@ package com.example.backend.social.follow.converter;
 
 import java.time.LocalDateTime;
 
-import com.example.backend.entity.FollowEntity;
-import com.example.backend.social.follow.dto.CreateFollowResponse;
-import com.example.backend.social.follow.dto.DeleteFollowResponse;
+import com.example.backend.entity.MemberEntity;
+import com.example.backend.social.follow.dto.FollowResponse;
 
 public class FollowConverter {
 	/**
 	 * 팔로우 응답 DTO 변환 메서드
-	 * FollowEntity 객체를 CreateFollowResponse DTO 변환
+	 * FollowResponse에 타임스탬프(now) 추가해 변환
 	 *
-	 * @param follow (FollowEntity)
+	 * @param sender, receiver
 	 * @return CreateFollowResponse
 	 */
-	public static CreateFollowResponse toCreateResponse(FollowEntity follow) {
-		return new CreateFollowResponse(
-			follow.getId(),
-			follow.getSender().getId(),
-			follow.getReceiver().getId(),
-			follow.getCreateDate()
-		);
-	}
-
-	/**
-	 /**
-	 * 팔로우 취소 응답 DTO 변환 메서드
-	 * FollowEntity 객체를 DeleteFollowResponse DTO 변환
-	 *
-	 * @param follow (FollowEntity)
-	 * @return DeleteFollowResponse
-	 */
-	public static DeleteFollowResponse toDeleteResponse(FollowEntity follow) {
-		return new DeleteFollowResponse(
-			follow.getId(),
-			follow.getSender().getId(),
-			follow.getReceiver().getId(),
+	public static FollowResponse toResponse(MemberEntity sender, MemberEntity receiver) {
+		return new FollowResponse(
+			sender.getUsername(),
+			receiver.getUsername(),
 			LocalDateTime.now()
 		);
 	}
