@@ -2,31 +2,27 @@ package com.example.backend.global.config;
 
 import static com.example.backend.global.config.SpringDocConfig.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.example.backend.identity.security.config.CustomUsernamePasswordAuthenticationFilter;
 import com.example.backend.identity.security.config.handler.CustomAccessDeniedHandler;
 import com.example.backend.identity.security.config.handler.CustomAuthenticationEntryPoint;
-import com.example.backend.identity.security.config.handler.CustomAuthenticationFailureHandler;
-import com.example.backend.identity.security.config.handler.CustomAuthenticationSuccessHandler;
-import com.example.backend.identity.security.config.handler.CustomLogoutSuccessHandler;
+import com.example.backend.identity.security.config.handler.OAuth2FailureHandler;
+import com.example.backend.identity.security.config.handler.OAuth2SuccessHandler;
 import com.example.backend.identity.security.jwt.JwtAuthenticationFilter;
 import com.example.backend.identity.security.oauth.service.CustomOAuth2UserService;
 
@@ -48,21 +44,20 @@ public class SecurityConfig {
 	private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 	private final CustomAccessDeniedHandler accessDeniedHandler;
 	private final CustomOAuth2UserService oAuth2UserService;
-	private final CustomAuthenticationSuccessHandler authenticationSuccessHandler;
-	private final CustomAuthenticationFailureHandler authenticationFailureHandler;
-	private final CustomLogoutSuccessHandler logoutSuccessHandler;
+	private final OAuth2SuccessHandler authenticationSuccessHandler;
+	private final OAuth2FailureHandler authenticationFailureHandler;
 
 
 	@Bean
-	SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-		CustomUsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter =
-			new CustomUsernamePasswordAuthenticationFilter(authenticationManager, authenticationSuccessHandler, authenticationFailureHandler);
+	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
 
 		http
 			// ✅ H2 CONSOLE 허용
 			.headers(headers -> headers
 				.frameOptions(frameOptions -> frameOptions.disable()) // X-Frame-Options 비활성화
 			)
+
 			// ✅ 보안 관련 설정 (CSRF, CORS, 세션)
 			.csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화 (JWT 사용 시 불필요)
 			.cors(cors -> corsConfigurationSource()) // CORS 설정 적용
@@ -70,18 +65,14 @@ public class SecurityConfig {
 
 			// ✅ 필터 설정 (JWT 인증 필터 → UsernamePasswordAuthenticationFilter)
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-			.addFilterAt(usernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
 			// ✅ OAuth2 로그인 설정
 			.oauth2Login(oauth2 -> oauth2
 				.userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
 					.userService(oAuth2UserService)) // 사용자 정보 서비스 설정
-				.successHandler(authenticationSuccessHandler)) // OAuth2 로그인 성공 핸들러
-
-			// ✅ 로그아웃 설정
-			.logout(logout -> logout
-				.logoutRequestMatcher(new AntPathRequestMatcher("/api-v1/members/logout", "DELETE")) // DELETE 요청 허용
-				.logoutSuccessHandler(logoutSuccessHandler)) // 로그아웃 성공 핸들러
+				.successHandler(authenticationSuccessHandler) // OAuth2 로그인 성공 핸들러
+				.failureHandler(authenticationFailureHandler) // OAuth2 로그인 실패 핸들러
+			)
 
 			// ✅ 인증 및 접근 권한 설정
 			.authorizeHttpRequests(authorize -> authorize
@@ -96,8 +87,8 @@ public class SecurityConfig {
 
 			// ✅ 예외 처리 설정
 			.exceptionHandling(exceptionHandling -> exceptionHandling
-				.authenticationEntryPoint(authenticationEntryPoint) // 인증 실패 핸들러
-				.accessDeniedHandler(accessDeniedHandler)); // 접근 거부 핸들러
+				.authenticationEntryPoint(authenticationEntryPoint) // 인증이 수행되지 않았을 때 호출되는 핸들러
+				.accessDeniedHandler(accessDeniedHandler)); // 접근 권한이 없을 때 호출되는 핸들러
 
 		return http.build();
 	}
@@ -107,7 +98,7 @@ public class SecurityConfig {
 		CorsConfiguration configuration = new CorsConfiguration();
 		// 허용할 오리진 설정
 		configuration.setAllowedOrigins(
-			Arrays.asList(AppConfig.getSiteFrontUrl(), "http://localhost:3000")); // 프론트 엔드 포트번호
+			List.of(AppConfig.getSiteFrontUrl())); // 프론트 엔드
 		// 허용할 HTTP 메서드 설정
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // 프론트 엔드 허용 메서드
 		// 자격 증명 허용 설정
@@ -115,7 +106,7 @@ public class SecurityConfig {
 		// 허용할 헤더 설정
 		configuration.setAllowedHeaders(Collections.singletonList("*"));
 
-		configuration.setExposedHeaders(Collections.singletonList("Authorization")); // client가 Authorization 헤더를 읽을 수 있도록 해야한다.
+		configuration.setExposedHeaders(List.of("Authorization","Set-Cookie")); // client가 Authorization 헤더를 읽을 수 있도록 해야한다.
 
 
 		// CORS 설정을 소스에 등록
@@ -132,8 +123,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public AuthenticationManager authenticationManager(
-		AuthenticationConfiguration authenticationConfiguration) throws Exception {
-		return authenticationConfiguration.getAuthenticationManager();
+	public PasswordEncoder passwordEncoder() { // SecurityConfig에 정의하면 순환참조
+		return new BCryptPasswordEncoder();
 	}
 }

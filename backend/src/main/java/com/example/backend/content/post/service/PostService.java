@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.content.hashtag.service.HashtagExtractor;
 import com.example.backend.content.hashtag.service.PostHashtagService;
+import com.example.backend.content.image.dto.ImageUploadResponse;
 import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.post.converter.PostConverter;
 import com.example.backend.content.post.dto.PostCreateRequest;
@@ -43,6 +44,7 @@ public class PostService {
 	private final HashtagExtractor hashtagExtractor;
 	private final PostHashtagService postHashtagService;
 	private final ImageService imageService;
+
 	/**
 	 * createPost 요청을 받고 게시물을 생성하는 메소드
 	 *
@@ -60,9 +62,10 @@ public class PostService {
 		PostEntity savedPost = postRepository.save(postEntity);
 
 		// 이미지 업로드 및 URL 리스트 반환
-		List<String> uploadedUrls = new ArrayList<>();
+		List<String> uploadedFileNames = new ArrayList<>();
 		if (request.images() != null && !request.images().isEmpty()) {
-			uploadedUrls = imageService.uploadImages(savedPost, request.images());
+			ImageUploadResponse imgUploadResp = imageService.uploadImages(postEntity.getId(), request.images());
+			uploadedFileNames = imgUploadResp.images();
 		}
 
 		// 해시태그 추출 및 생성
@@ -70,9 +73,13 @@ public class PostService {
 		postHashtagService.create(savedPost, extractHashtags);
 
 		// PostCreateResponse에 이미지 URL 리스트 추가
-		return PostConverter.toCreateResponse(savedPost, uploadedUrls); // PostConverter 수정 필요
+		return PostCreateResponse.builder()
+			.id(postEntity.getId())
+			.content(postEntity.getContent())
+			.memberId(memberEntity.getId())
+			.imgUrlList(uploadedFileNames)
+			.build();
 	}
-
 
 	@Transactional
 	public PostModifyResponse modifyPost(Long postId, PostModifyRequest request) {
