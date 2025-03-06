@@ -55,7 +55,7 @@ public class FollowService {
 
 		// 3. 이미 팔로우가 되어있는지 검증
 		boolean alreadyFollowed = sender.getFollowingList().stream()
-			.anyMatch(member -> member.getUsername().equals(receiverUsername));
+			.anyMatch(member -> member.equals(receiverUsername));
 
 		if (alreadyFollowed) {
 			throw new SocialException(SocialErrorCode.ALREADY_EXISTS, "이미 팔로우 상태입니다.");
@@ -92,7 +92,7 @@ public class FollowService {
 
 		// 3. 팔로우 관계 존재 여부 검증
 		boolean isFollowing = sender.getFollowingList().stream()
-			.anyMatch(member -> member.getUsername().equals(receiver.getUsername()));
+			.anyMatch(member -> member.equals(receiver.getUsername()));
 		if (!isFollowing) {
 			throw new SocialException(SocialErrorCode.NOT_FOUND, "팔로우 관계를 찾을 수 없습니다.");
 		}
@@ -120,10 +120,8 @@ public class FollowService {
 		MemberEntity receiver = memberRepository.findByUsername(receiverUsername)
 			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 회원 검증에 실패했습니다."));
 
-		// 3. 상대방이 나를 팔로우했는지 확인
-		boolean isExistFollowerList = receiver.getFollowerList().stream()
-			.anyMatch(member -> member.getUsername().equals(sender.getUsername()));
-
-		return isExistFollowerList;
+		// 3. 상대방이 나를 팔로우했는지 확인해서 boolean값으로 반환
+		return receiver.getFollowerList().stream()
+			.anyMatch(member -> member.equals(sender.getUsername()));
 	}
 }

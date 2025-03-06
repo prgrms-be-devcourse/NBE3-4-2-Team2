@@ -7,8 +7,12 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -50,13 +54,17 @@ public class MemberEntity extends BaseEntity {
 	@Builder.Default
 	private List<PostEntity> postList = new ArrayList<>();
 
-	@OneToMany(mappedBy = "receiver") // receiver가 자기 자신 => 나를 팔로우하는
+	@ElementCollection(fetch = FetchType.LAZY)
+	@CollectionTable(name = "member_following_usernames", joinColumns = @JoinColumn(name = "member_id"))
+	@Column(name = "following_username")
 	@Builder.Default
-	private List<MemberEntity> followerList = new ArrayList<>();
+	private List<String> followingList = new ArrayList<>(); // 내가 팔로우하는 유저 List
 
-	@OneToMany(mappedBy = "sender") // sender가 자기 자신 => 내가 팔로잉하는
+	@ElementCollection(fetch = FetchType.LAZY)
+	@CollectionTable(name = "member_follower_usernames", joinColumns = @JoinColumn(name = "member_id"))
+	@Column(name = "follower_username")
 	@Builder.Default
-	private List<MemberEntity> followingList = new ArrayList<>();
+	private List<String> followerList = new ArrayList<>(); // 나를 팔로우하는 유저 List
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
@@ -93,23 +101,23 @@ public class MemberEntity extends BaseEntity {
 	}
 
 	public void addFollowing(MemberEntity receiver) {
-		this.followingList.add(receiver);
+		this.followingList.add(receiver.getUsername());
 		this.followingCount++;
 	}
 
 	public void addFollower(MemberEntity sender) {
-		this.followerList.add(sender);
+		this.followerList.add(sender.getUsername());
 		this.followerCount++;
 	}
 
 	public void removeFollowing(MemberEntity receiver) {
-		if(this.followingList.remove(receiver)) {
+		if(this.followingList.remove(receiver.getUsername())) {
 			this.followingCount--;
 		}
 	}
 
 	public void removeFollower(MemberEntity sender) {
-		if(this.followerList.remove(sender)) {
+		if(this.followerList.remove(sender.getUsername())) {
 			this.followerCount--;
 		}
 	}

@@ -56,9 +56,6 @@ public class FeedTestHelper {
 	private CommentRepository commentRepository;
 
 	@Autowired
-	private FollowRepository followRepository;
-
-	@Autowired
 	private LikeService likeService;
 
 	@Autowired
