@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 // 알림 타입 정의
 export type NotificationType = 'COMMENT' | 'LIKE' | 'FOLLOW';
@@ -25,6 +25,14 @@ export const useNotificationSSE = ({
 }: UseNotificationSSEProps = {}) => {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // onNotification 콜백을 ref로 관리하여 의존성 배열에서 제거
+  const onNotificationRef = useRef(onNotification);
+  
+  // onNotification이 변경될 때만 ref 업데이트
+  useEffect(() => {
+    onNotificationRef.current = onNotification;
+  }, [onNotification]);
 
   useEffect(() => {
     let eventSource: EventSource | null = null;
@@ -48,8 +56,9 @@ export const useNotificationSSE = ({
             console.log('SSE 메시지 수신:', event.data);
             const data = JSON.parse(event.data) as NotificationEvent;
             
-            if (onNotification) {
-              onNotification(data);
+            // ref를 통해 최신 콜백 함수 호출
+            if (onNotificationRef.current) {
+              onNotificationRef.current(data);
             }
           } catch (err) {
             console.error('알림 메시지 처리 중 오류:', err);
@@ -85,7 +94,7 @@ export const useNotificationSSE = ({
         setConnected(false);
       }
     };
-  }, [baseUrl, onNotification]);
+  }, [baseUrl]); // 의존성 배열에서 onNotification 제거
   
   return { connected, error };
 };

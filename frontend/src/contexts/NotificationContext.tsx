@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import {
@@ -37,38 +38,53 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   baseUrl,
   maxNotifications = 5,
 }) => {
+  // 알림 상태 관리
   const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
+  const [sseNotification, setSseNotification] =
+    useState<NotificationEvent | null>(null);
 
-  // SSE 연결 훅 사용
+  // 알림 추가 - useCallback으로 메모이제이션하여 불필요한 재생성 방지
+  const addNotification = useCallback(
+    (notification: NotificationEvent) => {
+      setNotifications((prev) => {
+        // 중복 알림 제거
+        const filtered = prev.filter(
+          (n) => n.notificationId !== notification.notificationId
+        );
+        // 최대 알림 개수 유지
+        return [notification, ...filtered].slice(0, maxNotifications);
+      });
+    },
+    [maxNotifications]
+  );
+
+  // 알림 제거
+  const removeNotification = useCallback((id: number) => {
+    setNotifications((prev) => prev.filter((n) => n.notificationId !== id));
+  }, []);
+
+  // 모든 알림 제거
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+  }, []);
+
+  // SSE 연결 - onNotification에서는 상태만 업데이트하고 실제 처리는 별도 useEffect에서 수행
   const { connected, error } = useNotificationSSE({
     baseUrl,
     onNotification: (notification) => {
-      addNotification(notification);
+      setSseNotification(notification);
     },
   });
 
-  // 알림 추가
-  const addNotification = (notification: NotificationEvent) => {
-    setNotifications((prev) => {
-      // 중복 알림 제거
-      const filtered = prev.filter(
-        (n) => n.notificationId !== notification.notificationId
-      );
-      // 최대 알림 개수 유지
-      return [notification, ...filtered].slice(0, maxNotifications);
-    });
-  };
+  // SSE로부터 받은 알림 처리를 위한 별도 useEffect
+  useEffect(() => {
+    if (sseNotification) {
+      addNotification(sseNotification);
+      setSseNotification(null);
+    }
+  }, [sseNotification, addNotification]);
 
-  // 알림 제거
-  const removeNotification = (id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.notificationId !== id));
-  };
-
-  // 모든 알림 제거
-  const clearNotifications = () => {
-    setNotifications([]);
-  };
-
+  // 컨텍스트 값 생성 - useMemo로 최적화할 수도 있음
   const contextValue: NotificationContextType = {
     notifications,
     addNotification,
