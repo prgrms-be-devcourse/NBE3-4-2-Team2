@@ -12,8 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.entity.CommentEntity;
 import com.example.backend.entity.CommentRepository;
-import com.example.backend.entity.FollowEntity;
-import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.HashtagEntity;
 import com.example.backend.entity.HashtagRepository;
 import com.example.backend.entity.ImageEntity;
@@ -102,22 +100,16 @@ public class FeedTestHelper {
 		hashtagRepository.saveAll(hashtags);
 		hashtagRepository.flush();
 
-		// 3. 팔로우 관계 생성 (user1이 모든 사용자를 팔로우)
-		List<FollowEntity> follows = new ArrayList<>();
+		// 3. 팔로우 관계 생성 (user1이 다른 회원들을 팔로우)
 		MemberEntity user1 = members.get(0);
 		for (int i = 1; i < members.size() / 2; i++) {
-			FollowEntity follow = FollowEntity.builder()
-				.sender(user1)
-				.receiver(members.get(i))
-				.build();
-			follows.add(follow);
-
-			// 양방향 관계 설정
-			user1.getFollowingList().add(follow);
-			members.get(i).getFollowerList().add(follow);
+			MemberEntity target = members.get(i);
+			user1.addFollowing(target);
+			target.addFollower(user1);
 		}
-		followRepository.saveAll(follows);
-		followRepository.flush();
+
+		memberRepository.saveAll(members);
+		memberRepository.flush();
 
 		// 4. 게시글 생성 (각 유저별 5개, 시간순 정렬을 위한 일정한 간격)
 		List<PostEntity> posts = new ArrayList<>();
