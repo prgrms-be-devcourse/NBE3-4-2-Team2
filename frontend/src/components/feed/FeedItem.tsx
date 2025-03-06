@@ -3,6 +3,7 @@
 
 import { useState, useRef } from "react";
 import { components } from "../../lib/backend/apiV1/schema";
+import { getImageUrl } from "../../utils/imageUtils";
 import client from "@/lib/backend/client";
 import FeedDetailModal from "@/components/feed/FeedDetailModal"; // 새로운 모달 컴포넌트 import
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
@@ -178,7 +179,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
             <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
               {feed.profileImgUrl && (
                 <img
-                  src={feed.profileImgUrl}
+                  src={getImageUrl(feed.profileImgUrl)}
                   alt={feed.authorName}
                   className="w-full h-full object-cover"
                 />
@@ -198,14 +199,14 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
               style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
               ref={sliderRef}
             >
-              {feed.imgUrlList?.map((imgUrl, idx) => (
-                <div key={idx} className="w-full flex-shrink-0">
-                  <img
-                    src={imgUrl}
-                    alt={`피드 이미지 ${idx + 1}`}
-                    className="w-full h-auto object-cover aspect-square"
-                  />
-                </div>
+            {feed.imgUrlList?.map((imgUrl, idx) => (
+              <div key={idx} className="w-full flex-shrink-0">
+                <img
+                  src={getImageUrl(imgUrl)}
+                  alt={`피드 이미지 ${idx + 1}`}
+                  className="w-full h-auto object-cover aspect-square"
+                />
+              </div>
               ))}
             </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { getImageUrl } from "../../utils/imageUtils";
 import Image from 'next/image';
 import client from "@/lib/backend/client";
 
@@ -203,7 +204,7 @@ export default function BookmarkList() {
             <div className="relative h-48 w-full bg-gray-200 dark:bg-gray-700">
               {bookmark.imageUrls && bookmark.imageUrls.length > 0 ? (
                 <Image
-                  src={bookmark.imageUrls[0]}
+                  src={getImageUrl(bookmark.imageUrls[0])}
                   alt="게시물 이미지"
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
