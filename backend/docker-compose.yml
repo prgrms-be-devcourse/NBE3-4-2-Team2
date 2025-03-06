@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  nginx:
+    image: nginx:latest
+    container_name: my-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - "C:/Users/jylee/Desktop/nginx-1.27.4/html/uploads:/usr/share/nginx/html/uploads"
+    # (추가적으로 nginx.conf도 마운트 가능)

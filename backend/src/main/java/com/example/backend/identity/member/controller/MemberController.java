@@ -132,7 +132,7 @@ public class MemberController {
 					member.getUsername(),
 					member.getProfileUrl(),
 					member.getFollowerCount(),
-					member.getFolloweeCount()
+					member.getFollowingCount()
 				),
 				"%s님의 정보 입니다.".formatted(member.getUsername()));
 	}
@@ -145,6 +145,5 @@ public class MemberController {
 			null,
 			"액세스 토큰이 재발급 되었습니다.");
 	}
-
 }
 

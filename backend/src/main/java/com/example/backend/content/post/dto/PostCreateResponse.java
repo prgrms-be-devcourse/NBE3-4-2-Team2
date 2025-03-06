@@ -1,5 +1,8 @@
 package com.example.backend.content.post.dto;
 
+import java.util.List;
+
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
@@ -15,5 +18,6 @@ import lombok.Builder;
 public record PostCreateResponse (
 	@NotNull(message = "게시물 번호는 필수 입력 값입니다.") Long id,
 	@NotNull(message = "게시물 내용은 필수 입력 값입니다.") String content,
-	@NotNull(message = "회원 번호는 필수 입력 값입니다.") Long memberId
-){ }
+	@NotNull(message = "회원 번호는 필수 입력 값입니다.") Long memberId,
+	@Nullable List<String> imgUrlList
+) { }

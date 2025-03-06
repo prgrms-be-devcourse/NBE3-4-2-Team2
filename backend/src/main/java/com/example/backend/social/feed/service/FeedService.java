@@ -20,7 +20,7 @@ import com.example.backend.social.feed.dto.FeedListResponse;
 import com.example.backend.social.feed.dto.FeedMemberRequest;
 import com.example.backend.social.feed.dto.FeedMemberResponse;
 import com.example.backend.social.feed.dto.FeedRequest;
-import com.example.backend.social.feed.implement.FeedSelector;
+import com.example.backend.social.feed.implement.FeedSelectorCache;
 import com.example.backend.social.feed.implement.FeedValidator;
 
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ public class FeedService {
 	private final MemberService memberService;
 	private final FeedValidator feedValidator;
 	private final FeedConverter feedConverter;
-	private final FeedSelector feedSelector;
+	private final FeedSelectorCache feedSelector;
 
 	/**
 	 * Feed 요청 시에 적절한 게시물을 취합하여 반환하는 메서드
