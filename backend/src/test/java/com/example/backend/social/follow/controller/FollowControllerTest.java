@@ -222,7 +222,7 @@ public class FollowControllerTest {
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.message").value("맞팔로우 여부 조회에 성공했습니다."))
             .andExpect(jsonPath("$.data").exists())
-            .andExpect(jsonPath("$.data.mutualFollow").value(true));
+            .andExpect(jsonPath("$.data.isMutualFollow").value(true));
     }
 
     @Test
@@ -241,6 +241,6 @@ public class FollowControllerTest {
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.message").value("맞팔로우 여부 조회에 성공했습니다."))
             .andExpect(jsonPath("$.data").exists())
-            .andExpect(jsonPath("$.data.mutualFollow").value(false));
+            .andExpect(jsonPath("$.data.isMutualFollow").value(false));
     }
 }
