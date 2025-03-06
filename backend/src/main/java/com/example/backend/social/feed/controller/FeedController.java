@@ -72,7 +72,7 @@ public class FeedController {
 	@GetMapping("/{postId}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<FeedInfoResponse> findFeedInfo(
-		@PathVariable Long postId,
+		@PathVariable(name = "postId") Long postId,
 		@AuthenticationPrincipal CustomUser securityUser
 	) {
 		FeedInfoResponse response = feedService.findByPostId(postId, securityUser.getId());

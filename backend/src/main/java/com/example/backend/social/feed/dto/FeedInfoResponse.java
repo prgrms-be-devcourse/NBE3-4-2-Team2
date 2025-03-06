@@ -30,6 +30,10 @@ public record FeedInfoResponse(
 	List<String> hashTagList,
 
 	// 북마크 여부
-	Long bookmarkId
+	Long bookmarkId,
+
+	Boolean likeFlag,
+
+	String profileImgUrl
 ) {
 }

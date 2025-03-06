@@ -240,4 +240,3 @@ package com.example.backend.social.feed.implement;
 // 		return postEntity.id.lt(lastPostId);
 // 	}
 // }
-

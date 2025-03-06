@@ -53,6 +53,7 @@ export default function MainFeed() {
   // 스크롤 위치 저장 함수 (페이지 이탈 시 호출)
   const saveScrollPosition = () => {
     savedScrollPosition = window.scrollY;
+    sessionStorage.setItem("scrollPosition", savedScrollPosition.toString()); // sessionStorage에 저장
     console.log(`스크롤 위치 저장: ${savedScrollPosition}px`);
   };
 
@@ -62,9 +63,13 @@ export default function MainFeed() {
 
     // 컴포넌트가 마운트된 후 저장된 스크롤 위치로 복원
     const restoreScrollPosition = () => {
-      if (savedScrollPosition > 0) {
-        console.log(`스크롤 위치 복원: ${savedScrollPosition}px`);
-        window.scrollTo(0, savedScrollPosition);
+      const savedPosition = sessionStorage.getItem("scrollPosition");
+      if (savedPosition) {
+        const position = parseInt(savedPosition, 10);
+        if (position > 0) {
+          console.log(`스크롤 위치 복원: ${position}px`);
+          window.scrollTo(0, position);
+        }
       }
     };
 
@@ -90,13 +95,12 @@ export default function MainFeed() {
     try {
       console.log("API 요청 데이터:", requestData);
 
-      // 쿼리 파라미터 생성
       const queryParams = new URLSearchParams();
       queryParams.append("timestamp", requestData.timestamp);
       queryParams.append("lastPostId", requestData.lastPostId.toString());
       queryParams.append("maxSize", requestData.maxSize.toString());
 
-      // API 호출 - GET 요청으로 쿼리 파라미터 전달 (백엔드 서버 주소 사용)
+      console.log("메인피드 요청");
       const response = await client.GET("/api-v1/feed", {
         params: {
           query: {
@@ -111,7 +115,6 @@ export default function MainFeed() {
         throw new Error(`API 응답 오류: ${response.error}`);
       }
 
-      // 응답 데이터 반환
       return await response.data;
     } catch (error) {
       console.error("API 호출 중 오류 발생:", error);
@@ -124,8 +127,6 @@ export default function MainFeed() {
     try {
       setLoading(true);
 
-      // 처음 요청하는 경우: timestamp에는 현재 시간, lastPostId에는 0을 넣음
-      // Java LocalDateTime 형식에 맞는 날짜 문자열 생성 (yyyy-MM-dd'T'HH:mm:ss)
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -134,7 +135,6 @@ export default function MainFeed() {
       const minutes = String(now.getMinutes()).padStart(2, "0");
       const seconds = String(now.getSeconds()).padStart(2, "0");
 
-      // LocalDateTime 형식에 맞는 포맷: "yyyy-MM-dd'T'HH:mm:ss"
       const date = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 
       const requestData: FeedRequest = {
@@ -145,11 +145,9 @@ export default function MainFeed() {
 
       const response = await fetchFeedsFromApi(requestData);
 
-      // 응답 데이터 처리 - 수정된 응답 구조에 맞춤
       const apiFeeds = response.data?.feedList || [];
       console.log(apiFeeds);
 
-      // ID 추적 세트에 추가
       apiFeeds.forEach((feed: FeedInfoResponse) => {
         if (feed.postId !== undefined) {
           loadedPostIds.current.add(feed.postId);
@@ -158,23 +156,19 @@ export default function MainFeed() {
 
       setFeeds(apiFeeds);
 
-      // 더 피드가 있는지 확인 (feedList 길이로 판단)
       setHasMore(apiFeeds.length > 0);
 
-      // 마지막 피드의 타임스탬프와 ID 설정
       if (apiFeeds.length > 0) {
         const lastFeed = apiFeeds[apiFeeds.length - 1];
         setLastTimestamp(lastFeed.createdDate);
         setLastPostId(lastFeed.postId);
       } else {
-        // 응답에서 받은 lastTimestamp와 lastPostId 사용
         if (response.data?.lastTimestamp) {
           setLastTimestamp(response.data.lastTimestamp);
         }
         if (response.data?.lastPostId !== undefined) {
           setLastPostId(response.data.lastPostId);
         }
-        // 피드가 없는 경우 더 불러올 내용 없음
         setHasMore(false);
       }
 
@@ -196,7 +190,6 @@ export default function MainFeed() {
       setLoading(true);
 
       if (lastTimestamp && lastPostId !== undefined) {
-        // 이후 요청부터는 Response로 전달받은 값을 다시 전달하여 다음 게시물을 받음
         const requestData: FeedRequest = {
           timestamp: lastTimestamp,
           lastPostId: lastPostId,
@@ -205,18 +198,15 @@ export default function MainFeed() {
 
         const response = await fetchFeedsFromApi(requestData);
 
-        // 응답 데이터 처리 - 수정된 응답 구조에 맞춤
         const newApiFeeds = response.data?.feedList || [];
 
         if (newApiFeeds.length > 0) {
-          // 중복 데이터 필터링
           const filteredFeeds = newApiFeeds.filter(
             (feed: FeedInfoResponse) =>
               feed.postId !== undefined &&
               !loadedPostIds.current.has(feed.postId)
           );
 
-          // ID 추적 세트에 추가
           filteredFeeds.forEach((feed: FeedInfoResponse) => {
             if (feed.postId !== undefined) {
               loadedPostIds.current.add(feed.postId);
@@ -225,13 +215,11 @@ export default function MainFeed() {
 
           setFeeds((prevFeeds) => [...prevFeeds, ...filteredFeeds]);
 
-          // 마지막 피드의 타임스탬프와 ID 설정
           if (filteredFeeds.length > 0) {
             const lastFeed = filteredFeeds[filteredFeeds.length - 1];
             setLastTimestamp(lastFeed.createdDate);
             setLastPostId(lastFeed.postId);
           } else {
-            // 응답에서 받은 lastTimestamp와 lastPostId 사용
             if (response.data?.lastTimestamp) {
               setLastTimestamp(response.data.lastTimestamp);
             }
@@ -240,10 +228,8 @@ export default function MainFeed() {
             }
           }
 
-          // 응답에서 받은 피드 리스트가 비어있지 않으면 더 불러올 데이터가 있다고 판단
           setHasMore(newApiFeeds.length > 0);
         } else {
-          // 피드가 없는 경우 더 불러올 내용 없음
           setHasMore(false);
         }
       } else {
@@ -261,7 +247,6 @@ export default function MainFeed() {
     <div className="w-full max-w-[500px] mx-auto" ref={feedContainerRef}>
       <div className="feed-list">
         {feeds.map((feed, index) => {
-          // 마지막 요소에만 ref 설정
           const isLastElement = index === feeds.length - 1;
 
           return (
