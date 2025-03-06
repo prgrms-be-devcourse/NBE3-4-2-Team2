@@ -79,14 +79,16 @@ public class FollowController {
 	 * @param securityUser(본인), receiver(상대)
 	 * @return MutualFollowResponse (DTO)
 	 */
-	@Operation(summary = "맞팔로우 확인", description = "상대 멤버와 서로 팔로우 관계인지 확인합니다.")
+	@Operation(summary = "맞팔로우 확인", description = "상대 멤버와 팔로우 관계인지 확인합니다.")
 	@GetMapping("/mutual/{receiver}")
 	@ResponseStatus(HttpStatus.OK)
 	public RsData<MutualFollowResponse> isMutualFollow(
 		@PathVariable String receiver,
 		@AuthenticationPrincipal CustomUser securityUser
 	) {
-		boolean isMutualFollow = followService.findMutualFollow(securityUser.getId(), receiver);
+		boolean isMutualFollow = followService.isMutualFollow(
+			securityUser.getUsername(), receiver
+		);
 
 		MutualFollowResponse getResponse = new MutualFollowResponse(isMutualFollow);
 

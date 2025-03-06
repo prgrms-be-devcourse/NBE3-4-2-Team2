@@ -4,16 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import com.example.backend.entity.FollowEntity;
-import com.example.backend.entity.FollowRepository;
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
 import com.example.backend.global.event.FollowEvent;
 import com.example.backend.social.exception.SocialErrorCode;
 import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.follow.converter.FollowConverter;
-import com.example.backend.social.follow.dto.CreateFollowResponse;
-import com.example.backend.social.follow.dto.DeleteFollowResponse;
 import com.example.backend.social.follow.dto.FollowResponse;
 
 import jakarta.transaction.Transactional;
@@ -53,7 +49,7 @@ public class FollowService {
 		MemberEntity sender = memberRepository.findByUsername("senderUsername")
 			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "요청측 회원 검증에 실패했습니다."));
 
-		// 2. 팔로위측 검증후 엔티티 가져오기
+		// 2. 팔로잉측(팔로우 받는 회원) 검증 후 엔티티 가져오기
 		MemberEntity receiver = memberRepository.findByUsername("receiverUsername")
 			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 회원 검증에 실패했습니다."));
 
@@ -90,13 +86,13 @@ public class FollowService {
 		MemberEntity sender = memberRepository.findByUsername(senderUsername)
 			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "요청측 회원 검증에 실패했습니다."));
 
-		// 2. 팔로위측(팔로우 당한 회원) 검증 후 엔티티 가져오기
+		// 2. 팔로잉측(팔로우 받는 회원) 검증 후 엔티티 가져오기
 		MemberEntity receiver = memberRepository.findByUsername(receiverUsername)
 			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 회원 검증에 실패했습니다."));
 
 		// 3. 팔로우 관계 존재 여부 검증
 		boolean isFollowing = sender.getFollowingList().stream()
-			.anyMatch(member -> member.getUsername().equals(receiverUsername));
+			.anyMatch(member -> member.getUsername().equals(receiver.getUsername()));
 		if (!isFollowing) {
 			throw new SocialException(SocialErrorCode.NOT_FOUND, "팔로우 관계를 찾을 수 없습니다.");
 		}
@@ -108,8 +104,26 @@ public class FollowService {
 		return FollowConverter.toResponse(sender, receiver);
 	}
 
+	/**
+	 * 맞팔로우 확인 메서드
+	 *
+	 * @param senderUsername, receiverUsername
+	 * @return boolean
+	 */
 	@Transactional
-	public boolean findMutualFollow(Long currentMemberId, Long memberId) {
-		return followRepository.countMutualFollow(currentMemberId, memberId) == 2;
+	public boolean isMutualFollow(String senderUsername, String receiverUsername) {
+		// 1. 팔로우 요청측(취소 요청하는 회원) 검증 후 엔티티 가져오기
+		MemberEntity sender = memberRepository.findByUsername(senderUsername)
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "요청측 회원 검증에 실패했습니다."));
+
+		// 2. 팔로잉측(팔로우 받는 회원) 검증 후 엔티티 가져오기
+		MemberEntity receiver = memberRepository.findByUsername(receiverUsername)
+			.orElseThrow(() -> new SocialException(SocialErrorCode.NOT_FOUND, "응답측 회원 검증에 실패했습니다."));
+
+		// 3. 상대방이 나를 팔로우했는지 확인
+		boolean isExistFollowerList = receiver.getFollowerList().stream()
+			.anyMatch(member -> member.getUsername().equals(sender.getUsername()));
+
+		return isExistFollowerList;
 	}
 }
