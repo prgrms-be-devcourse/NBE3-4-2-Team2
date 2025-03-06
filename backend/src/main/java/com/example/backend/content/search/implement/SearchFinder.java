@@ -98,10 +98,12 @@ public class SearchFinder {
 			}
 		}
 
-		List<SearchPostResponse> searchPostResponses = searchPostInitMap.values().stream().toList();
-
+		List<SearchPostResponse> allSearchPostResponses = searchPostInitMap.values().stream().toList();
+		
 		// 딱 size 만큼 데이터가 있을 때 처리를 위해 이와 같은 방식 사용
-		boolean hasNext = isHasNext(size, searchPostResponses);
+		boolean hasNext = allSearchPostResponses.size() > size;
+		List<SearchPostResponse> searchPostResponses = isHasNext(size, hasNext, allSearchPostResponses);
+
 		// 검색 결과가 없으면 null,
 		Long newLastPostId = getNewLastPostId(searchPostResponses);
 
@@ -148,10 +150,12 @@ public class SearchFinder {
 				}
 			}
 		}
-		List<SearchPostResponse> searchPostResponses = searchPostInitMap.values().stream().toList();
+		List<SearchPostResponse> allSearchPostResponses = searchPostInitMap.values().stream().toList();
 
 		// 딱 size 만큼 데이터가 있을 때 처리를 위해 이와 같은 방식 사용
-		boolean hasNext = isHasNext(size, searchPostResponses);
+		boolean hasNext = allSearchPostResponses.size() > size;
+		List<SearchPostResponse> searchPostResponses = isHasNext(size, hasNext, allSearchPostResponses);
+
 		// 검색 결과가 없으면 null,
 		Long newLastPostId = getNewLastPostId(searchPostResponses);
 
@@ -162,13 +166,16 @@ public class SearchFinder {
 		return searchPostResponses.isEmpty() ? null : searchPostResponses.getLast().postId();
 	}
 
-	private boolean isHasNext(int size, List<SearchPostResponse> searchPostResponses) {
-		boolean hasNext = searchPostResponses.size() > size;
-		// + 1 만큼 추가 조회한거 제거
+
+	private List<SearchPostResponse> isHasNext(int size, boolean hasNext,
+		List<SearchPostResponse> searchPostResponses) {
 		if (hasNext) {
-			searchPostResponses.removeLast();
+			return searchPostResponses.subList(0, size);
+		} else {
+			return searchPostResponses;
 		}
-		return hasNext;
 	}
+
+
 
 }
