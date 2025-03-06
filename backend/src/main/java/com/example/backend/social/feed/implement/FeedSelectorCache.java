@@ -4,6 +4,7 @@ import static com.example.backend.entity.QBookmarkEntity.*;
 import static com.example.backend.entity.QCommentEntity.*;
 import static com.example.backend.entity.QHashtagEntity.*;
 import static com.example.backend.entity.QImageEntity.*;
+import static com.example.backend.entity.QLikeEntity.*;
 import static com.example.backend.entity.QPostEntity.*;
 import static com.example.backend.entity.QPostHashtagEntity.*;
 import static com.example.backend.social.feed.constant.FeedConstants.*;
@@ -201,12 +202,30 @@ public class FeedSelectorCache {
 				tuple -> tuple.get(bookmarkEntity.id)
 			));
 
+		// 좋아요 정보 조회 추가
+		Map<Long, Boolean> likeByPostId = queryFactory.select(likeEntity.resourceId)
+			.from(likeEntity)
+			.where(
+				likeEntity.resourceId.in(postIds)
+					.and(likeEntity.member.id.eq(member.getId()))
+					.and(likeEntity.resourceType.eq("POST"))  // 게시물 타입만 필터링
+					.and(likeEntity.isLiked.isTrue()))        // 좋아요가 활성화된 상태만
+			.fetch()
+			.stream()
+			.collect(Collectors.toMap(
+				resourceId -> resourceId,
+				resourceId -> true,
+				(existing, replacement) -> existing  // In case of duplicate keys, keep existing
+			));
+
 		feeds.forEach(feed -> {
 			Long postId = feed.getPost().getId();
 			feed.fillData(
 				hashtagsByPostId.getOrDefault(postId, new ArrayList<>()),
 				imageUrlsByPostId.getOrDefault(postId, new ArrayList<>()),
-				bookmarkByPostId.getOrDefault(postId, -1L)
+				bookmarkByPostId.getOrDefault(postId, -1L),
+				likeByPostId.getOrDefault(postId, false)
+
 			);
 		});
 
@@ -230,7 +249,6 @@ public class FeedSelectorCache {
 			.and(postEntity.createDate.goe(lastTime));
 	}
 
-
 	private BooleanExpression isNotFollowingPostAuthor(MemberEntity member) {
 		List<String> followingUsernames = member.getFollowingList();
 
@@ -241,7 +259,6 @@ public class FeedSelectorCache {
 
 		return postEntity.member.username.notIn(followingUsernames);
 	}
-
 
 	private static BooleanExpression isNotAuthorOfPost(MemberEntity member) {
 		return postEntity.member.id.notIn(member.getId());
@@ -258,7 +275,6 @@ public class FeedSelectorCache {
 			.or(postEntity.member.eq(member));
 	}
 
-
 	private BooleanExpression isRecommendableToMember(MemberEntity member) {
 		return isNotFollowingPostAuthor(member)
 			.and(isNotAuthorOfPost(member));
@@ -271,7 +287,7 @@ public class FeedSelectorCache {
 	}
 
 	private BooleanExpression findPostsBeforeId(Long lastPostId) {
-		if (lastPostId == null) {
+		if (lastPostId == 0L) {
 			return postEntity.createDate.before(LocalDateTime.now());
 		}
 		return postEntity.id.lt(lastPostId);
