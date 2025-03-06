@@ -266,7 +266,7 @@ public class FeedSelector {
 	}
 
 	private BooleanExpression findPostsBeforeId(Long lastPostId) {
-		if (lastPostId == null) {
+		if (lastPostId == 0) {
 			return postEntity.createDate.before(LocalDateTime.now());
 		}
 		return postEntity.id.lt(lastPostId);
