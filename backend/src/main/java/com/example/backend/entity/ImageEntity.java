@@ -32,9 +32,7 @@ public class ImageEntity extends BaseEntity {
 			.imageUrl(imageUrl)
 			.post(post)
 			.build();
-
 		post.addImage(image);
-
 		return image;
 	}
 }
