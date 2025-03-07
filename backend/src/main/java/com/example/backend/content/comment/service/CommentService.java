@@ -87,7 +87,7 @@ public class CommentService {
 
 		// 댓글 생성 이벤트 발행
 		applicationEventPublisher.publishEvent(
-			CommentEvent.create(member.getUsername(), post.getMember().getId(), comment.getId())
+			CommentEvent.create(member.getUsername(), post.getMember().getId(), comment.getId(), request.postId())
 		);
 
 		// 저장된 댓글에 대한 응답 반환

@@ -81,10 +81,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		for (Cookie cookie : request.getCookies()) {
 			if (cookie.getName().equals("refresh_token")) {
 				refreshToken = cookie.getValue();
-				break;
+				return refreshTokenService.isBlacklisted(refreshToken)? null : refreshToken;
 			}
 		}
-		return refreshTokenService.isBlacklisted(refreshToken)? null : refreshToken;
+		return null;
 	}
 
 	private String getAccessToken(HttpServletRequest request) {

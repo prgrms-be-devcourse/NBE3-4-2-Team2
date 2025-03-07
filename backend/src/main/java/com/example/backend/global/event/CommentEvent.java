@@ -13,13 +13,15 @@ public record CommentEvent(
 	String commenterName,
 	Long receiverId,
 	Long commentId,
+	Long postId,
 	LocalDateTime timestamp
 ) {
-	public static CommentEvent create(String commenterName, Long receiverId, Long commentId) {
+	public static CommentEvent create(String commenterName, Long receiverId, Long commentId, Long postId) {
 		return CommentEvent.builder()
 			.commenterName(commenterName)
 			.receiverId(receiverId)
 			.commentId(commentId)
+			.postId(postId)
 			.timestamp(LocalDateTime.now())
 			.build();
 	}

@@ -27,10 +27,10 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
   };
 
   return (
-    <div className="w-full md:w-[420px] border-l border-gray-800 flex flex-col">
+    <div className="w-full md:w-[420px] border-l border-gray-300 dark:border-gray-700 flex flex-col">
       {/* 댓글 헤더 */}
-      <div className="p-4 border-b border-gray-800">
-        <h2 className="text-lg font-medium">댓글</h2>
+      <div className="p-4 border-b border-gray-300 dark:border-gray-700">
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">댓글</h2>
       </div>
 
       {/* 댓글 목록 스크롤 영역 */}
@@ -45,19 +45,19 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
             />
           ))
         ) : (
-          <div className="p-4 text-center text-gray-500">
+          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
             아직 댓글이 없습니다. 첫 댓글을 작성해보세요!
           </div>
         )}
       </div>
 
       {/* 새 댓글 입력 */}
-      <div className="p-4 border-t border-gray-800">
+      <div className="p-4 border-t border-gray-300 dark:border-gray-700">
         <form onSubmit={handleSubmitComment} className="flex items-center">
           <input
             type="text"
             placeholder="새 댓글을 입력하세요..."
-            className="flex-grow bg-transparent border-0 focus:ring-0 text-sm text-white placeholder-gray-500"
+            className="flex-grow bg-transparent border-0 focus:ring-0 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
           />
@@ -65,7 +65,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
             type="submit"
             disabled={!newComment.trim()}
             className={`text-sm font-medium ${
-              newComment.trim() ? "text-blue-400" : "text-blue-800"
+              newComment.trim() ? "text-blue-500 dark:text-blue-400" : "text-blue-300 dark:text-blue-800"
             }`}
           >
             게시

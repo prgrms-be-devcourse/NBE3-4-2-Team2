@@ -263,12 +263,12 @@ export default function MainFeed() {
       {loading && (
         <div className="loading-spinner mt-4 text-center">
           <div className="spinner"></div>
-          <p>로딩 중...</p>
+          <p className="text-gray-900 dark:text-gray-100">로딩 중...</p>
         </div>
       )}
 
       {!hasMore && (
-        <div className="no-more-feeds mt-4 text-center text-gray-500">
+        <div className="no-more-feeds mt-4 text-center text-gray-600 dark:text-gray-400">
           더 이상 피드가 없습니다.
         </div>
       )}

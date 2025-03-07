@@ -82,8 +82,8 @@ public class FollowServiceTest {
         MemberEntity receiver = memberRepository.findByUsername(receiverUsername)
             .orElseThrow(() -> new RuntimeException("Receiver not found"));
 
-        assertTrue(sender.getFollowingList().contains(receiver));
-        assertTrue(receiver.getFollowerList().contains(sender));
+        assertTrue(sender.getFollowingList().contains(receiver.getUsername()));
+        assertTrue(receiver.getFollowerList().contains(sender.getUsername()));
     }
 
     @Test

@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
+import { getImageUrl } from "@/utils/imageUtils";
+import FeedDetailModal from "@/components/feed/FeedDetailModal"; // 모달 컴포넌트 import
 
 type SearchPostResponse = {
   postId: number;
@@ -25,6 +27,22 @@ interface SearchParams {
   size?: number;
 }
 
+// 모달에 필요한 기본 피드 데이터 타입 (FeedInfoResponse와 호환)
+type BasicFeedInfo = {
+  postId: number;
+  authorId?: number;
+  authorName?: string;
+  profileImgUrl?: string;
+  content?: string;
+  createdDate?: string;
+  imgUrlList?: string[];
+  hashTagList?: string[];
+  likeCount: number;
+  commentCount: number;
+  likeFlag: boolean;
+  bookmarkId: number;
+};
+
 const ClientPage = () => {
   const [searchType, setSearchType] = useState<SearchType>("HASHTAG");
   const [keyword, setKeyword] = useState("");
@@ -32,6 +50,11 @@ const ClientPage = () => {
   const [lastPostId, setLastPostId] = useState<number | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // 모달 관련 상태 추가
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+  const [selectedFeed, setSelectedFeed] = useState<BasicFeedInfo | null>(null);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastPostRef = useRef<HTMLDivElement | null>(null);
@@ -146,6 +169,47 @@ const ClientPage = () => {
     fetchPosts(true);
   };
 
+  // 이미지 클릭 시 모달 열기
+  const handleImageClick = (postId: number, imageUrl: string) => {
+    // 기본적인 피드 정보 설정 (모달에 표시할 최소 정보)
+    const basicFeed: BasicFeedInfo = {
+      postId: postId,
+      authorName: "작성자", // 기본값 (실제로는 API에서 가져와야 함)
+      profileImgUrl: "", // 기본값
+      content: "", // 기본값
+      imgUrlList: [imageUrl], // 현재 이미지
+      hashTagList: [], // 기본값
+      likeCount: 0, // 기본값
+      commentCount: 0, // 기본값
+      likeFlag: false, // 기본값
+      bookmarkId: -1, // 기본값
+    };
+
+    setSelectedPostId(postId);
+    setSelectedFeed(basicFeed);
+    openModal();
+  };
+
+  // 모달 열기 함수
+  const openModal = () => {
+    setIsModalOpen(true);
+    // 모달이 열릴 때 body 스크롤 방지
+    document.body.style.overflow = "hidden";
+  };
+
+  // 모달 닫기 함수
+  const closeModal = () => {
+    setIsModalOpen(false);
+    // 모달이 닫힐 때 body 스크롤 복원
+    document.body.style.overflow = "";
+  };
+
+  // 모달에서 좋아요/북마크 상태가 변경되었을 때 호출될 콜백 함수
+  const handleModalStateChange = (updatedFeed: any) => {
+    // 상태 업데이트 로직 (필요한 경우)
+    console.log("모달에서 상태 변경됨:", updatedFeed);
+  };
+
   return (
     <div className="p-4 h-full">
       <form onSubmit={handleSearch} className="mb-8">
@@ -196,10 +260,11 @@ const ClientPage = () => {
             <div
               key={post.postId}
               ref={index === posts.length - 1 ? lastPostRef : null}
-              className="aspect-square relative overflow-hidden rounded-lg border dark:border-gray-700"
+              className="aspect-square relative overflow-hidden rounded-lg border dark:border-gray-700 cursor-pointer"
+              onClick={() => handleImageClick(post.postId, post.imageUrl)}
             >
               <img
-                src={post.imageUrl}
+                src={getImageUrl(post.imageUrl)}
                 alt={`Post ${post.postId}`}
                 className="w-full h-full object-cover"
               />
@@ -222,6 +287,16 @@ const ClientPage = () => {
         <p className="text-center text-gray-500 dark:text-gray-400 my-8">
           모든 게시물을 불러왔습니다
         </p>
+      )}
+
+      {/* 피드 상세 모달 */}
+      {isModalOpen && selectedPostId && selectedFeed && (
+        <FeedDetailModal
+          feedId={selectedPostId}
+          onStateChange={handleModalStateChange}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+        />
       )}
     </div>
   );

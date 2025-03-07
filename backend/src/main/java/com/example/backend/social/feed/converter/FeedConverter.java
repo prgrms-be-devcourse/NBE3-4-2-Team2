@@ -20,7 +20,7 @@ public class FeedConverter {
 			.authorId(feed.getPost().getMember().getId())
 			.authorName(feed.getPost().getMember().getUsername())
 			.profileImgUrl(feed.getPost().getMember().getProfileUrl())
-			.likeFlag(feed.getIsLiked())
+			.likeFlag(feed.isLiked())
 			.imgUrlList(feed.getImageUrlList())
 			.postId(feed.getPost().getId())
 			.content(feed.getPost().getContent())

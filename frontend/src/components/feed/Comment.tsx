@@ -32,23 +32,23 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
   };
 
   return (
-    <div className="p-4 border-b border-gray-800">
+    <div className="p-4 border-b border-gray-300 dark:border-gray-700">
       <div className="flex">
-        <div className="w-8 h-8 rounded-full bg-gray-700 mr-3"></div>
+        <div className="w-8 h-8 rounded-full bg-gray-400 dark:bg-gray-600 mr-3"></div>
         <div className="flex-1">
           <div className="flex justify-between mb-1">
-            <span className="font-medium text-sm">{comment.username}</span>
-            <span className="text-xs text-gray-500">{comment.time}</span>
+            <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{comment.username}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{comment.time}</span>
           </div>
-          <p className="text-sm text-gray-300 mb-2">{comment.content}</p>
-          <div className="flex items-center space-x-4 text-xs text-gray-500">
+          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{comment.content}</p>
+          <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
             <button
               onClick={handleLike}
-              className="hover:text-white flex items-center"
+              className="hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
             >
               <span>{comment.likeCount} 좋아요</span>
             </button>
-            <button onClick={toggleReplyForm} className="hover:text-white">
+            <button onClick={toggleReplyForm} className="hover:text-gray-700 dark:hover:text-gray-200">
               답글
             </button>
           </div>
@@ -62,7 +62,7 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
               <input
                 type="text"
                 placeholder="답글을 입력하세요..."
-                className="flex-grow bg-transparent border border-gray-700 rounded-full px-3 py-1 text-sm text-white placeholder-gray-500"
+                className="flex-grow bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full px-3 py-1 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
                 autoFocus
@@ -71,7 +71,7 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
                 type="submit"
                 disabled={!replyContent.trim()}
                 className={`ml-2 text-sm font-medium ${
-                  replyContent.trim() ? "text-blue-400" : "text-blue-800"
+                  replyContent.trim() ? "text-blue-500 dark:text-blue-400" : "text-blue-300 dark:text-blue-800"
                 }`}
               >
                 게시
@@ -84,7 +84,7 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
         {comment.likeCount > 0 && (
           <button
             onClick={handleLike}
-            className="ml-2 text-gray-500 hover:text-white"
+            className="ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

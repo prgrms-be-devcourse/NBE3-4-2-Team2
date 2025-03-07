@@ -33,7 +33,7 @@ public class CommentEventListener {
 			try {
 				notificationService.createAndSendNotification(
 					commentEvent.receiverId(), commentEvent.commentId(), NotificationType.COMMENT,
-					commentEvent.commenterName() + "님이 댓글을 달았습니다.");
+					commentEvent.commenterName() + "님이 게시물 (ID: " + commentEvent.postId() + ")에 댓글을 달았습니다.");
 				// 성공 시 바로 리턴
 				return;
 
