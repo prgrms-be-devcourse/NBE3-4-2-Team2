@@ -11,19 +11,33 @@ type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
 
 interface FeedDetailModalProps {
   feedId: number;
+  feed?: FeedInfoResponse; // 피드 데이터를 props로 받음
+  initialLikeState?: boolean; // 초기 좋아요 상태
+  initialBookmarkState?: boolean; // 초기 북마크 상태
+  onStateChange?: (updatedFeed: FeedInfoResponse) => void; // 상태 변경 콜백
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function FeedDetailModal({
   feedId,
+  feed: initialFeed,
+  initialLikeState,
+  initialBookmarkState,
+  onStateChange,
   isOpen,
   onClose,
 }: FeedDetailModalProps) {
-  const [feed, setFeed] = useState<FeedInfoResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [isLiked, setIsLiked] = useState<boolean>(false);
-  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+  const [feed, setFeed] = useState<FeedInfoResponse | null>(
+    initialFeed || null
+  );
+  const [loading, setLoading] = useState<boolean>(!initialFeed);
+  const [isLiked, setIsLiked] = useState<boolean>(
+    initialLikeState !== undefined ? initialLikeState : false
+  );
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(
+    initialBookmarkState !== undefined ? initialBookmarkState : false
+  );
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
 
   // 댓글 관련 로직을 훅으로 분리
@@ -34,11 +48,14 @@ export default function FeedDetailModal({
   const hasImages = feed?.imgUrlList && feed.imgUrlList.length > 0;
 
   useEffect(() => {
-    // 모달이 열렸을 때만 데이터 로드
-    if (isOpen && feedId) {
+    // 모달이 열렸을 때만 데이터 로드 (initialFeed가 없는 경우에만)
+    if (isOpen && feedId && !initialFeed) {
       fetchFeedDetail();
+    } else if (initialFeed && isOpen) {
+      // initialFeed가 있으면 댓글만 불러옴
+      fetchComments();
     }
-  }, [feedId, isOpen]);
+  }, [feedId, isOpen, initialFeed]);
 
   // 단일 피드 정보 불러오기
   const fetchFeedDetail = async () => {
@@ -62,8 +79,14 @@ export default function FeedDetailModal({
       if (foundFeed) {
         console.log("피드를 찾았습니다:", foundFeed);
         setFeed(foundFeed);
-        setIsLiked(!!foundFeed.likeFlag);
-        setIsBookmarked(!!foundFeed.bookmarkId);
+
+        // 초기 상태가 전달되지 않은 경우에만 API 데이터로 설정
+        if (initialLikeState === undefined) {
+          setIsLiked(!!foundFeed.likeFlag);
+        }
+        if (initialBookmarkState === undefined) {
+          setIsBookmarked(foundFeed.bookmarkId != -1);
+        }
 
         // 피드를 찾은 후 댓글 데이터도 불러오기
         fetchComments();
@@ -80,6 +103,8 @@ export default function FeedDetailModal({
   // 좋아요 기능
   const handleLike = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation();
+    if (!feed) return;
+
     console.log(
       isLiked
         ? isLiked + "좋아요를 취소합니다."
@@ -100,7 +125,27 @@ export default function FeedDetailModal({
       });
 
       if (response.response.status == 200) {
-        setIsLiked(!isLiked);
+        const newIsLiked = !isLiked;
+        setIsLiked(newIsLiked);
+
+        // 좋아요 수 업데이트
+        const newLikeCount = newIsLiked
+          ? (feed.likeCount || 0) + 1
+          : (feed.likeCount || 0) - 1;
+
+        // feed 객체 업데이트
+        const updatedFeed = {
+          ...feed,
+          likeFlag: newIsLiked,
+          likeCount: newLikeCount,
+        };
+
+        setFeed(updatedFeed);
+
+        // 부모 컴포넌트에 상태 변경 알림
+        if (onStateChange) {
+          onStateChange(updatedFeed);
+        }
       }
     } catch (error) {
       console.error("좋아요 처리 중 오류:", error);
@@ -110,6 +155,8 @@ export default function FeedDetailModal({
   // 북마크 기능
   const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation();
+    if (!feed) return;
+
     console.log(
       isBookmarked
         ? isBookmarked + "북마크를 취소합니다."
@@ -137,11 +184,23 @@ export default function FeedDetailModal({
             },
           });
 
-      if (!isBookmarked) {
-        feed.bookmarkId = response.data?.data?.bookmarkId;
-        console.log("북마크 아이디 추가. " + feed.bookmarkId);
+      const newIsBookmarked = !isBookmarked;
+      setIsBookmarked(newIsBookmarked);
+
+      // feed 객체 업데이트
+      const updatedFeed = {
+        ...feed,
+        bookmarkId: newIsBookmarked
+          ? response.data?.data?.bookmarkId || feed.bookmarkId
+          : -1,
+      };
+
+      setFeed(updatedFeed);
+
+      // 부모 컴포넌트에 상태 변경 알림
+      if (onStateChange) {
+        onStateChange(updatedFeed);
       }
-      setIsBookmarked(!isBookmarked);
     } catch (error) {
       console.error("북마크 처리 중 오류:", error);
     }
@@ -299,7 +358,7 @@ export default function FeedDetailModal({
                   <div className="w-8 h-8 rounded-full bg-gray-700 flex-shrink-0 overflow-hidden">
                     {feed.profileImgUrl && (
                       <img
-                        src={feed.profileImgUrl}
+                        src={getImageUrl(feed.profileImgUrl)}
                         alt="프로필"
                         className="w-full h-full object-cover"
                       />
