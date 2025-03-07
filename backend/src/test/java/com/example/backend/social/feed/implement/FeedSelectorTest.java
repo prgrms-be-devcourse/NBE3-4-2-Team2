@@ -71,7 +71,7 @@ class FeedSelectorTest {
 
 		Assertions.assertNotEquals(0, member.getFollowingList().size());
 
-		List<Feed> byFollower = feedSelector.findByFollower(member, null, 10);
+		List<Feed> byFollower = feedSelector.findByFollower(member, 0L, 10);
 		Assertions.assertNotNull(byFollower);
 		Assertions.assertFalse(byFollower.isEmpty());
 		Assertions.assertEquals(10, byFollower.size());
@@ -92,7 +92,7 @@ class FeedSelectorTest {
 	@Test
 	@DisplayName("팔로잉 게시물들은 시간 순으로 내림차 정렬되어 반환된다")
 	void t2() {
-		List<Feed> byFollower = feedSelector.findByFollower(member, null, 10);
+		List<Feed> byFollower = feedSelector.findByFollower(member, 0L, 10);
 
 		for (int i = 0; i < byFollower.size() - 1; i++) {
 			LocalDateTime front = byFollower.get(i).getPost().getCreateDate();
