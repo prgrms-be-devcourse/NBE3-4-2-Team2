@@ -225,12 +225,12 @@ export default function FeedDetailModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black bg-opacity-75 flex items-center justify-center">
-      <div className="relative max-w-6xl w-full max-h-[90vh] flex flex-col bg-black rounded-lg shadow-xl">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-gray-500 bg-opacity-75 flex items-center justify-center">
+      <div className="relative max-w-6xl w-full max-h-[90vh] flex flex-col bg-white rounded-lg shadow-xl">
         {/* 닫기 버튼 */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-white bg-gray-800 bg-opacity-50 rounded-full p-1 z-10"
+          className="absolute top-4 right-4 text-gray-700 bg-gray-200 bg-opacity-80 rounded-full p-1 z-10 hover:bg-gray-300"
           aria-label="닫기"
         >
           <svg
@@ -251,11 +251,11 @@ export default function FeedDetailModal({
           <div className="flex-1 flex items-center justify-center">
             <div className="loading-spinner text-center">
               <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
-              <p className="text-white">로딩 중...</p>
+              <p className="text-gray-700">로딩 중...</p>
             </div>
           </div>
         ) : !feed ? (
-          <div className="flex-1 flex items-center justify-center text-center text-white">
+          <div className="flex-1 flex items-center justify-center text-center text-gray-800">
             <div>
               <h2 className="text-xl font-bold mb-2">
                 피드를 찾을 수 없습니다
@@ -272,11 +272,11 @@ export default function FeedDetailModal({
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col md:flex-row text-white overflow-hidden">
+          <div className="flex-1 flex flex-col md:flex-row text-gray-800 overflow-hidden">
             {/* 좌측: 이미지와 글 정보 */}
             <div className="md:w-[55%] flex flex-col overflow-hidden">
               {/* 이미지 영역 - 크기 제한 추가 */}
-              <div className="flex-1 flex items-center justify-center bg-black relative h-full max-h-[calc(60vh)]">
+              <div className="flex-1 flex items-center justify-center bg-gray-100 relative h-full max-h-[calc(60vh)]">
                 {hasImages ? (
                   <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
                     <img
@@ -296,11 +296,11 @@ export default function FeedDetailModal({
                       <>
                         <button
                           onClick={() => handleImageNav("prev")}
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 rounded-full p-2 z-10"
+                          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-2 z-10 hover:bg-opacity-100"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
+                            className="h-5 w-5 text-gray-800"
                             viewBox="0 0 20 20"
                             fill="currentColor"
                           >
@@ -313,11 +313,11 @@ export default function FeedDetailModal({
                         </button>
                         <button
                           onClick={() => handleImageNav("next")}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 rounded-full p-2 z-10"
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-2 z-10 hover:bg-opacity-100"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
+                            className="h-5 w-5 text-gray-800"
                             viewBox="0 0 20 20"
                             fill="currentColor"
                           >
@@ -347,15 +347,15 @@ export default function FeedDetailModal({
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <p className="text-gray-500">이미지가 없습니다</p>
+                    <p className="text-gray-400">이미지가 없습니다</p>
                   </div>
                 )}
               </div>
 
               {/* 작성자 정보 및 글 내용 */}
-              <div className="border-t border-gray-800 p-4 overflow-y-auto min-h-[25vh]">
+              <div className="border-t border-gray-200 p-4 overflow-y-auto min-h-[25vh]">
                 <div className="flex items-center mb-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-700 flex-shrink-0 overflow-hidden">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
                     {feed.profileImgUrl && (
                       <img
                         src={getImageUrl(feed.profileImgUrl)}
@@ -371,7 +371,7 @@ export default function FeedDetailModal({
                 <div className="flex mb-3">
                   <button
                     className={`mr-4 ${
-                      isLiked ? "text-red-500" : "text-white"
+                      isLiked ? "text-red-500" : "text-gray-700"
                     }`}
                     onClick={handleLike}
                   >
@@ -381,7 +381,7 @@ export default function FeedDetailModal({
                   </button>
                   <div className="flex-grow"></div>
                   <button
-                    className={isBookmarked ? "text-blue-500" : "text-white"}
+                    className={isBookmarked ? "text-blue-500" : "text-gray-700"}
                     onClick={handleBookmark}
                   >
                     <span className="text-xl">
@@ -419,7 +419,7 @@ export default function FeedDetailModal({
             </div>
 
             {/* 우측: 댓글 영역 */}
-            <div className="md:w-[45%] border-l border-gray-800 overflow-y-auto">
+            <div className="md:w-[45%] border-l border-gray-200 overflow-y-auto">
               <CommentsSection
                 comments={comments}
                 onAddComment={addComment}
