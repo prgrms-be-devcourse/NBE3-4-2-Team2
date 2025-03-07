@@ -5,6 +5,7 @@ import { components } from "../../lib/backend/apiV1/schema";
 import { useComments } from "@/components/feed/useComments";
 import CommentsSection from "@/components/feed/CommentsSection";
 import client from "@/lib/backend/client";
+import { getImageUrl } from "@/utils/imageUtils";
 
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
 
@@ -79,9 +80,13 @@ export default function FeedDetailModal({
   // 좋아요 기능
   const handleLike = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation();
-    console.log(isLiked ? "좋아요를 취소합니다." : "좋아요를 누릅니다.");
-    setIsLiked(!isLiked);
+    console.log(
+      isLiked
+        ? isLiked + "좋아요를 취소합니다."
+        : isLiked + "좋아요를 누릅니다."
+    );
 
+    // API 호출
     try {
       const response = await client.POST("/api-v1/like/{id}", {
         params: {
@@ -94,8 +99,8 @@ export default function FeedDetailModal({
         },
       });
 
-      if (!response.data) {
-        console.log(response.error);
+      if (response.response.status == 200) {
+        setIsLiked(!isLiked);
       }
     } catch (error) {
       console.error("좋아요 처리 중 오류:", error);
@@ -105,21 +110,38 @@ export default function FeedDetailModal({
   // 북마크 기능
   const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation();
-    console.log(isBookmarked ? "북마크를 추가합니다." : "북마크를 취소합니다.");
-    setIsBookmarked(!isBookmarked);
+    console.log(
+      isBookmarked
+        ? isBookmarked + "북마크를 취소합니다."
+        : isBookmarked + "북마크를 추가합니다."
+    );
 
+    // API 호출
     try {
-      const response = await client.POST("/api-v1/bookmark/{postId}", {
-        params: {
-          path: {
-            postId: feed.postId,
-          },
-        },
-      });
+      const response = isBookmarked
+        ? await client.DELETE("/api-v1/bookmark/{postId}", {
+            params: {
+              path: {
+                postId: feed.postId,
+              },
+            },
+            body: {
+              bookmarkId: feed.bookmarkId,
+            },
+          })
+        : await client.POST("/api-v1/bookmark/{postId}", {
+            params: {
+              path: {
+                postId: feed.postId,
+              },
+            },
+          });
 
-      if (!response.data) {
-        console.log(response.error);
+      if (!isBookmarked) {
+        feed.bookmarkId = response.data?.data?.bookmarkId;
+        console.log("북마크 아이디 추가. " + feed.bookmarkId);
       }
+      setIsBookmarked(!isBookmarked);
     } catch (error) {
       console.error("북마크 처리 중 오류:", error);
     }
@@ -199,7 +221,7 @@ export default function FeedDetailModal({
                 {hasImages ? (
                   <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
                     <img
-                      src={feed.imgUrlList?.[currentImageIndex]}
+                      src={getImageUrl(feed.imgUrlList?.[currentImageIndex])}
                       alt="피드 이미지"
                       className="max-h-full max-w-full object-contain"
                       style={{
@@ -304,7 +326,7 @@ export default function FeedDetailModal({
                     onClick={handleBookmark}
                   >
                     <span className="text-xl">
-                      {isBookmarked ? "🔖" : "🏷️"}
+                      {!isBookmarked ? "🔖" : "🏷️"}
                     </span>
                   </button>
                 </div>
