@@ -66,31 +66,31 @@ class CommentServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		testMember = MemberEntity.builder()
+		testMember = memberRepository.saveAndFlush(MemberEntity.builder()
 			.username("testUser")
 			.email("test@example.com")
 			.password("password")
-			.build();
-		memberRepository.save(testMember);
+			.build());
 
-		testPost = PostEntity.builder()
+		testPost = postRepository.saveAndFlush(PostEntity.builder()
 			.content("테스트 게시물")
 			.member(testMember)
 			.isDeleted(false)
-			.build();
-		postRepository.save(testPost);
+			.build());
 
-		testComment = CommentEntity.createParentComment("테스트 댓글", testPost, testMember, 1L);
-		commentRepository.save(testComment);
+		testComment = commentRepository.saveAndFlush(
+			CommentEntity.createParentComment("테스트 댓글", testPost, testMember, 1L));
 	}
+
 	private Pageable getDefaultPageable() {
 		return PageRequest.of(0, 10); // 기본적으로 10개씩 조회하는 페이지네이션 설정
 	}
+
 	@Test
 	@DisplayName("댓글 생성 테스트")
 	void t1() {
 		// given
-		CommentCreateRequest request = new CommentCreateRequest(testMember.getId(), testPost.getId(), "새로운 댓글", null);
+		CommentCreateRequest request = new CommentCreateRequest(testPost.getId(), testMember.getId(), "새로운 댓글", null);
 
 		// when
 		CommentCreateResponse response = commentService.createComment(request);
@@ -109,7 +109,8 @@ class CommentServiceTest {
 	void t2() {
 		// given
 		String updatedContent = "수정된 댓글 내용";
-		CommentModifyRequest request = new CommentModifyRequest(testComment.getId(), testMember.getId(),updatedContent);
+		CommentModifyRequest request = new CommentModifyRequest(testComment.getId(), testMember.getId(),
+			updatedContent);
 
 		// when
 		CommentModifyResponse response = commentService.modifyComment(testComment.getId(), request);
@@ -169,7 +170,8 @@ class CommentServiceTest {
 	@DisplayName("대댓글 생성 및 부모 댓글 answerNum 증가 확인")
 	void t5() {
 		// given
-		CommentCreateRequest request = new CommentCreateRequest(testMember.getId(), testPost.getId(), "대댓글", testComment.getId());
+		CommentCreateRequest request = new CommentCreateRequest(
+			testPost.getId(), testMember.getId(), "대댓글", testComment.getId());
 
 		// when
 		CommentCreateResponse response = commentService.createComment(request);
@@ -178,6 +180,10 @@ class CommentServiceTest {
 		assertNotNull(response);
 		assertEquals("대댓글", response.content());
 
+		entityManager.flush();
+		entityManager.clear();
+
+		// ✅ 부모 댓글을 다시 조회하여 answerNum이 증가했는지 확인
 		CommentEntity parentComment = commentRepository.findById(testComment.getId()).orElseThrow();
 		assertEquals(1, parentComment.getAnswerNum());
 
@@ -188,7 +194,7 @@ class CommentServiceTest {
 	@DisplayName("존재하지 않는 댓글 수정 시 예외 발생 테스트")
 	void t6() {
 		// given
-		Long nonExistentCommentId = 999L;
+		Long nonExistentCommentId = 999999L;
 		CommentModifyRequest request = new CommentModifyRequest(nonExistentCommentId, testMember.getId(), "수정된 내용");
 
 		// when & then
@@ -213,7 +219,7 @@ class CommentServiceTest {
 				.build()
 		);
 
-		CommentModifyRequest request = new CommentModifyRequest(testComment.getId(), anotherUser.getId(),"허가되지 않은 수정");
+		CommentModifyRequest request = new CommentModifyRequest(testComment.getId(), anotherUser.getId(), "허가되지 않은 수정");
 
 		// when & then
 		CommentException exception = assertThrows(CommentException.class, () -> {
@@ -224,6 +230,7 @@ class CommentServiceTest {
 
 		System.out.println("✅ 다른 사용자의 댓글 수정 예외 테스트 성공!");
 	}
+
 	@Test
 	@DisplayName("단일 댓글 조회 테스트")
 	void t8() {
@@ -249,7 +256,8 @@ class CommentServiceTest {
 		commentRepository.save(comment2);
 
 		// when
-		List<CommentResponse> comments = commentService.findAllCommentsByPostId(testPost.getId(), getDefaultPageable()).getContent();
+		List<CommentResponse> comments = commentService.findAllCommentsByPostId(testPost.getId(), getDefaultPageable())
+			.getContent();
 
 		// then
 		assertNotNull(comments);
@@ -268,7 +276,8 @@ class CommentServiceTest {
 		commentRepository.save(child2);
 
 		// when
-		List<CommentResponse> replies = commentService.findRepliesByParentId(testComment.getId(), getDefaultPageable()).getContent();
+		List<CommentResponse> replies = commentService.findRepliesByParentId(testComment.getId(), getDefaultPageable())
+			.getContent();
 
 		// then
 		assertNotNull(replies);
@@ -276,6 +285,7 @@ class CommentServiceTest {
 
 		System.out.println("✅ 특정 댓글의 대댓글 조회 테스트 성공!");
 	}
+
 	@Test
 	@DisplayName("게시글 내 댓글 페이징 조회 테스트")
 	void t11() {
@@ -295,6 +305,121 @@ class CommentServiceTest {
 		assertEquals(2, comments.getSize()); // 2개만 가져왔는지 확인
 
 		System.out.println("✅ 게시글 내 댓글 페이징 조회 테스트 성공!");
+	}
+
+	@Test
+	@DisplayName("대댓글 정렬 순서(refOrder) 변경 테스트")
+	void t12() {
+		// given
+		CommentEntity parent = CommentEntity.createParentComment("부모 댓글", testPost, testMember, 1L);
+		commentRepository.save(parent);
+
+		CommentEntity reply1 = CommentEntity.createChildComment("대댓글1", testPost, testMember, parent, 2);
+		CommentEntity reply2 = CommentEntity.createChildComment("대댓글2", testPost, testMember, parent, 3);
+		commentRepository.save(reply1);
+		commentRepository.save(reply2);
+
+		// when
+		commentRepository.shiftRefOrderWithinGroup(parent.getRef(), 2);
+
+		// then
+		CommentEntity updatedReply1 = commentRepository.findById(reply1.getId()).orElseThrow();
+		CommentEntity updatedReply2 = commentRepository.findById(reply2.getId()).orElseThrow();
+
+		assertTrue(updatedReply1.getRefOrder() > 2);
+		assertTrue(updatedReply2.getRefOrder() > updatedReply1.getRefOrder());
+
+		System.out.println("✅ 대댓글 정렬 순서 변경 테스트 성공!");
+	}
+
+	@Test
+	@DisplayName("부모 댓글 자동 삭제 테스트 (자식 댓글 모두 삭제 후)")
+	void t13() {
+		// given
+		CommentEntity parent = CommentEntity.createParentComment("부모 댓글", testPost, testMember, 1L);
+		commentRepository.save(parent);
+
+		CommentEntity child1 = CommentEntity.createChildComment("대댓글1", testPost, testMember, parent, 2);
+		CommentEntity child2 = CommentEntity.createChildComment("대댓글2", testPost, testMember, parent, 3);
+		commentRepository.save(child1);
+		commentRepository.save(child2);
+
+		commentService.deleteComment(parent.getId(), testMember.getId()); // 부모 댓글 Soft Delete
+		commentService.deleteComment(child1.getId(), testMember.getId()); // 대댓글 삭제
+		commentService.deleteComment(child2.getId(), testMember.getId()); // 대댓글 삭제
+
+		// when
+		boolean exists = commentRepository.existsById(parent.getId());
+
+		// then
+		assertFalse(exists); // 부모 댓글도 자동 삭제되어야 함
+
+		System.out.println("✅ 부모 댓글 자동 삭제 테스트 성공!");
+	}
+
+	@Test
+	@DisplayName("대량 데이터 환경에서 existsByParentNum() 성능 테스트")
+	void t14() {
+		// given
+		CommentEntity parent = CommentEntity.createParentComment("부모 댓글", testPost, testMember, 1L);
+		commentRepository.save(parent);
+
+		for (int i = 0; i < 1000; i++) {
+			CommentEntity child = CommentEntity.createChildComment("대댓글 " + i, testPost, testMember, parent, i + 2);
+			commentRepository.save(child);
+		}
+
+		long startTime = System.currentTimeMillis();
+
+		// when
+		boolean hasChildren = commentRepository.existsByParentNum(parent.getId());
+
+		long endTime = System.currentTimeMillis();
+
+		// then
+		assertTrue(hasChildren);
+		System.out.println("✅ existsByParentNum() 성능 테스트 성공! 실행 시간: " + (endTime - startTime) + "ms");
+	}
+
+	@Test
+	@DisplayName("최초 댓글 생성 시 findMaxValuesByPostId() null 처리 테스트")
+	void t15() {
+		// given
+		Long newPostId = testPost.getId() + 1; // 새로운 게시글 ID (DB에 없는 경우)
+
+		// when
+		Object[] maxValues = commentRepository.findMaxValuesByPostId(newPostId)
+			.orElse(new Object[] {0L, 0L});  // 기본값 제공하여 null 방지
+
+		// maxValues가 길이가 1일 수도 있으므로 길이에 따라 처리
+		Long maxRef = 0L;
+		Long maxRefOrder = 0L;
+
+		if (maxValues.length > 0 && maxValues[0] instanceof Long) {
+			maxRef = (Long)maxValues[0]; // 첫 번째 값은 ref
+		}
+
+		if (maxValues.length > 1 && maxValues[1] instanceof Long) {
+			maxRefOrder = (Long)maxValues[1]; // 두 번째 값은 refOrder
+		}
+
+		Long newRef = maxRef + 1; // 새로운 ref 값 계산
+
+		// then
+		assertEquals(1L, newRef); // 새로운 ref는 1이 되어야 함
+		System.out.println("✅ findMaxValuesByPostId() null 처리 테스트 성공!");
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 댓글 삭제 시 예외 처리")
+	void t16() {
+		// given
+		Long nonExistentCommentId = 999L; // 존재하지 않는 댓글 ID
+
+		// when & then
+		assertThrows(CommentException.class,
+			() -> commentService.deleteComment(nonExistentCommentId, testMember.getId()), "COMMENT_NOT_FOUND");
+		System.out.println("✅ 존재하지 않는 댓글 삭제 시 예외 처리 테스트 성공!");
 	}
 }
 
