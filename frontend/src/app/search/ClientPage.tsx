@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
+import { getImageUrl } from "@/utils/imageUtils";
 
 type SearchPostResponse = {
   postId: number;
@@ -199,7 +200,7 @@ const ClientPage = () => {
               className="aspect-square relative overflow-hidden rounded-lg border dark:border-gray-700"
             >
               <img
-                src={post.imageUrl}
+                src={getImageUrl(post.imageUrl)}
                 alt={`Post ${post.postId}`}
                 className="w-full h-full object-cover"
               />
