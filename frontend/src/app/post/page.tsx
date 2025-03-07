@@ -140,14 +140,14 @@ export default function PostCreatePage() {
               <ArrowLeft size={40} />
             </button>
 
-            <div className="flex justify-between items-center mb-4 px-12">
+            <div className="relative flex items-center justify-center mb-4 px-12">
               <h2 className="text-xl font-bold text-center flex-grow dark:text-white">
                 새 게시물 생성하기
               </h2>
               <button
                 onClick={handleCreatePost}
                 disabled={isLoading}
-                className="text-blue-500 dark:text-blue-400 font-bold hover:underline"
+                className="absolute right-12 text-blue-500 dark:text-blue-400 font-bold hover:underline"
               >
                 {isLoading ? "업로드 중..." : "공유하기"}
               </button>
