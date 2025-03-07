@@ -1,44 +1,57 @@
 // useComments.ts
-import { useState, useCallback } from 'react';
-import { dummyComments, Comment } from './dummyComments';
+import { useState, useCallback } from "react";
+import client from "@/lib/backend/client";
+import { paths } from "@/lib/backend/apiV1/schema";
 
 export function useComments(feedId: number) {
-  const [comments, setComments] = useState<Comment[]>(dummyComments);
-  
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
   // 댓글 목록 가져오기 (실제 구현에서는 API 호출)
   const fetchComments = useCallback(async () => {
-    // 여기에 실제 API 호출 로직 구현
-    // 예: const response = await api.get(`/posts/${feedId}/comments`);
-    // setComments(response.data);
-    
-    // 현재는 더미 데이터를 사용하고 최신순으로 정렬
-    // 댓글 데이터의 time 필드를 날짜 객체로 변환하여 정렬하는 것이 정확하지만
-    // 현재 예시 데이터의 형식(시간이 문자열)으로 인해 임시로 역순 정렬
-    setComments([...dummyComments].reverse());
+    try {
+      const response = await client.GET(`/api-v1/comment/post/${feedId}`);
+
+      if (response?.data?.content) {
+        setComments(response.data.content);
+      } else {
+        setComments([]); // 댓글이 없더라도 에러 메시지 설정하지 않음
+      }
+    } catch (error) {
+      console.error("댓글 가져오기 실패", error);
+      setError("댓글을 가져오는 데 실패했습니다.");
+    }
   }, [feedId]);
 
   // 새 댓글 추가하기
-  const addComment = useCallback((content: string) => {
-    if (!content.trim()) return;
+  const addComment = useCallback(
+    async (content: string) => {
+      if (!content.trim()) return;
 
-    // 새 댓글 객체 생성
-    const newCommentObj: Comment = {
-      id: Math.max(...comments.map(c => c.id), 0) + 1, // 고유 ID 생성
-      username: "You",
-      content: content,
-      time: "Just now",
-      likeCount: 0,
-    };
-    
-    // 실제 구현에서는 API 호출 후 응답으로 업데이트
-    // const response = await api.post(`/posts/${feedId}/comments`, { content });
-    // const newCommentFromServer = response.data;
-    // setComments(prevComments => [...prevComments, newCommentFromServer]);
-    
-    // 현재는 로컬 상태만 업데이트 (새 댓글을 맨 위에 추가)
-    setComments(prevComments => [newCommentObj, ...prevComments]);
-  }, [comments, feedId]);
+      try {
+        // 댓글 추가를 위한 API 호출
+        const response = await client.POST("/api-v1/comment", {
+          body: {
+            postId: feedId, // 댓글을 달 게시물의 ID
+            content: content, // 사용자가 작성한 댓글 내용
+            memberId: 1, // 로그인한 사용자의 ID (실제 구현에서는 로그인 상태에서 가져옴)
+          },
+        });
 
+        // 서버에서 응답 받은 새로운 댓글이 있을 경우
+        if (response?.data) {
+          // 새 댓글을 맨 위에 추가
+          setComments((prevComments) => [response.data, ...prevComments]);
+        } else {
+          setError("댓글을 추가하는 데 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("댓글 추가 실패", error);
+        setError("댓글을 추가하는 데 실패했습니다.");
+      }
+    },
+    [feedId]
+  );
   // 댓글에 좋아요 추가/취소하기
   const likeComment = useCallback((commentId: number) => {
     // 실제 구현에서는 API 호출 후 응답으로 업데이트
@@ -59,10 +72,10 @@ export function useComments(feedId: number) {
         }
       }
     */
-    
+
     // 현재는 로컬 상태만 업데이트 (단순 좋아요 수 증가)
-    setComments(prevComments => 
-      prevComments.map(comment => 
+    setComments((prevComments) =>
+      prevComments.map((comment) =>
         comment.id === commentId
           ? { ...comment, likeCount: comment.likeCount + 1 }
           : comment
@@ -71,33 +84,38 @@ export function useComments(feedId: number) {
   }, []);
 
   // 댓글에 답글 달기
-  const replyToComment = useCallback((commentId: number, content: string) => {
-    if (!content.trim()) return;
-    
-    // 실제 구현에서는 답글 관련 API 호출
-    /*
+  const replyToComment = useCallback(
+    (commentId: number, content: string) => {
+      if (!content.trim()) return;
+
+      // 실제 구현에서는 답글 관련 API 호출
+      /*
       const response = await api.post(`/comments/${commentId}/replies`, { content });
       const newReply = response.data;
     */
-    
-    // 현재 구현에서는 답글을 새로운 댓글로 추가 (부모 댓글 ID는 무시됨)
-    const newReplyObj: Comment = {
-      id: Math.max(...comments.map(c => c.id), 0) + 1,
-      username: "You",
-      content: `@${comments.find(c => c.id === commentId)?.username || ''} ${content}`,
-      time: "Just now",
-      likeCount: 0,
-    };
-    
-    // 답글도 최신순으로 맨 위에 추가
-    setComments(prevComments => [newReplyObj, ...prevComments]);
-  }, [comments]);
+
+      // 현재 구현에서는 답글을 새로운 댓글로 추가 (부모 댓글 ID는 무시됨)
+      const newReplyObj: Comment = {
+        id: Math.max(...comments.map((c) => c.id), 0) + 1,
+        username: "You",
+        content: `@${
+          comments.find((c) => c.id === commentId)?.username || ""
+        } ${content}`,
+        time: "Just now",
+        likeCount: 0,
+      };
+
+      // 답글도 최신순으로 맨 위에 추가
+      setComments((prevComments) => [newReplyObj, ...prevComments]);
+    },
+    [comments]
+  );
 
   return {
     comments,
     fetchComments,
     addComment,
     likeComment,
-    replyToComment
+    replyToComment,
   };
 }
