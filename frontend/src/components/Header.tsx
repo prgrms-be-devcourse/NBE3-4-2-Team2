@@ -1,27 +1,30 @@
 'use client'
 
-import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { logout } from '@/lib/auth';
-import { Globe2 } from 'lucide-react';
-import Image from 'next/image';
 import { useTheme } from '@/contexts/ThemeContext';
+import { parseAccessToken } from '@/lib/auth/token';
+import Image from 'next/image';
+import Link from "next/link";
+import { useRouter } from 'next/navigation';
 
 export function Header() {
   const { darkMode } = useTheme(); // Context에서 darkMode 가져오기
-  const { isAuthenticated, logout: clearAuth } = useAuth();
+  const { isAuthenticated, logout, accessToken} = useAuth();
   const router = useRouter();
+  console.log("accessToken!" , accessToken);
+  const username = parseAccessToken(accessToken!).accessTokenPayload?.sub;
+  console.log("sub", parseAccessToken(accessToken!).accessTokenPayload)
 
   const handleLogout = async () => {
     try {
       await logout();
-      clearAuth();
       router.replace('/');
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
+
+  
 
   return (
     <div className={`
@@ -43,12 +46,20 @@ export function Header() {
       </Link>
       <div className="flex gap-4">
         {isAuthenticated ? (
-          <button 
-            onClick={handleLogout} 
-            className="hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            로그아웃
-          </button>
+          <>
+            <Link
+              href={`/member/${username}`}
+              className="hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              프로필
+            </Link>
+            <button 
+              onClick={handleLogout} 
+              className="hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              로그아웃
+            </button>
+          </>
         ) : (
           <>
             <Link 
