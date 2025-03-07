@@ -68,7 +68,7 @@ public class CommentService {
 
 		// 이벤트 발생
 		applicationEventPublisher.publishEvent(
-			CommentEvent.create(member.getUsername(), post.getMember().getId(), comment.getId())
+			CommentEvent.create(member.getUsername(), post.getMember().getId(), comment.getId(), request.postId())
 		);
 
 		return CommentConverter.toCreateResponse(savedComment);
