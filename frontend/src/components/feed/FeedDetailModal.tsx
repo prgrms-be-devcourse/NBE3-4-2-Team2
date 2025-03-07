@@ -50,6 +50,7 @@ export default function FeedDetailModal({
   useEffect(() => {
     // 모달이 열렸을 때만 데이터 로드 (initialFeed가 없는 경우에만)
     if (isOpen && feedId && !initialFeed) {
+      console.log("초기화 데이터가 없습니다.");
       fetchFeedDetail();
     } else if (initialFeed && isOpen) {
       // initialFeed가 있으면 댓글만 불러옴
@@ -81,12 +82,8 @@ export default function FeedDetailModal({
         setFeed(foundFeed);
 
         // 초기 상태가 전달되지 않은 경우에만 API 데이터로 설정
-        if (initialLikeState === undefined) {
-          setIsLiked(!!foundFeed.likeFlag);
-        }
-        if (initialBookmarkState === undefined) {
-          setIsBookmarked(foundFeed.bookmarkId != -1);
-        }
+        setIsLiked(!!foundFeed.likeFlag);
+        setIsBookmarked(foundFeed.bookmarkId != -1);
 
         // 피드를 찾은 후 댓글 데이터도 불러오기
         fetchComments();
