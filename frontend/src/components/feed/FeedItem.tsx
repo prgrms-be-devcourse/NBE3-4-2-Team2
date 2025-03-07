@@ -215,7 +215,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   return (
     <>
       <div
-        className={`bg-white rounded-lg shadow-sm mb-4 overflow-hidden ${
+        className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-4 overflow-hidden ${
           isActive ? "border-blue-400 border-2" : ""
         }`}
         onClick={handleFeedClick}
@@ -223,7 +223,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
         {/* 작성자 정보 */}
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center" onClick={handleProfileImage}>
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex-shrink-0 overflow-hidden">
               {feed.profileImgUrl && (
                 <img
                   src={getImageUrl(feed.profileImgUrl)}
@@ -232,7 +232,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
                 />
               )}
             </div>
-            <span className="ml-2 font-medium text-sm text-black">
+            <span className="ml-2 font-medium text-sm text-black dark:text-white">
               {feed.authorName}
             </span>
           </div>
@@ -261,7 +261,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
             {hasMultipleImages && (
               <>
                 <button
-                  className={`absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-70 rounded-full w-8 h-8 flex items-center justify-center ${
+                  className={`absolute left-2 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-700 bg-opacity-70 dark:bg-opacity-70 rounded-full w-8 h-8 flex items-center justify-center ${
                     currentImageIndex === 0
                       ? "opacity-50 cursor-not-allowed"
                       : "opacity-80 hover:opacity-100"
@@ -270,11 +270,11 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
                   aria-label="이전 이미지"
                   disabled={currentImageIndex === 0}
                 >
-                  <span className="text-gray-800">&#10094;</span>
+                  <span className="text-gray-800 dark:text-gray-200">&#10094;</span>
                 </button>
 
                 <button
-                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-70 rounded-full w-8 h-8 flex items-center justify-center ${
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-700 bg-opacity-70 dark:bg-opacity-70 rounded-full w-8 h-8 flex items-center justify-center ${
                     currentImageIndex === (feed.imgUrlList?.length ?? 0) - 1
                       ? "opacity-50 cursor-not-allowed"
                       : "opacity-80 hover:opacity-100"
@@ -285,7 +285,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
                     currentImageIndex === (feed.imgUrlList?.length ?? 0) - 1
                   }
                 >
-                  <span className="text-gray-800">&#10095;</span>
+                  <span className="text-gray-800 dark:text-gray-200">&#10095;</span>
                 </button>
               </>
             )}
@@ -297,7 +297,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
                   <span
                     key={idx}
                     className={`inline-block w-2 h-2 rounded-full cursor-pointer ${
-                      idx === currentImageIndex ? "bg-blue-500" : "bg-gray-300"
+                      idx === currentImageIndex ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
                     }`}
                     onClick={(e) => goToImage(idx, e)}
                   ></span>
@@ -318,7 +318,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
         <div className="flex items-center px-3 pt-3 pb-2">
           <button
             className={`flex items-center mr-4 ${
-              isLiked ? "text-red-500" : "text-gray-700"
+              isLiked ? "text-red-500" : "text-gray-700 dark:text-gray-300"
             }`}
             onClick={handleLike}
           >
@@ -326,7 +326,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
             <span className="text-sm">{likeCount}</span>
           </button>
           <button
-            className="flex items-center mr-4 text-gray-700 hover:text-blue-500"
+            className="flex items-center mr-4 text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             onClick={handleCommentClick}
           >
             <span className="text-xl mr-1">💬</span>
@@ -334,7 +334,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
           </button>
           <div className="flex-grow"></div>
           <button
-            className={`${isBookmarked ? "text-blue-500" : "text-gray-700"}`}
+            className={`${isBookmarked ? "text-blue-500" : "text-gray-700 dark:text-gray-300"}`}
             onClick={handleBookmark}
           >
             <span className="text-xl">{!isBookmarked ? "🔖" : "🏷️"}</span>
@@ -343,13 +343,13 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
 
         {/* 내용 */}
         <div className="px-3 pt-1 pb-2">
-          <p className="text-sm text-gray-800">
+          <p className="text-sm text-gray-800 dark:text-gray-200">
             <span className="font-medium">{feed.authorName}</span>
             <span className="ml-2">{displayContent}</span>
           </p>
           {isContentLong && (
             <button
-              className="text-xs text-gray-500 mt-1"
+              className="text-xs text-gray-500 dark:text-gray-400 mt-1"
               onClick={toggleContent}
             >
               {showAllContent ? "접기" : "더 보기"}
@@ -363,7 +363,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
             {feed.hashTagList.map((tag, idx) => (
               <span
                 key={idx}
-                className="text-blue-500 text-sm mr-2"
+                className="text-blue-500 dark:text-blue-400 text-sm mr-2"
                 onClick={(e) => e.stopPropagation()}
               >
                 #{tag}
