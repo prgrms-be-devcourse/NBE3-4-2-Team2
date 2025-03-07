@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import { components } from "../../lib/backend/apiV1/schema";
 import { getImageUrl } from "../../utils/imageUtils";
 import client from "@/lib/backend/client";
-import FeedDetailModal from "@/components/feed/FeedDetailModal"; // 새로운 모달 컴포넌트 import
+import FeedDetailModal from "@/components/feed/FeedDetailModal"; // 모달 컴포넌트 import
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
 
 interface FeedItemProps {
@@ -26,7 +26,10 @@ const formatDate = (dateString: string): string => {
 
 const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   const [isLiked, setIsLiked] = useState<boolean>(!!feed.likeFlag);
-  const [isBookmarked, setIsBookmarked] = useState<boolean>(!!feed.bookmarkId);
+  const [likeCount, setLikeCount] = useState<number>(feed.likeCount || 0);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(
+    !!(feed.bookmarkId != -1)
+  );
   const [showAllContent, setShowAllContent] = useState<boolean>(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   // 모달 상태 추가
@@ -38,8 +41,11 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   // 좋아요 기능
   const handleLike = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation(); // 이벤트 전파 중지
-    console.log(isLiked ? "좋아요를 취소합니다." : "좋아요를 누릅니다.");
-    setIsLiked(!isLiked);
+    console.log(
+      isLiked
+        ? isLiked + "좋아요를 취소합니다."
+        : isLiked + "좋아요를 누릅니다."
+    );
 
     // API 호출
     try {
@@ -54,8 +60,16 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
         },
       });
 
-      if (!response.data) {
-        console.log(response.error);
+      if (response.response.status == 200) {
+        const newIsLiked = !isLiked;
+        setIsLiked(newIsLiked);
+        // 좋아요 수 업데이트
+        setLikeCount((prevCount) =>
+          newIsLiked ? prevCount + 1 : prevCount - 1
+        );
+        // feed 객체의 좋아요 상태도 업데이트
+        feed.likeFlag = newIsLiked;
+        feed.likeCount = newIsLiked ? likeCount + 1 : likeCount - 1;
       }
     } catch (error) {
       console.error("좋아요 처리 중 오류:", error);
@@ -66,21 +80,41 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation(); // 이벤트 전파 중지
 
-    console.log(isBookmarked ? "북마크를 추가합니다." : "북마크를 취소합니다.");
-    setIsBookmarked(!isBookmarked);
+    console.log(
+      isBookmarked
+        ? isBookmarked + "북마크를 취소합니다."
+        : isBookmarked + "북마크를 추가합니다."
+    );
 
     // API 호출
     try {
-      const response = await client.POST("/api-v1/bookmark/{postId}", {
-        params: {
-          path: {
-            postId: feed.postId,
-          },
-        },
-      });
+      const response = isBookmarked
+        ? await client.DELETE("/api-v1/bookmark/{postId}", {
+            params: {
+              path: {
+                postId: feed.postId,
+              },
+            },
+            body: {
+              bookmarkId: feed.bookmarkId,
+            },
+          })
+        : await client.POST("/api-v1/bookmark/{postId}", {
+            params: {
+              path: {
+                postId: feed.postId,
+              },
+            },
+          });
 
-      if (!response.data) {
-        console.log(response.error);
+      const newIsBookmarked = !isBookmarked;
+      setIsBookmarked(newIsBookmarked);
+
+      if (!isBookmarked && response.data?.data?.bookmarkId) {
+        feed.bookmarkId = response.data.data.bookmarkId;
+        console.log("북마크 아이디 추가. " + feed.bookmarkId);
+      } else if (isBookmarked) {
+        feed.bookmarkId = -1; // 북마크 취소 시 bookmarkId 초기화
       }
     } catch (error) {
       console.error("북마크 처리 중 오류:", error);
@@ -97,6 +131,19 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   const handleFeedClick = (): void => {
     // 피드 아이템 클릭 시 추가 동작이 필요하면 여기에 구현
     console.log("피드 아이템 클릭됨");
+  };
+
+  // 모달에서 좋아요/북마크 상태가 변경되었을 때 호출될 콜백 함수
+  const handleModalStateChange = (updatedFeed: FeedInfoResponse): void => {
+    // 피드 정보 업데이트
+    setIsLiked(!!updatedFeed.likeFlag);
+    setLikeCount(updatedFeed.likeCount || 0);
+    setIsBookmarked(updatedFeed.bookmarkId != -1);
+
+    // feed 객체도 업데이트
+    feed.likeFlag = updatedFeed.likeFlag;
+    feed.likeCount = updatedFeed.likeCount;
+    feed.bookmarkId = updatedFeed.bookmarkId;
   };
 
   // 모달 열기 함수
@@ -199,14 +246,14 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
               style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
               ref={sliderRef}
             >
-            {feed.imgUrlList?.map((imgUrl, idx) => (
-              <div key={idx} className="w-full flex-shrink-0">
-                <img
-                  src={getImageUrl(imgUrl)}
-                  alt={`피드 이미지 ${idx + 1}`}
-                  className="w-full h-auto object-cover aspect-square"
-                />
-              </div>
+              {feed.imgUrlList?.map((imgUrl, idx) => (
+                <div key={idx} className="w-full flex-shrink-0">
+                  <img
+                    src={getImageUrl(imgUrl)}
+                    alt={`피드 이미지 ${idx + 1}`}
+                    className="w-full h-auto object-cover aspect-square"
+                  />
+                </div>
               ))}
             </div>
 
@@ -276,7 +323,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
             onClick={handleLike}
           >
             <span className="text-xl mr-1">{isLiked ? "❤️" : "🤍"}</span>
-            <span className="text-sm">{feed.likeCount || 0}</span>
+            <span className="text-sm">{likeCount}</span>
           </button>
           <button
             className="flex items-center mr-4 text-gray-700 hover:text-blue-500"
@@ -290,7 +337,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
             className={`${isBookmarked ? "text-blue-500" : "text-gray-700"}`}
             onClick={handleBookmark}
           >
-            <span className="text-xl">{isBookmarked ? "🔖" : "🏷️"}</span>
+            <span className="text-xl">{!isBookmarked ? "🔖" : "🏷️"}</span>
           </button>
         </div>
 
@@ -335,6 +382,10 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
       {isModalOpen && (
         <FeedDetailModal
           feedId={feed.postId}
+          feed={feed} // 현재 피드 데이터 전달
+          initialLikeState={isLiked} // 현재 좋아요 상태 전달
+          initialBookmarkState={isBookmarked} // 현재 북마크 상태 전달
+          onStateChange={handleModalStateChange} // 상태 변경 콜백 전달
           isOpen={isModalOpen}
           onClose={closeModal}
         />

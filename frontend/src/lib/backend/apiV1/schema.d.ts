@@ -669,7 +669,7 @@ export interface components {
             authorName?: string;
             /** Format: int64 */
             postId?: number;
-            imgUrlList?: string[];
+            imgUrlList: string[];
             content?: string;
             /** Format: int64 */
             likeCount?: number;
