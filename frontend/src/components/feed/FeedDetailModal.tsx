@@ -6,6 +6,7 @@ import { useComments } from "@/components/feed/useComments";
 import CommentsSection from "@/components/feed/CommentsSection";
 import client from "@/lib/backend/client";
 import { getImageUrl } from "@/utils/imageUtils";
+import { getLikeStatus, saveLikeStatus, getBookmarkStatus, saveBookmarkStatus } from "../../utils/likeUtils";
 
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
 
@@ -28,37 +29,187 @@ export default function FeedDetailModal({
   isOpen,
   onClose,
 }: FeedDetailModalProps) {
-  const [feed, setFeed] = useState<FeedInfoResponse | null>(
-    initialFeed || null
-  );
-  const [loading, setLoading] = useState<boolean>(!initialFeed);
+  const [feed, setFeed] = useState<FeedInfoResponse | null>(initialFeed || null);
+  
+  // 로컬 스토리지의 상태가 있다면 먼저 적용
+  const initialLikedState = initialFeed 
+    ? getLikeStatus(initialFeed.postId, !!initialFeed.likeFlag, initialFeed.likeCount || 0).isLiked 
+    : false;
+  
+  const initialBookmarkedState = initialFeed 
+    ? getBookmarkStatus(initialFeed.postId, initialFeed.bookmarkId).isBookmarked 
+    : false;
+  
+  // initialLikeState, initialBookmarkState가 props로 넘어왔다면 그것을 우선 사용
   const [isLiked, setIsLiked] = useState<boolean>(
-    initialLikeState !== undefined ? initialLikeState : false
+    initialLikeState !== undefined ? initialLikeState : initialLikedState
   );
+  
   const [isBookmarked, setIsBookmarked] = useState<boolean>(
-    initialBookmarkState !== undefined ? initialBookmarkState : false
+    initialBookmarkState !== undefined ? initialBookmarkState : initialBookmarkedState
   );
-  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
 
-  // 댓글 관련 로직을 훅으로 분리
-  const { comments, fetchComments, addComment, likeComment, replyToComment } =
-    useComments(feedId);
+  // 좋아요 핸들러 수정
+  const handleLike = async (e: React.MouseEvent): Promise<void> => {
+    e.stopPropagation();
+    if (!feed) return;
 
-  // 이미지가 있는지 확인
-  const hasImages = feed?.imgUrlList && feed.imgUrlList.length > 0;
+    // 낙관적 UI 업데이트
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
 
-  useEffect(() => {
-    // 모달이 열렸을 때만 데이터 로드 (initialFeed가 없는 경우에만)
-    if (isOpen && feedId && !initialFeed) {
-      console.log("초기화 데이터가 없습니다.");
-      fetchFeedDetail();
-    } else if (initialFeed && isOpen) {
-      // initialFeed가 있으면 댓글만 불러옴
-      fetchComments();
+    // 좋아요 수 업데이트
+    const newLikeCount = newIsLiked
+      ? (feed.likeCount || 0) + 1
+      : (feed.likeCount || 0) - 1;
+
+    // 로컬 스토리지에 저장
+    saveLikeStatus(feed.postId, newIsLiked, newLikeCount);
+
+    // feed 객체 업데이트
+    const updatedFeed = {
+      ...feed,
+      likeFlag: newIsLiked,
+      likeCount: newLikeCount,
+    };
+
+    setFeed(updatedFeed);
+
+    // 부모 컴포넌트에 상태 변경 알림
+    if (onStateChange) {
+      onStateChange(updatedFeed);
     }
-  }, [feedId, isOpen, initialFeed]);
 
-  // 단일 피드 정보 불러오기
+    // API 호출
+    try {
+      const response = await client.POST("/api-v1/like/{id}", {
+        params: {
+          path: {
+            id: feed.postId,
+          },
+          query: {
+            resourceType: "post",
+          },
+        },
+      });
+
+      // API 호출 실패 시 원래 상태로 되돌림
+      if (response.response.status !== 200) {
+        setIsLiked(!newIsLiked);
+        
+        const revertedLikeCount = !newIsLiked
+          ? (feed.likeCount || 0) + 1
+          : (feed.likeCount || 0) - 1;
+        
+        // 로컬 스토리지 업데이트
+        saveLikeStatus(feed.postId, !newIsLiked, revertedLikeCount);
+        
+        // feed 객체 업데이트
+        const revertedFeed = {
+          ...feed,
+          likeFlag: !newIsLiked,
+          likeCount: revertedLikeCount,
+        };
+        
+        setFeed(revertedFeed);
+        
+        // 부모 컴포넌트에 상태 변경 알림
+        if (onStateChange) {
+          onStateChange(revertedFeed);
+        }
+      }
+    } catch (error) {
+      console.error("좋아요 처리 중 오류:", error);
+      // 에러 시 원래 상태로 되돌림
+      // (위의 실패 처리와 동일한 코드)
+    }
+  };
+
+  const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
+    e.stopPropagation();
+    if (!feed) return;
+  
+    // 낙관적 UI 업데이트
+    const newIsBookmarked = !isBookmarked;
+    setIsBookmarked(newIsBookmarked);
+  
+    // 로컬 스토리지에 저장
+    saveBookmarkStatus(feed.postId, newIsBookmarked, feed.bookmarkId);
+  
+    // feed 객체 업데이트
+    const updatedFeed = {
+      ...feed,
+      bookmarkId: newIsBookmarked ? feed.bookmarkId : -1,
+    };
+  
+    setFeed(updatedFeed);
+  
+    // 부모 컴포넌트에 상태 변경 알림
+    if (onStateChange) {
+      onStateChange(updatedFeed);
+    }
+  
+    // API 호출
+    try {
+      const response = newIsBookmarked
+        ? await client.POST("/api-v1/bookmark/{postId}", {
+            params: {
+              path: {
+                postId: feed.postId,
+              },
+            },
+          })
+        : await client.DELETE("/api-v1/bookmark/{postId}", {
+            params: {
+              path: {
+                postId: feed.postId,
+              },
+            },
+            body: {
+              bookmarkId: feed.bookmarkId,
+            },
+          });
+  
+      // API 호출 성공 시, bookmarkId 업데이트
+      if (newIsBookmarked && response.data?.data?.bookmarkId) {
+        const updatedFeedWithBookmarkId = {
+          ...updatedFeed,
+          bookmarkId: response.data.data.bookmarkId,
+        };
+        setFeed(updatedFeedWithBookmarkId);
+        
+        // 로컬 스토리지 업데이트
+        saveBookmarkStatus(feed.postId, newIsBookmarked, response.data.data.bookmarkId);
+        
+        // 부모 컴포넌트에 상태 변경 알림
+        if (onStateChange) {
+          onStateChange(updatedFeedWithBookmarkId);
+        }
+      }
+    } catch (error) {
+      console.error("북마크 처리 중 오류:", error);
+      
+      // API 호출 실패 시 원래 상태로 되돌림
+      setIsBookmarked(!newIsBookmarked);
+      
+      // 로컬 스토리지 업데이트
+      saveBookmarkStatus(feed.postId, !newIsBookmarked, feed.bookmarkId);
+      
+      // feed 객체 업데이트
+      const revertedFeed = {
+        ...feed,
+        bookmarkId: !newIsBookmarked ? feed.bookmarkId : -1,
+      };
+      
+      setFeed(revertedFeed);
+      
+      // 부모 컴포넌트에 상태 변경 알림
+      if (onStateChange) {
+        onStateChange(revertedFeed);
+      }
+    }
+  };
+
   const fetchFeedDetail = async () => {
     setLoading(true);
 
@@ -79,11 +230,27 @@ export default function FeedDetailModal({
       const foundFeed = response.data.data;
       if (foundFeed) {
         console.log("피드를 찾았습니다:", foundFeed);
+        
+        // 로컬 스토리지에서 좋아요 상태 가져오기
+        const { isLiked: storedLiked, likeCount: storedLikeCount } = getLikeStatus(
+          foundFeed.postId, 
+          !!foundFeed.likeFlag, 
+          foundFeed.likeCount || 0
+        );
+        
+        // 로컬 스토리지에서 북마크 상태 가져오기
+        const { isBookmarked: storedBookmarked } = getBookmarkStatus(
+          foundFeed.postId,
+          foundFeed.bookmarkId
+        );
+        
+        // 로컬 스토리지 값으로 업데이트된 피드 설정
+        foundFeed.likeFlag = storedLiked;
+        foundFeed.likeCount = storedLikeCount;
+        
         setFeed(foundFeed);
-
-        // 초기 상태가 전달되지 않은 경우에만 API 데이터로 설정
-        setIsLiked(!!foundFeed.likeFlag);
-        setIsBookmarked(foundFeed.bookmarkId != -1);
+        setIsLiked(storedLiked);
+        setIsBookmarked(storedBookmarked);
 
         // 피드를 찾은 후 댓글 데이터도 불러오기
         fetchComments();
@@ -94,112 +261,6 @@ export default function FeedDetailModal({
       console.error("피드 상세 정보를 불러오는 중 오류가 발생했습니다:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // 좋아요 기능
-  const handleLike = async (e: React.MouseEvent): Promise<void> => {
-    e.stopPropagation();
-    if (!feed) return;
-
-    console.log(
-      isLiked
-        ? isLiked + "좋아요를 취소합니다."
-        : isLiked + "좋아요를 누릅니다."
-    );
-
-    // API 호출
-    try {
-      const response = await client.POST("/api-v1/like/{id}", {
-        params: {
-          path: {
-            id: feed.postId,
-          },
-          query: {
-            resourceType: "post",
-          },
-        },
-      });
-
-      if (response.response.status == 200) {
-        const newIsLiked = !isLiked;
-        setIsLiked(newIsLiked);
-
-        // 좋아요 수 업데이트
-        const newLikeCount = newIsLiked
-          ? (feed.likeCount || 0) + 1
-          : (feed.likeCount || 0) - 1;
-
-        // feed 객체 업데이트
-        const updatedFeed = {
-          ...feed,
-          likeFlag: newIsLiked,
-          likeCount: newLikeCount,
-        };
-
-        setFeed(updatedFeed);
-
-        // 부모 컴포넌트에 상태 변경 알림
-        if (onStateChange) {
-          onStateChange(updatedFeed);
-        }
-      }
-    } catch (error) {
-      console.error("좋아요 처리 중 오류:", error);
-    }
-  };
-
-  // 북마크 기능
-  const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
-    e.stopPropagation();
-    if (!feed) return;
-
-    console.log(
-      isBookmarked
-        ? isBookmarked + "북마크를 취소합니다."
-        : isBookmarked + "북마크를 추가합니다."
-    );
-
-    // API 호출
-    try {
-      const response = isBookmarked
-        ? await client.DELETE("/api-v1/bookmark/{postId}", {
-            params: {
-              path: {
-                postId: feed.postId,
-              },
-            },
-            body: {
-              bookmarkId: feed.bookmarkId,
-            },
-          })
-        : await client.POST("/api-v1/bookmark/{postId}", {
-            params: {
-              path: {
-                postId: feed.postId,
-              },
-            },
-          });
-
-      const newIsBookmarked = !isBookmarked;
-      setIsBookmarked(newIsBookmarked);
-
-      // feed 객체 업데이트
-      const updatedFeed = {
-        ...feed,
-        bookmarkId: newIsBookmarked
-          ? response.data?.data?.bookmarkId || feed.bookmarkId
-          : -1,
-      };
-
-      setFeed(updatedFeed);
-
-      // 부모 컴포넌트에 상태 변경 알림
-      if (onStateChange) {
-        onStateChange(updatedFeed);
-      }
-    } catch (error) {
-      console.error("북마크 처리 중 오류:", error);
     }
   };
 
