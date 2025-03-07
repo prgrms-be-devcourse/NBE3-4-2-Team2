@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, ArrowLeft } from "lucide-react";
 import client from "@/lib/backend/client";
-import { useAuth } from "@/contexts/AuthContext"; // AuthContext에서 로그인 정보 가져오기
+import { getCurrentUserId } from "../../utils/jwtUtils";
 
 export default function PostCreatePage() {
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -46,9 +46,18 @@ export default function PostCreatePage() {
     setError(null);
 
     try {
+      // JWT에서 사용자 ID 가져오기
+      const userId = getCurrentUserId();
+      
+      if (!userId) {
+        setError("로그인이 필요합니다.");
+        setIsLoading(false);
+        return;
+      }
+
       // FormData 생성 및 필드 추가
       const formData = new FormData();
-      formData.append("memberId", "1"); // memberId를 1로 고정 (나중에 변경 가능)
+      formData.append("memberId", userId.toString()); // JWT에서 가져온 ID 사용
       formData.append("content", postContent);
 
       if (selectedFiles) {
@@ -100,154 +109,156 @@ export default function PostCreatePage() {
     if (imagePreviews.length === 0) setCurrentIndex(0);
   }, [imagePreviews]);
 
+  // 모달이 열렸을 때 body에 overflow: hidden 추가
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isModalOpen]);
+
   return (
-    <div>
+    <div className="fixed inset-0 z-50">
       {isModalOpen && (
         <div
-          className="modal-overlay fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center"
+          className="modal-overlay fixed inset-0 bg-black bg-opacity-75 dark:bg-opacity-85 flex justify-center items-center z-50"
           onClick={handleRequestClose}
         >
           <div
-            className="modal-content bg-white p-6 rounded-xl shadow-xl relative"
-            style={{
-              width: "1000px",
-              height: "800px",
-              maxHeight: "80vh",
-              overflowY: "auto",
-            }}
+            className="modal-content bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl relative max-h-[90vh] w-[1000px] max-w-[95vw]"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={handleGoBack}
-              className="absolute top-4 left-4 text-gray-700 hover:text-gray-900 text-3xl"
+              className="absolute top-4 left-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-3xl"
             >
               <ArrowLeft size={40} />
             </button>
 
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-center flex-grow">
+            <div className="relative flex items-center justify-center mb-4 px-12">
+              <h2 className="text-xl font-bold text-center flex-grow dark:text-white">
                 새 게시물 생성하기
               </h2>
               <button
                 onClick={handleCreatePost}
                 disabled={isLoading}
-                className="text-blue-500 font-bold hover:underline"
+                className="absolute right-12 text-blue-500 dark:text-blue-400 font-bold hover:underline"
               >
                 {isLoading ? "업로드 중..." : "공유하기"}
               </button>
             </div>
 
-            <hr className="border-t-2 border-gray-300 w-full mb-4" />
+            <hr className="border-t-2 border-gray-300 dark:border-gray-700 w-full mb-4" />
 
-            {error && (
-              <div
-                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-                role="alert"
-              >
-                <span className="block sm:inline">{error}</span>
-              </div>
-            )}
-
-            {imagePreviews.length > 0 ? (
-              <div className="relative w-full h-[500px] bg-gray-200 border-2 border-gray-300 rounded-md">
-                <img
-                  src={imagePreviews[currentIndex]}
-                  alt={`Preview ${currentIndex}`}
-                  className="w-full h-full object-contain"
-                />
-                <button
-                  onClick={() =>
-                    setCurrentIndex((prev) => Math.max(prev - 1, 0))
-                  }
-                  className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-white bg-black bg-opacity-50 p-2 rounded-full ${
-                    currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  disabled={currentIndex === 0}
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+              {error && (
+                <div
+                  className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded relative mb-4"
+                  role="alert"
                 >
-                  &lt;
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentIndex((prev) =>
-                      Math.min(prev + 1, imagePreviews.length - 1)
-                    )
-                  }
-                  className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-white bg-black bg-opacity-50 p-2 rounded-full ${
-                    currentIndex === imagePreviews.length - 1
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
-                  }`}
-                  disabled={currentIndex === imagePreviews.length - 1}
-                >
-                  &gt;
-                </button>
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
-                  {imagePreviews.map((_, index) => (
-                    <div key={index} className="flex flex-col items-center">
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          index === currentIndex ? "bg-white" : "bg-gray-500"
-                        }`}
-                      />
-                    </div>
-                  ))}
+                  <span className="block sm:inline">{error}</span>
                 </div>
-              </div>
-            ) : (
-              <div
-                className="w-full h-[500px] bg-gray-200 border-2 border-gray-300 rounded-md flex justify-center items-center cursor-pointer relative"
-                onClick={() => document.getElementById("fileInput")?.click()}
-              >
-                <p className="text-gray-500 text-4xl font-bold">+</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  id="fileInput"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </div>
-            )}
+              )}
 
-            <div className="flex flex-col mb-4">
-              <textarea
-                className="w-full p-2 border border-gray-300 rounded-md"
-                style={{ height: "150px", marginBottom: "0" }}
-                placeholder="내용을 작성해주세요"
-                value={postContent}
-                onChange={handleContentChange}
-                disabled={isLoading}
-              />
-              <p className="text-right text-sm text-gray-500 mt-2">
-                {postContent.length} / 2200
-              </p>
+              {imagePreviews.length > 0 ? (
+                <div className="relative w-full h-[500px] bg-gray-200 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-md">
+                  <img
+                    src={imagePreviews[currentIndex]}
+                    alt={`Preview ${currentIndex}`}
+                    className="w-full h-full object-contain"
+                  />
+                  <button
+                    onClick={() =>
+                      setCurrentIndex((prev) => Math.max(prev - 1, 0))
+                    }
+                    className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-white bg-black bg-opacity-50 dark:bg-opacity-70 p-2 rounded-full ${
+                      currentIndex === 0 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    disabled={currentIndex === 0}
+                  >
+                    &lt;
+                  </button>
+                  <button
+                    onClick={() =>
+                      setCurrentIndex((prev) =>
+                        Math.min(prev + 1, imagePreviews.length - 1)
+                      )
+                    }
+                    className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-white bg-black bg-opacity-50 dark:bg-opacity-70 p-2 rounded-full ${
+                      currentIndex === imagePreviews.length - 1
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    disabled={currentIndex === imagePreviews.length - 1}
+                  >
+                    &gt;
+                  </button>
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                    {imagePreviews.map((_, index) => (
+                      <div key={index} className="flex flex-col items-center">
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            index === currentIndex ? "bg-white" : "bg-gray-500 dark:bg-gray-400"
+                          }`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="w-full h-[500px] bg-gray-200 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-md flex justify-center items-center cursor-pointer relative"
+                  onClick={() => document.getElementById("fileInput")?.click()}
+                >
+                  <p className="text-gray-500 dark:text-gray-300 text-4xl font-bold">+</p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    id="fileInput"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col mb-4 mt-4">
+                <textarea
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-black dark:text-white"
+                  style={{ height: "150px", marginBottom: "0" }}
+                  placeholder="내용을 작성해주세요"
+                  value={postContent}
+                  onChange={handleContentChange}
+                  disabled={isLoading}
+                />
+                <p className="text-right text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  {postContent.length} / 2200
+                </p>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      <button
-        onClick={handleRequestClose}
-        className="absolute top-4 right-4 text-white hover:text-gray-700 text-3xl font-extrabold"
-      >
-        <X size={40} />
-      </button>
-
       {isConfirmModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <p className="mb-4 text-lg font-bold">정말로 나가시겠습니까?</p>
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-75 dark:bg-opacity-85 z-[60]">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+            <p className="mb-4 text-lg font-bold dark:text-white">정말로 나가시겠습니까?</p>
             <div className="flex justify-center gap-4">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                className="px-4 py-2 bg-red-500 dark:bg-red-600 text-white rounded-md hover:bg-red-600 dark:hover:bg-red-700"
               >
                 나가기
               </button>
               <button
                 onClick={handleCancelClose}
-                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-black dark:text-white rounded-md hover:bg-gray-400 dark:hover:bg-gray-700"
               >
                 취소
               </button>
