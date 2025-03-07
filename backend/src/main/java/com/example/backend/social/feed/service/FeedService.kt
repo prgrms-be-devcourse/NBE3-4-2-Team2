@@ -79,7 +79,8 @@ open class FeedService(
      * @param userId 요청한 사용자의 ID
      * @return 조회된 피드 정보
      */
-    fun findByPostId(postId: Long?, userId: Long): FeedInfoResponse {
+    @Transactional(readOnly = true)
+    open fun findByPostId(postId: Long?, userId: Long): FeedInfoResponse {
         val member = memberService.findById(userId)
             .orElseThrow { GlobalException(MemberErrorCode.NOT_FOUND) }
 
@@ -93,7 +94,8 @@ open class FeedService(
      * @param userId 요청한 사용자의 ID
      * @return 멤버의 피드 목록 응답
      */
-    fun findMembersList(request: FeedMemberRequest, userId: Long): FeedMemberResponse {
+    @Transactional(readOnly = true)
+    open fun findMembersList(request: FeedMemberRequest, userId: Long): FeedMemberResponse {
         feedValidator.validateRequest(request)
 
         val member = memberService.findById(userId)
