@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Comment as CommentType } from "./dummyComments";
+import { Comment as CommentType } from "./useComments";
 
 interface CommentProps {
   comment: CommentType;
@@ -37,10 +37,16 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
         <div className="w-8 h-8 rounded-full bg-gray-400 dark:bg-gray-600 mr-3"></div>
         <div className="flex-1">
           <div className="flex justify-between mb-1">
-            <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{comment.username}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">{comment.time}</span>
+            <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
+              {comment.username}
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {comment.time}
+            </span>
           </div>
-          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{comment.content}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+            {comment.content}
+          </p>
           <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
             <button
               onClick={handleLike}
@@ -48,7 +54,10 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
             >
               <span>{comment.likeCount} 좋아요</span>
             </button>
-            <button onClick={toggleReplyForm} className="hover:text-gray-700 dark:hover:text-gray-200">
+            <button
+              onClick={toggleReplyForm}
+              className="hover:text-gray-700 dark:hover:text-gray-200"
+            >
               답글
             </button>
           </div>
@@ -71,7 +80,9 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
                 type="submit"
                 disabled={!replyContent.trim()}
                 className={`ml-2 text-sm font-medium ${
-                  replyContent.trim() ? "text-blue-500 dark:text-blue-400" : "text-blue-300 dark:text-blue-800"
+                  replyContent.trim()
+                    ? "text-blue-500 dark:text-blue-400"
+                    : "text-blue-300 dark:text-blue-800"
                 }`}
               >
                 게시
@@ -103,6 +114,19 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
           </button>
         )}
       </div>
+
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="mt-3 ml-4">
+          {comment.replies.map((child) => (
+            <Comment
+              key={child.id}
+              comment={child}
+              onLike={onLike}
+              onReply={onReply}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
