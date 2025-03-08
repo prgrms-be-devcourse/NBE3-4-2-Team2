@@ -4,6 +4,7 @@
 import { useState, useRef } from "react";
 import { components } from "../../lib/backend/apiV1/schema";
 import { getImageUrl } from "../../utils/imageUtils";
+import { getLikeStatus, saveLikeStatus, getBookmarkStatus, saveBookmarkStatus } from "../../utils/likeUtils";
 import client from "@/lib/backend/client";
 import FeedDetailModal from "@/components/feed/FeedDetailModal"; // 모달 컴포넌트 import
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
@@ -25,11 +26,22 @@ const formatDate = (dateString: string): string => {
 };
 
 const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
-  const [isLiked, setIsLiked] = useState<boolean>(!!feed.likeFlag);
-  const [likeCount, setLikeCount] = useState<number>(feed.likeCount || 0);
-  const [isBookmarked, setIsBookmarked] = useState<boolean>(
-    !!(feed.bookmarkId != -1)
+  // 로컬 스토리지에서 좋아요 상태를 불러와 초기화
+  const { isLiked: initialLiked, likeCount: initialCount } = getLikeStatus(
+    feed.postId, 
+    !!feed.likeFlag, 
+    feed.likeCount || 0
   );
+  
+  // 로컬 스토리지에서 북마크 상태를 불러와 초기화
+  const { isBookmarked: initialBookmarked, bookmarkId } = getBookmarkStatus(
+    feed.postId,
+    feed.bookmarkId
+  );
+  
+  const [isLiked, setIsLiked] = useState<boolean>(initialLiked);
+  const [likeCount, setLikeCount] = useState<number>(initialCount);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(initialBookmarked);
   const [showAllContent, setShowAllContent] = useState<boolean>(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   // 모달 상태 추가
@@ -40,15 +52,26 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
 
   // 좋아요 기능
   const handleLike = async (e: React.MouseEvent): Promise<void> => {
-    e.stopPropagation(); // 이벤트 전파 중지
-    console.log(
-      isLiked
-        ? isLiked + "좋아요를 취소합니다."
-        : isLiked + "좋아요를 누릅니다."
-    );
+    e.stopPropagation();
+    if (!feed) return;
 
-    // API 호출
+    // 낙관적 UI 업데이트
+    const newIsLiked = !isLiked;
+    const newLikeCount = newIsLiked ? likeCount + 1 : likeCount - 1;
+    
+    // 상태 업데이트
+    setIsLiked(newIsLiked);
+    setLikeCount(newLikeCount);
+    
+    // 로컬 스토리지에 저장
+    saveLikeStatus(feed.postId, newIsLiked, newLikeCount);
+    
+    // feed 객체의 좋아요 상태도 업데이트
+    feed.likeFlag = newIsLiked;
+    feed.likeCount = newLikeCount;
+
     try {
+      // API 호출
       const response = await client.POST("/api-v1/like/{id}", {
         params: {
           path: {
@@ -60,31 +83,36 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
         },
       });
 
-      if (response.response.status == 200) {
-        const newIsLiked = !isLiked;
-        setIsLiked(newIsLiked);
-        // 좋아요 수 업데이트
-        setLikeCount((prevCount) =>
-          newIsLiked ? prevCount + 1 : prevCount - 1
-        );
-        // feed 객체의 좋아요 상태도 업데이트
-        feed.likeFlag = newIsLiked;
-        feed.likeCount = newIsLiked ? likeCount + 1 : likeCount - 1;
+      if (response.response.status !== 200) {
+        setIsLiked(!newIsLiked);
+        setLikeCount(newIsLiked ? newLikeCount - 1 : newLikeCount + 1);
+        
+        // 로컬 스토리지 업데이트
+        saveLikeStatus(feed.postId, !newIsLiked, newIsLiked ? newLikeCount - 1 : newLikeCount + 1);
+        
+        // feed 객체 업데이트
+        feed.likeFlag = !newIsLiked;
+        feed.likeCount = newIsLiked ? newLikeCount - 1 : newLikeCount + 1;
       }
     } catch (error) {
       console.error("좋아요 처리 중 오류:", error);
+      // 에러 발생 시 상태 되돌리기
+      setIsLiked(!newIsLiked);
+      setLikeCount(newIsLiked ? newLikeCount - 1 : newLikeCount + 1);
+      
+      // 로컬 스토리지 업데이트
+      saveLikeStatus(feed.postId, !newIsLiked, newIsLiked ? newLikeCount - 1 : newLikeCount + 1);
+      
+      // feed 객체 업데이트
+      feed.likeFlag = !newIsLiked;
+      feed.likeCount = newIsLiked ? newLikeCount - 1 : newLikeCount + 1;
     }
   };
 
   // 북마크 기능
   const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
-    e.stopPropagation(); // 이벤트 전파 중지
-
-    console.log(
-      isBookmarked
-        ? isBookmarked + "북마크를 취소합니다."
-        : isBookmarked + "북마크를 추가합니다."
-    );
+    e.stopPropagation();
+    if (!feed) return;
 
     // API 호출
     try {
@@ -109,6 +137,10 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
 
       const newIsBookmarked = !isBookmarked;
       setIsBookmarked(newIsBookmarked);
+      
+      // 로컬 스토리지에 저장
+      const tempBookmarkId = newIsBookmarked ? (feed.bookmarkId !== -1 ? feed.bookmarkId : 999999) : -1;
+      saveBookmarkStatus(feed.postId, newIsBookmarked, tempBookmarkId);
 
       if (!isBookmarked && response.data?.data?.bookmarkId) {
         feed.bookmarkId = response.data.data.bookmarkId;

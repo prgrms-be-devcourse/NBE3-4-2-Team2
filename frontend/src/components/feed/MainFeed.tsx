@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import FeedItem from "./FeedItem";
 import { components } from "../../lib/backend/apiV1/schema";
 import client from "@/lib/backend/client";
+import { syncLikeStatuses, cleanupLikeData } from "../../utils/likeUtils";
 
 // 타입 정의
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
@@ -57,8 +58,11 @@ export default function MainFeed() {
     console.log(`스크롤 위치 저장: ${savedScrollPosition}px`);
   };
 
-  // 초기 피드 로딩 및 스크롤 위치 복원
+  // 초기 피드 로딩 및 스크롤 위치 복원, 오래된 좋아요 데이터 정리
   useEffect(() => {
+    // 오래된 좋아요 데이터 정리 (1시간 이상된 데이터)
+    cleanupLikeData();
+    
     loadFeeds();
 
     // 컴포넌트가 마운트된 후 저장된 스크롤 위치로 복원
@@ -145,9 +149,15 @@ export default function MainFeed() {
 
       const response = await fetchFeedsFromApi(requestData);
 
-      const apiFeeds = response.data?.feedList || [];
-      console.log(apiFeeds);
+      // API 응답에서 피드 목록 추출
+      let apiFeeds = response.data?.feedList || [];
+      console.log("API에서 가져온 원본 피드:", apiFeeds);
+      
+      // 로컬 스토리지의 좋아요/북마크 상태와 동기화
+      apiFeeds = syncLikeStatuses(apiFeeds);
+      console.log("로컬 스토리지와 동기화된 피드:", apiFeeds);
 
+      // 이미 로드된 피드 ID 추적
       apiFeeds.forEach((feed: FeedInfoResponse) => {
         if (feed.postId !== undefined) {
           loadedPostIds.current.add(feed.postId);
@@ -180,6 +190,15 @@ export default function MainFeed() {
     }
   };
 
+  // 피드 상태 업데이트 함수 (FeedItem에서 상태 변경 시 호출)
+  const handleFeedStateChange = (updatedFeed: FeedInfoResponse) => {
+    setFeeds(prevFeeds => 
+      prevFeeds.map(feed => 
+        feed.postId === updatedFeed.postId ? updatedFeed : feed
+      )
+    );
+  };
+
   // 추가 피드 로딩 (무한 스크롤)
   const loadMoreFeeds = async () => {
     if (loading || !hasMore) return;
@@ -198,15 +217,21 @@ export default function MainFeed() {
 
         const response = await fetchFeedsFromApi(requestData);
 
-        const newApiFeeds = response.data?.feedList || [];
+        // API 응답에서 피드 목록 추출
+        let newApiFeeds = response.data?.feedList || [];
+        
+        // 로컬 스토리지의 좋아요/북마크 상태와 동기화
+        newApiFeeds = syncLikeStatuses(newApiFeeds);
 
         if (newApiFeeds.length > 0) {
+          // 중복 피드 필터링
           const filteredFeeds = newApiFeeds.filter(
             (feed: FeedInfoResponse) =>
               feed.postId !== undefined &&
               !loadedPostIds.current.has(feed.postId)
           );
 
+          // 이미 로드된 피드 ID 추적
           filteredFeeds.forEach((feed: FeedInfoResponse) => {
             if (feed.postId !== undefined) {
               loadedPostIds.current.add(feed.postId);
@@ -243,8 +268,32 @@ export default function MainFeed() {
     }
   };
 
+  // 새로고침 기능 - 최신 피드 불러오기
+  const refreshFeeds = () => {
+    // 로드된 피드 ID 초기화
+    loadedPostIds.current.clear();
+    // 피드 상태 초기화
+    setFeeds([]);
+    setLastTimestamp(undefined);
+    setLastPostId(undefined);
+    setHasMore(true);
+    // 새로운 피드 로딩
+    loadFeeds();
+  };
+
   return (
     <div className="w-full max-w-[500px] mx-auto" ref={feedContainerRef}>
+      {/* 새로고침 버튼 추가 (선택적) */}
+      <div className="flex justify-center mb-4">
+        <button 
+          onClick={refreshFeeds} 
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          disabled={loading}
+        >
+          {loading ? "로딩 중..." : "새로고침"}
+        </button>
+      </div>
+      
       <div className="feed-list">
         {feeds.map((feed, index) => {
           const isLastElement = index === feeds.length - 1;
@@ -254,7 +303,10 @@ export default function MainFeed() {
               key={`feed-${feed.postId || index}`}
               ref={isLastElement ? lastFeedElementRef : null}
             >
-              <FeedItem feed={feed} />
+              <FeedItem 
+                feed={feed} 
+                onStateChange={handleFeedStateChange} 
+              />
             </div>
           );
         })}
@@ -262,14 +314,21 @@ export default function MainFeed() {
 
       {loading && (
         <div className="loading-spinner mt-4 text-center">
-          <div className="spinner"></div>
-          <p className="text-gray-900 dark:text-gray-100">로딩 중...</p>
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-900 dark:text-gray-100 mt-2">로딩 중...</p>
         </div>
       )}
 
-      {!hasMore && (
-        <div className="no-more-feeds mt-4 text-center text-gray-600 dark:text-gray-400">
+      {!hasMore && feeds.length > 0 && (
+        <div className="no-more-feeds mt-4 text-center text-gray-600 dark:text-gray-400 py-4">
           더 이상 피드가 없습니다.
+        </div>
+      )}
+
+      {!hasMore && feeds.length === 0 && (
+        <div className="empty-feed mt-8 text-center">
+          <p className="text-gray-700 dark:text-gray-300 text-lg mb-2">피드가 없습니다.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">첫 피드를 작성해보세요!</p>
         </div>
       )}
     </div>
