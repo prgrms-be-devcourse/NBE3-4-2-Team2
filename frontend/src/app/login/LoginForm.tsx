@@ -7,20 +7,25 @@ import { loginWithCredentials, loginWithRefreshToken } from '@/lib/auth';
 
 export default function LoginForm() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login } = useAuth(); // login : localStrage에 accessToken 저장하는 함수
 
+  /**
+   * 이벤드 핸들러 함수는 arrow function으로 정의
+   * 로그인 폼 제출 시 호출
+   * @param e 
+   */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
 
     try {
-      const accessToken = await loginWithCredentials(
+      const accessToken = await loginWithCredentials( // POST /api-v1/members/login
         form.username.value,
         form.password.value
       );
       
-      if (accessToken) {
-        login(accessToken);
+      if (accessToken) {    // 200 OK(로그인 성공, 액세스 토큰 발급)
+        login(accessToken); // localStrage에 accessToken 저장
         router.replace("/");
       }
     } catch (error) {
@@ -29,11 +34,15 @@ export default function LoginForm() {
     }
   };
 
+  /**
+   * oAuth2 로그인 처리(?oauth2=true, ?oauth2=false)
+   * 프로그램 시작 시 실행, login함수 재정의 시 실행
+   */
   useEffect(() => {
     const isOAuth2 = new URLSearchParams(window.location.search).has('oauth2');
-    
+  
     if (isOAuth2) {
-      const handleOAuth2Login = async () => {
+      (async () => {
         try {
           const accessToken = await loginWithRefreshToken();
           if (accessToken) {
@@ -43,11 +52,10 @@ export default function LoginForm() {
         } catch (error) {
           console.error('OAuth2 login failed:', error);
         }
-      };
-      
-      handleOAuth2Login();
+      })();
     }
-  }, [router, login]);
+  }, [login]); // login함수에 의존성이 있으므로 useAuth의 login함수가 변경될 때마다 실행
+  
 
   return (
     <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-md">
