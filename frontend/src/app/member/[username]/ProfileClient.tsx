@@ -1,11 +1,13 @@
-'use client';
+"use client";
 
-import { components } from '@/lib/backend/apiV1/schema';
-import client from '@/lib/backend/client';
+import { components } from "@/lib/backend/apiV1/schema";
+import client from "@/lib/backend/client";
 import { getImageUrl } from "@/utils/imageUtils";
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
+import FeedDetailModal from "@/components/feed/FeedDetailModal"; // 모달 컴포넌트 import
 
-type MemberResponse = components['schemas']['MemberResponse'];
+type MemberResponse = components["schemas"]["MemberResponse"];
+type FeedInfoResponse = components["schemas"]["FeedInfoResponse"]; // FeedInfoResponse 타입 추가
 type FeedPost = {
   id: number;
   imageUrl: string;
@@ -46,27 +48,34 @@ export default function ProfileClient({ username }: { username: string }) {
   const postsContainerRef = useRef<HTMLDivElement | null>(null);
   const pageSize = 12; // 한 번에 로드할 게시물 개수
 
+  // 모달 관련 상태 추가
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
+  const [selectedFeed, setSelectedFeed] = useState<FeedInfoResponse | null>(
+    null
+  );
+
   // Fetch user data
   useEffect(() => {
     async function fetchUserData() {
       try {
         setUserLoading(true);
-        const response = await client.GET('/api-v1/members/{username}', {
+        const response = await client.GET("/api-v1/members/{username}", {
           params: {
             path: {
-              username
-            }
-          }
+              username,
+            },
+          },
         });
 
         if (!response.data?.data) {
-          throw new Error('사용자 데이터를 가져오는데 실패했습니다');
+          throw new Error("사용자 데이터를 가져오는데 실패했습니다");
         }
 
         setUserData(response.data.data);
       } catch (error) {
-        console.error('Failed to fetch user data:', error);
-        setError('사용자 정보를 불러올 수 없습니다');
+        console.error("Failed to fetch user data:", error);
+        setError("사용자 정보를 불러올 수 없습니다");
       } finally {
         setUserLoading(false);
       }
@@ -156,10 +165,56 @@ export default function ProfileClient({ username }: { username: string }) {
   useEffect(() => {
     const container = postsContainerRef.current;
     if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
     }
   }, [handleScroll]);
+
+  // 포스트 클릭 핸들러 추가
+  const handlePostClick = async (postId: number) => {
+    try {
+      setSelectedPostId(postId);
+
+      // 모달 열기
+      setIsModalOpen(true);
+
+      // 모달이 열릴 때 body 스크롤 방지
+      document.body.style.overflow = "hidden";
+
+      // 해당 포스트의 상세 정보를 불러옴
+      const response = await client.GET("/api-v1/feed/{postId}", {
+        params: {
+          path: {
+            postId: postId,
+          },
+        },
+      });
+
+      if (response.data?.data) {
+        setSelectedFeed(response.data.data);
+      } else {
+        console.error("포스트 정보를 불러오는데 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("포스트 클릭 처리 중 오류:", error);
+    }
+  };
+
+  // 모달 닫기 함수
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedPostId(null);
+    setSelectedFeed(null);
+
+    // 모달이 닫힐 때 body 스크롤 복원
+    document.body.style.overflow = "";
+  };
+
+  // 모달에서 상태가 변경되었을 때 호출될 콜백 함수
+  const handleModalStateChange = (updatedFeed: FeedInfoResponse) => {
+    // 필요한 경우 여기서 피드 상태 업데이트 가능
+    console.log("Feed state updated in modal:", updatedFeed);
+  };
 
   if (userLoading) {
     return (
@@ -173,7 +228,9 @@ export default function ProfileClient({ username }: { username: string }) {
     return (
       <div className="container mx-auto py-24 flex justify-center">
         <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-          <p className="text-center text-red-500">{error || '사용자 정보를 불러올 수 없습니다'}</p>
+          <p className="text-center text-red-500">
+            {error || "사용자 정보를 불러올 수 없습니다"}
+          </p>
         </div>
       </div>
     );
@@ -189,18 +246,26 @@ export default function ProfileClient({ username }: { username: string }) {
             alt="User Avatar"
             className="w-32 h-32 rounded-full mb-4"
           />
-          <h1 className="text-2xl font-bold text-gray-900">{userData.username}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {userData.username}
+          </h1>
           <div className="flex justify-around text-center text-gray-600 w-full my-4">
             <div>
-              <p className="font-bold text-gray-900">{userData.postCount || 0}</p>
+              <p className="font-bold text-gray-900">
+                {userData.postCount || 0}
+              </p>
               <p>Posts</p>
             </div>
             <div>
-              <p className="font-bold text-gray-900">{userData.followerCount || 0}</p>
+              <p className="font-bold text-gray-900">
+                {userData.followerCount || 0}
+              </p>
               <p>Followers</p>
             </div>
             <div>
-              <p className="font-bold text-gray-900">{userData.followingCount || 0}</p>
+              <p className="font-bold text-gray-900">
+                {userData.followingCount || 0}
+              </p>
               <p>Following</p>
             </div>
           </div>
@@ -214,7 +279,11 @@ export default function ProfileClient({ username }: { username: string }) {
             className="posts-container overflow-y-auto max-h-96 grid grid-cols-3 gap-2"
           >
             {posts.map((post) => (
-              <div key={post.postId} className="bg-gray-200 p-1 rounded-lg">
+              <div
+                key={post.postId}
+                className="bg-gray-200 p-1 rounded-lg cursor-pointer"
+                onClick={() => handlePostClick(post.postId)}
+              >
                 <img
                   src={getImageUrl(post.imageUrl)}
                   alt={`Post ${post.postId}`}
@@ -243,6 +312,17 @@ export default function ProfileClient({ username }: { username: string }) {
           )}
         </div>
       </div>
+
+      {/* 피드 상세 모달 */}
+      {isModalOpen && selectedPostId && selectedFeed && (
+        <FeedDetailModal
+          feedId={selectedPostId}
+          feed={selectedFeed}
+          onStateChange={handleModalStateChange}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+        />
+      )}
     </div>
   );
 }
