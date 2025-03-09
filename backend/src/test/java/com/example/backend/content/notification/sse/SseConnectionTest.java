@@ -34,7 +34,7 @@ class SseConnectionTest {
 		when(sseEmitterFactory.create(any())).thenReturn(sseEmitter);
 
 		// when
-		SseConnection connection = SseConnection.connect(uniqueKey, sseConnectionPoolIfs, sseEmitterFactory);
+		SseConnection connection = SseConnection.connect(uniqueKey, "", sseConnectionPoolIfs);
 
 		// then
 		assertNotNull(connection);
@@ -51,7 +51,7 @@ class SseConnectionTest {
 		String data = "testData";
 		when(sseEmitterFactory.create(any())).thenReturn(sseEmitter);
 
-		SseConnection connection = SseConnection.connect(uniqueKey, sseConnectionPoolIfs, sseEmitterFactory);
+		SseConnection connection = SseConnection.connect(uniqueKey, "", sseConnectionPoolIfs);
 
 		// when
 		connection.sendMessage(eventName, data);
