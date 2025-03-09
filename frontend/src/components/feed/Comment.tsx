@@ -11,6 +11,9 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
 
+  const DEFAULT_VISIBLE = 2;
+  const [visibleCount, setVisibleCount] = useState<number>(DEFAULT_VISIBLE);
+
   // 댓글 좋아요 핸들러
   const handleLike = () => {
     onLike(comment.id);
@@ -30,6 +33,9 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
     setReplyContent("");
     setIsReplying(false);
   };
+
+  const totalReplies = comment.replies?.length ?? 0;
+  const visibleReplies = comment.replies?.slice(0, visibleCount) ?? [];
 
   return (
     <div className="p-4 border-b border-gray-300 dark:border-gray-700">
@@ -125,6 +131,14 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
               onReply={onReply}
             />
           ))}
+          {totalReplies > visibleCount && (
+            <button
+              onClick={() => setVisibleCount(totalReplies)}
+              className="text-sm text-blue-500 dark:text-blue-400 mt-2"
+            >
+              답글보기({totalReplies - visibleCount}개)
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -7,6 +7,7 @@ interface CommentsSectionProps {
   onAddComment: (content: string) => void;
   onLikeComment: (commentId: number) => void;
   onReplyComment: (commentId: number, content: string) => void;
+  onLoadMoreReplies: (parentId: number) => void;
 }
 
 const CommentsSection: React.FC<CommentsSectionProps> = ({
