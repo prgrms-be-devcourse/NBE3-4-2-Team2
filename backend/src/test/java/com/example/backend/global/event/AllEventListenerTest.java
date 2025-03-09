@@ -126,6 +126,6 @@ class AllEventListenerTest {
 	}
 
 	private CommentEvent getCommentEvent() {
-		return CommentEvent.create("C", 1L, 1L);
+		return CommentEvent.create("C", 1L, 1L, 1L);
 	}
 }
