@@ -8,8 +8,10 @@ export interface Comment {
   content: string;
   username?: string;
   likeCount?: number;
-  parentId?: number | null;
+  parentNum?: number | null;
   replies?: Comment[]; // 대댓글 목록
+
+  answerNum?: number;
 }
 
 export function useComments(feedId: number) {
@@ -51,7 +53,7 @@ export function useComments(feedId: number) {
             postId: feedId,
             content: content,
             memberId: userId,
-            parentId: null, // 최상위 댓글이므로 null
+            parentNum: null, // 최상위 댓글이므로 null
           },
         });
         // 서버에서 응답 받은 새로운 댓글이 있을 경우
@@ -70,7 +72,7 @@ export function useComments(feedId: number) {
 
   // 대댓글 달기
   const replyToComment = useCallback(
-    async (parentId: number, content: string) => {
+    async (parentNum: number, content: string) => {
       try {
         const userId = getCurrentUserId();
         const response = await client.POST("/api-v1/comment", {
@@ -78,13 +80,13 @@ export function useComments(feedId: number) {
             postId: feedId,
             content,
             memberId: userId,
-            parentId,
+            parentNum,
           },
         });
         if (response?.data) {
           const newReply = response.data as Comment;
           setComments((prev) =>
-            insertReplyRecursively(prev, parentId, newReply)
+            insertReplyRecursively(prev, parentNum, newReply)
           );
         }
       } catch (err) {
@@ -125,6 +127,28 @@ export function useComments(feedId: number) {
     );
   }, []);
 
+  const loadMoreReplies = useCallback(async (parentNum: number, page = 0) => {
+    try {
+      // 예: /api-v1/comment/replies/{parentNum}?page=...&size=5
+      const response = await client.GET("/api-v1/comment/replies/{parentNum}", {
+        params: {
+          path: { parentNum },
+          query: { page, size: 5 },
+        },
+      });
+      if (response?.data?.content) {
+        const newReplies = response.data.content as Comment[];
+        // 트리에 추가 삽입
+        setComments((prev) =>
+          insertRepliesRecursively(prev, parentNum, newReplies)
+        );
+      }
+    } catch (err) {
+      console.error("대댓글 추가 로드 실패", err);
+      setError("대댓글 추가 로드 중 오류가 발생했습니다.");
+    }
+  }, []);
+
   return {
     comments,
     fetchComments,
@@ -132,6 +156,7 @@ export function useComments(feedId: number) {
     replyToComment,
     likeComment,
     error,
+    loadMoreReplies,
   };
 }
 /**
@@ -151,16 +176,16 @@ function buildCommentTree(comments: Comment[]): Comment[] {
   const rootComments: Comment[] = [];
 
   comments.forEach((c) => {
-    if (c.parentId) {
+    if (c.parentNum) {
       // 부모 댓글이 있는 경우
-      const parent = map[c.parentId];
+      const parent = map[c.parentNum];
       if (parent) {
         // 부모의 replies에 현재 댓글을 push
         parent.replies = parent.replies || [];
         parent.replies.push(c);
       }
     } else {
-      // parentId == null → 최상위 댓글
+      // parentNum == null → 최상위 댓글
       rootComments.push(c);
     }
   });
@@ -169,30 +194,58 @@ function buildCommentTree(comments: Comment[]): Comment[] {
 }
 
 /**
- * 재귀적으로 parentId를 찾아 새 대댓글을 삽입
+ * 재귀적으로 parentNum를 찾아 새 대댓글을 삽입
  *     → 여러 단계의 대댓글(트리)에서도 동작
  */
 function insertReplyRecursively(
   commentList: Comment[],
-  parentId: number,
+  parentNum: number,
   newReply: Comment
 ): Comment[] {
   return commentList.map((item) => {
     // (1) 부모를 찾으면 replies에 삽입
-    if (item.id === parentId) {
+    if (item.id === parentNum) {
       return {
         ...item,
         replies: [newReply, ...(item.replies || [])],
       };
     }
-    // (2) 자식이 있다면 자식들 중에서도 parentId 탐색
+    // (2) 자식이 있다면 자식들 중에서도 parentNum 탐색
     if (item.replies && item.replies.length > 0) {
       return {
         ...item,
-        replies: insertReplyRecursively(item.replies, parentId, newReply),
+        replies: insertReplyRecursively(item.replies, parentNum, newReply),
       };
     }
     // (3) 해당 아이템도 자식도 부모Id가 아닐 경우 그대로 반환
     return item;
+  });
+}
+
+function insertRepliesRecursively(
+  tree: Comment[],
+  parentNum: number,
+  newReplies: Comment[]
+): Comment[] {
+  return tree.map((comment) => {
+    if (comment.id === parentNum) {
+      // 부모 찾음 → 대댓글 합쳐주기
+      return {
+        ...comment,
+        replies: [...(comment.replies || []), ...newReplies],
+      };
+    } else if (comment.replies && comment.replies.length > 0) {
+      // 자식 쪽에서 찾을 수도 있으므로 재귀
+      return {
+        ...comment,
+        replies: insertRepliesRecursively(
+          comment.replies,
+          parentNum,
+          newReplies
+        ),
+      };
+    } else {
+      return comment;
+    }
   });
 }

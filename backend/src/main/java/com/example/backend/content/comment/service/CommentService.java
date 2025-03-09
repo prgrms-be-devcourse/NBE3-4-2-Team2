@@ -51,7 +51,7 @@ public class CommentService {
 		CommentEntity comment;
 
 		// 최상위 댓글 생성
-		if (request.parentId() == null) {
+		if (request.parentNum() == null) {
 			Object[] maxValues = commentRepository.findMaxValuesByPostId(post.getId())
 				.orElse(new Object[] {0L, 0L}); // 기본값을 제공하여 null 방지
 
@@ -63,7 +63,7 @@ public class CommentService {
 			comment = CommentEntity.createParentComment(request.content(), post, member, newRef);
 		} else {
 			// 대댓글 생성
-			CommentEntity parentComment = commentRepository.findById(request.parentId())
+			CommentEntity parentComment = commentRepository.findById(request.parentNum())
 				.orElseThrow(() -> new CommentException(CommentErrorCode.PARENT_COMMENT_NOT_FOUND));
 
 			Long ref = Optional.ofNullable(parentComment.getRef()).orElse(0L);

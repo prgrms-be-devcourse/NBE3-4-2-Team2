@@ -17,10 +17,11 @@ public class CommentConverter {
 			.content(comment.getContent())
 			.postId(comment.getPost().getId())
 			.memberId(comment.getMember().getId())
-			.parentId(comment.getParentNum())
+			.parentNum(comment.getParentNum())
 			.ref(comment.getRef())
 			.build();
 	}
+
 	/**
 	 * 댓글 Entity -> 수정 응답 DTO 변환
 	 */
@@ -52,6 +53,7 @@ public class CommentConverter {
 			commentEntity.getCreateDate(), // createDate -> createdAt
 			commentEntity.getStep(),
 			commentEntity.getRefOrder(),
+			commentEntity.getParentNum(),
 			commentEntity.getRef()
 		);
 	}
