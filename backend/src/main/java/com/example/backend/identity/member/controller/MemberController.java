@@ -114,28 +114,53 @@ public class MemberController {
 	}
 
 
-	@GetMapping("/{id}")
+	// @GetMapping("/{id}")
+	// @ResponseStatus(HttpStatus.OK)
+	// @Operation(summary = "회원 정보 조회")
+	// @SecurityRequirement(name = "bearerAuth")
+	// public RsData<MemberResponse> publicMemberDetails(@PathVariable("id") long id, @AuthenticationPrincipal SecurityUser securityUser) {
+	// 	MemberEntity member = memberService.findById(id)
+	// 		.orElseThrow(
+	// 			()-> new GlobalException(
+	// 				MemberErrorCode.NOT_FOUND
+	// 		)
+	// 	);
+	//
+	// 	return RsData.success(
+	// 			new MemberResponse(
+	// 				member.getId(),
+	// 				member.getUsername(),
+	// 				member.getProfileUrl(),
+	// 				member.getFollowerCount(),
+	// 				member.getFollowingCount()
+	// 			),
+	// 			"%s님의 정보 입니다.".formatted(member.getUsername()));
+	// }
+
+	@GetMapping("/{username}")
 	@ResponseStatus(HttpStatus.OK)
 	@Operation(summary = "회원 정보 조회")
 	@SecurityRequirement(name = "bearerAuth")
-	public RsData<MemberResponse> publicMemberDetails(@PathVariable("id") long id, @AuthenticationPrincipal SecurityUser securityUser) {
-		MemberEntity member = memberService.findById(id)
+	public RsData<MemberResponse> publicMemberDetailsByUsername(@PathVariable("username") String username, @AuthenticationPrincipal SecurityUser securityUser) {
+		MemberEntity member = memberService.findByUsername(username)
 			.orElseThrow(
 				()-> new GlobalException(
 					MemberErrorCode.NOT_FOUND
-			)
-		);
+				)
+			);
 
 		return RsData.success(
-				new MemberResponse(
-					member.getId(),
-					member.getUsername(),
-					member.getProfileUrl(),
-					member.getFollowerCount(),
-					member.getFollowingCount()
-				),
-				"%s님의 정보 입니다.".formatted(member.getUsername()));
+			new MemberResponse(
+				member.getId(),
+				member.getUsername(),
+				member.getProfileUrl(),
+				member.getPostList().size(),
+				member.getFollowerCount(),
+				member.getFollowingCount()
+			),
+			"%s님의 정보 입니다.".formatted(member.getUsername()));
 	}
+
 
 	@GetMapping("/auth/refresh")
 	@ResponseStatus(HttpStatus.OK)
