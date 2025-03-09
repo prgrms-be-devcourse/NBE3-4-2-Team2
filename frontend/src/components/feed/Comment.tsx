@@ -11,8 +11,8 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
 
-  const DEFAULT_VISIBLE = 2;
-  const [visibleCount, setVisibleCount] = useState<number>(DEFAULT_VISIBLE);
+  // 자식 댓글(대댓글) 표시 여부
+  const [showReplies, setShowReplies] = useState(false);
 
   // 댓글 좋아요 핸들러
   const handleLike = () => {
@@ -33,9 +33,6 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
     setReplyContent("");
     setIsReplying(false);
   };
-
-  const totalReplies = comment.replies?.length ?? 0;
-  const visibleReplies = comment.replies?.slice(0, visibleCount) ?? [];
 
   return (
     <div className="p-4 border-b border-gray-300 dark:border-gray-700">
@@ -123,21 +120,33 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
 
       {comment.replies && comment.replies.length > 0 && (
         <div className="mt-3 ml-4">
-          {comment.replies.map((child) => (
-            <Comment
-              key={child.id}
-              comment={child}
-              onLike={onLike}
-              onReply={onReply}
-            />
-          ))}
-          {totalReplies > visibleCount && (
+          {!showReplies ? (
+            // 아직 자식 댓글이 안 펼쳐졌을 때
             <button
-              onClick={() => setVisibleCount(totalReplies)}
+              onClick={() => setShowReplies(true)}
               className="text-sm text-blue-500 dark:text-blue-400 mt-2"
             >
-              답글보기({totalReplies - visibleCount}개)
+              답글보기 ({comment.replies.length}개)
             </button>
+          ) : (
+            // 펼쳐진 상태라면 자식 댓글들을 렌더링 + "숨기기" 버튼
+            <>
+              {comment.replies.map((child) => (
+                <Comment
+                  key={child.id}
+                  comment={child}
+                  onLike={onLike}
+                  onReply={onReply}
+                />
+              ))}
+
+              <button
+                onClick={() => setShowReplies(false)}
+                className="text-sm text-blue-500 dark:text-blue-400 mt-2"
+              >
+                답글 숨기기
+              </button>
+            </>
           )}
         </div>
       )}
