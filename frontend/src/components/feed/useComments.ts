@@ -7,6 +7,7 @@ export interface Comment {
   id: number;
   content: string;
   username?: string;
+  memberId: number;
   likeCount?: number;
   parentNum?: number | null;
   replies?: Comment[]; // 대댓글 목록
@@ -73,6 +74,8 @@ export function useComments(feedId: number) {
   // 대댓글 달기
   const replyToComment = useCallback(
     async (parentNum: number, content: string) => {
+      if (!content.trim()) return;
+
       try {
         const userId = getCurrentUserId();
         const response = await client.POST("/api-v1/comment", {
@@ -83,6 +86,7 @@ export function useComments(feedId: number) {
             parentNum,
           },
         });
+        
         if (response?.data) {
           const newReply = response.data as Comment;
           setComments((prev) =>
@@ -155,8 +159,8 @@ export function useComments(feedId: number) {
     addComment,
     replyToComment,
     likeComment,
-    error,
     loadMoreReplies,
+    error,
   };
 }
 /**
@@ -209,16 +213,16 @@ function insertReplyRecursively(
         ...item,
         replies: [newReply, ...(item.replies || [])],
       };
-    }
-    // (2) 자식이 있다면 자식들 중에서도 parentNum 탐색
-    if (item.replies && item.replies.length > 0) {
+    } else if (item.replies && item.replies.length > 0) {
+      // (2) 자식이 있다면 자식들 중에서도 parentNum 탐색
       return {
         ...item,
         replies: insertReplyRecursively(item.replies, parentNum, newReply),
       };
+    } else {
+      // (3) 해당 아이템도 자식도 부모Id가 아닐 경우 그대로 반환
+      return item;
     }
-    // (3) 해당 아이템도 자식도 부모Id가 아닐 경우 그대로 반환
-    return item;
   });
 }
 
@@ -227,25 +231,21 @@ function insertRepliesRecursively(
   parentNum: number,
   newReplies: Comment[]
 ): Comment[] {
-  return tree.map((comment) => {
-    if (comment.id === parentNum) {
+  return tree.map((item) => {
+    if (item.id === parentNum) {
       // 부모 찾음 → 대댓글 합쳐주기
       return {
-        ...comment,
-        replies: [...(comment.replies || []), ...newReplies],
+        ...item,
+        replies: [...(item.replies || []), ...newReplies],
       };
-    } else if (comment.replies && comment.replies.length > 0) {
+    } else if (item.replies && item.replies.length > 0) {
       // 자식 쪽에서 찾을 수도 있으므로 재귀
       return {
-        ...comment,
-        replies: insertRepliesRecursively(
-          comment.replies,
-          parentNum,
-          newReplies
-        ),
+        ...item,
+        replies: insertRepliesRecursively(item.replies, parentNum, newReplies),
       };
     } else {
-      return comment;
+      return item;
     }
   });
 }
