@@ -86,7 +86,11 @@ export function useComments(feedId: number) {
             parentNum,
           },
         });
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> origin/frontend/comment-01
         if (response?.data) {
           const newReply = response.data as Comment;
           setComments((prev) =>
