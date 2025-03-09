@@ -8,6 +8,7 @@ import com.example.backend.content.notification.exception.NotificationErrorCode;
 import com.example.backend.content.notification.exception.NotificationException;
 import com.example.backend.content.notification.service.NotificationService;
 import com.example.backend.content.notification.type.NotificationType;
+import com.example.backend.entity.NotificationEntity;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,12 +29,15 @@ public class FollowEventListener {
 	public void handleFollowEvent(FollowEvent followEvent) {
 		int retryCount = 0;
 
-		while (retryCount < MAX_RETRY_COUNT) {
+		NotificationEntity notification = notificationService.createNotification(
+			followEvent.receiverId(),
+			followEvent.senderId(),
+			NotificationType.FOLLOW,
+			followEvent.senderName() + "님이 팔로우 요청을 하였습니다.");
 
+		while (retryCount < MAX_RETRY_COUNT) {
 			try {
-				notificationService.createAndSendNotification(
-					followEvent.receiverId(), followEvent.senderId(), NotificationType.FOLLOW,
-					followEvent.senderName() + "님이 팔로우 요청을 하였습니다.");
+				notificationService.sendNotification(followEvent.receiverId(), notification);
 				// 성공 시 바로 리턴
 				return;
 
