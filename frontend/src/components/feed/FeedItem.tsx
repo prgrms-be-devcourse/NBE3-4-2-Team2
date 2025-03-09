@@ -4,7 +4,12 @@
 import { useState, useRef } from "react";
 import { components } from "../../lib/backend/apiV1/schema";
 import { getImageUrl } from "../../utils/imageUtils";
-import { getLikeStatus, saveLikeStatus, getBookmarkStatus, saveBookmarkStatus } from "../../utils/likeUtils";
+import {
+  getLikeStatus,
+  saveLikeStatus,
+  getBookmarkStatus,
+  saveBookmarkStatus,
+} from "../../utils/likeUtils";
 import client from "@/lib/backend/client";
 import FeedDetailModal from "@/components/feed/FeedDetailModal"; // 모달 컴포넌트 import
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
@@ -28,17 +33,17 @@ const formatDate = (dateString: string): string => {
 const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   // 로컬 스토리지에서 좋아요 상태를 불러와 초기화
   const { isLiked: initialLiked, likeCount: initialCount } = getLikeStatus(
-    feed.postId, 
-    !!feed.likeFlag, 
+    feed.postId,
+    !!feed.likeFlag,
     feed.likeCount || 0
   );
-  
+
   // 로컬 스토리지에서 북마크 상태를 불러와 초기화
   const { isBookmarked: initialBookmarked, bookmarkId } = getBookmarkStatus(
     feed.postId,
     feed.bookmarkId
   );
-  
+
   const [isLiked, setIsLiked] = useState<boolean>(initialLiked);
   const [likeCount, setLikeCount] = useState<number>(initialCount);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(initialBookmarked);
@@ -58,14 +63,14 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
     // 낙관적 UI 업데이트
     const newIsLiked = !isLiked;
     const newLikeCount = newIsLiked ? likeCount + 1 : likeCount - 1;
-    
+
     // 상태 업데이트
     setIsLiked(newIsLiked);
     setLikeCount(newLikeCount);
-    
+
     // 로컬 스토리지에 저장
     saveLikeStatus(feed.postId, newIsLiked, newLikeCount);
-    
+
     // feed 객체의 좋아요 상태도 업데이트
     feed.likeFlag = newIsLiked;
     feed.likeCount = newLikeCount;
@@ -86,10 +91,14 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
       if (response.response.status !== 200) {
         setIsLiked(!newIsLiked);
         setLikeCount(newIsLiked ? newLikeCount - 1 : newLikeCount + 1);
-        
+
         // 로컬 스토리지 업데이트
-        saveLikeStatus(feed.postId, !newIsLiked, newIsLiked ? newLikeCount - 1 : newLikeCount + 1);
-        
+        saveLikeStatus(
+          feed.postId,
+          !newIsLiked,
+          newIsLiked ? newLikeCount - 1 : newLikeCount + 1
+        );
+
         // feed 객체 업데이트
         feed.likeFlag = !newIsLiked;
         feed.likeCount = newIsLiked ? newLikeCount - 1 : newLikeCount + 1;
@@ -99,10 +108,14 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
       // 에러 발생 시 상태 되돌리기
       setIsLiked(!newIsLiked);
       setLikeCount(newIsLiked ? newLikeCount - 1 : newLikeCount + 1);
-      
+
       // 로컬 스토리지 업데이트
-      saveLikeStatus(feed.postId, !newIsLiked, newIsLiked ? newLikeCount - 1 : newLikeCount + 1);
-      
+      saveLikeStatus(
+        feed.postId,
+        !newIsLiked,
+        newIsLiked ? newLikeCount - 1 : newLikeCount + 1
+      );
+
       // feed 객체 업데이트
       feed.likeFlag = !newIsLiked;
       feed.likeCount = newIsLiked ? newLikeCount - 1 : newLikeCount + 1;
@@ -137,9 +150,13 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
 
       const newIsBookmarked = !isBookmarked;
       setIsBookmarked(newIsBookmarked);
-      
+
       // 로컬 스토리지에 저장
-      const tempBookmarkId = newIsBookmarked ? (feed.bookmarkId !== -1 ? feed.bookmarkId : 999999) : -1;
+      const tempBookmarkId = newIsBookmarked
+        ? feed.bookmarkId !== -1
+          ? feed.bookmarkId
+          : 999999
+        : -1;
       saveBookmarkStatus(feed.postId, newIsBookmarked, tempBookmarkId);
 
       if (!isBookmarked && response.data?.data?.bookmarkId) {
@@ -302,7 +319,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
                   aria-label="이전 이미지"
                   disabled={currentImageIndex === 0}
                 >
-                  <span className="text-gray-800 dark:text-gray-200">&#10094;</span>
+                  <span className="text-gray-800 dark:text-gray-200">
+                    &#10094;
+                  </span>
                 </button>
 
                 <button
@@ -317,7 +336,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
                     currentImageIndex === (feed.imgUrlList?.length ?? 0) - 1
                   }
                 >
-                  <span className="text-gray-800 dark:text-gray-200">&#10095;</span>
+                  <span className="text-gray-800 dark:text-gray-200">
+                    &#10095;
+                  </span>
                 </button>
               </>
             )}
@@ -329,7 +350,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
                   <span
                     key={idx}
                     className={`inline-block w-2 h-2 rounded-full cursor-pointer ${
-                      idx === currentImageIndex ? "bg-blue-500" : "bg-gray-300 dark:bg-gray-600"
+                      idx === currentImageIndex
+                        ? "bg-blue-500"
+                        : "bg-gray-300 dark:bg-gray-600"
                     }`}
                     onClick={(e) => goToImage(idx, e)}
                   ></span>
@@ -366,7 +389,11 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
           </button>
           <div className="flex-grow"></div>
           <button
-            className={`${isBookmarked ? "text-blue-500" : "text-gray-700 dark:text-gray-300"}`}
+            className={`${
+              isBookmarked
+                ? "text-blue-500"
+                : "text-gray-700 dark:text-gray-300"
+            }`}
             onClick={handleBookmark}
           >
             <span className="text-xl">{!isBookmarked ? "🔖" : "🏷️"}</span>

@@ -66,6 +66,10 @@ export default function FeedDetailModal({
     initialLikeState !== undefined ? initialLikeState : initialLikedState
   );
 
+  const [likeCount, setLikeCount] = useState<number>(
+    initialFeed ? initialFeed.likeCount || 0 : 0
+  );
+
   const [isBookmarked, setIsBookmarked] = useState<boolean>(
     initialBookmarkState !== undefined
       ? initialBookmarkState
@@ -77,6 +81,11 @@ export default function FeedDetailModal({
     if (isOpen && feedId && !initialFeed) {
       fetchFeedDetail();
     }
+
+    // 초기 상태 설정
+    if (initialFeed) {
+      setLikeCount(initialFeed.likeCount || 0);
+    }
   }, [isOpen, feedId, initialFeed]);
 
   // 좋아요 핸들러
@@ -84,34 +93,8 @@ export default function FeedDetailModal({
     e.stopPropagation();
     if (!feed) return;
 
-    // 낙관적 UI 업데이트
-    const newIsLiked = !isLiked;
-    setIsLiked(newIsLiked);
-
-    // 좋아요 수 업데이트
-    const newLikeCount = newIsLiked
-      ? (feed.likeCount || 0) + 1
-      : (feed.likeCount || 0) - 1;
-
-    // 로컬 스토리지에 저장
-    saveLikeStatus(feed.postId, newIsLiked, newLikeCount);
-
-    // feed 객체 업데이트
-    const updatedFeed = {
-      ...feed,
-      likeFlag: newIsLiked,
-      likeCount: newLikeCount,
-    };
-
-    setFeed(updatedFeed);
-
-    // 부모 컴포넌트에 상태 변경 알림
-    if (onStateChange) {
-      onStateChange(updatedFeed);
-    }
-
-    // API 호출
     try {
+      // API 호출
       const response = await client.POST("/api-v1/like/{id}", {
         params: {
           path: {
@@ -123,56 +106,34 @@ export default function FeedDetailModal({
         },
       });
 
-      // API 호출 실패 시 원래 상태로 되돌림
-      if (response.response.status !== 200) {
-        setIsLiked(!newIsLiked);
+      if (response.response.status === 200) {
+        // API 호출 성공 시에만 상태 업데이트
+        const newIsLiked = !isLiked;
+        const newLikeCount = newIsLiked ? likeCount + 1 : likeCount - 1;
 
-        const revertedLikeCount = !newIsLiked
-          ? (feed.likeCount || 0) + 1
-          : (feed.likeCount || 0) - 1;
+        // 상태 업데이트
+        setIsLiked(newIsLiked);
+        setLikeCount(newLikeCount);
 
-        // 로컬 스토리지 업데이트
-        saveLikeStatus(feed.postId, !newIsLiked, revertedLikeCount);
+        // 로컬 스토리지에 저장
+        saveLikeStatus(feed.postId, newIsLiked, newLikeCount);
 
         // feed 객체 업데이트
-        const revertedFeed = {
+        const updatedFeed = {
           ...feed,
-          likeFlag: !newIsLiked,
-          likeCount: revertedLikeCount,
+          likeFlag: newIsLiked,
+          likeCount: newLikeCount,
         };
 
-        setFeed(revertedFeed);
+        setFeed(updatedFeed);
 
         // 부모 컴포넌트에 상태 변경 알림
         if (onStateChange) {
-          onStateChange(revertedFeed);
+          onStateChange(updatedFeed);
         }
       }
     } catch (error) {
       console.error("좋아요 처리 중 오류:", error);
-      // 에러 시 원래 상태로 되돌림
-      setIsLiked(!newIsLiked);
-
-      const revertedLikeCount = !newIsLiked
-        ? (feed.likeCount || 0) + 1
-        : (feed.likeCount || 0) - 1;
-
-      // 로컬 스토리지 업데이트
-      saveLikeStatus(feed.postId, !newIsLiked, revertedLikeCount);
-
-      // feed 객체 업데이트
-      const revertedFeed = {
-        ...feed,
-        likeFlag: !newIsLiked,
-        likeCount: revertedLikeCount,
-      };
-
-      setFeed(revertedFeed);
-
-      // 부모 컴포넌트에 상태 변경 알림
-      if (onStateChange) {
-        onStateChange(revertedFeed);
-      }
     }
   };
 
@@ -180,37 +141,10 @@ export default function FeedDetailModal({
     e.stopPropagation();
     if (!feed) return;
 
-    // 낙관적 UI 업데이트
-    const newIsBookmarked = !isBookmarked;
-    setIsBookmarked(newIsBookmarked);
-
-    // 로컬 스토리지에 저장
-    saveBookmarkStatus(feed.postId, newIsBookmarked, feed.bookmarkId);
-
-    // feed 객체 업데이트
-    const updatedFeed = {
-      ...feed,
-      bookmarkId: newIsBookmarked ? feed.bookmarkId : -1,
-    };
-
-    setFeed(updatedFeed);
-
-    // 부모 컴포넌트에 상태 변경 알림
-    if (onStateChange) {
-      onStateChange(updatedFeed);
-    }
-
-    // API 호출
     try {
-      const response = newIsBookmarked
-        ? await client.POST("/api-v1/bookmark/{postId}", {
-            params: {
-              path: {
-                postId: feed.postId,
-              },
-            },
-          })
-        : await client.DELETE("/api-v1/bookmark/{postId}", {
+      // API 호출
+      const response = isBookmarked
+        ? await client.DELETE("/api-v1/bookmark/{postId}", {
             params: {
               path: {
                 postId: feed.postId,
@@ -219,49 +153,57 @@ export default function FeedDetailModal({
             body: {
               bookmarkId: feed.bookmarkId,
             },
+          })
+        : await client.POST("/api-v1/bookmark/{postId}", {
+            params: {
+              path: {
+                postId: feed.postId,
+              },
+            },
           });
 
-      // API 호출 성공 시, bookmarkId 업데이트
-      if (newIsBookmarked && response.data?.data?.bookmarkId) {
-        const updatedFeedWithBookmarkId = {
-          ...updatedFeed,
-          bookmarkId: response.data.data.bookmarkId,
+      // API 호출 성공 시에만 상태 업데이트
+      const newIsBookmarked = !isBookmarked;
+      setIsBookmarked(newIsBookmarked);
+
+      // 로컬 스토리지에 저장
+      const tempBookmarkId = newIsBookmarked
+        ? feed.bookmarkId !== -1
+          ? feed.bookmarkId
+          : 999999
+        : -1;
+      saveBookmarkStatus(feed.postId, newIsBookmarked, tempBookmarkId);
+
+      // feed 객체 업데이트
+      let updatedFeed;
+
+      if (!isBookmarked && response.data?.data?.bookmarkId) {
+        // 북마크 추가 성공 시
+        const newBookmarkId = response.data.data.bookmarkId;
+        updatedFeed = {
+          ...feed,
+          bookmarkId: newBookmarkId,
         };
-        setFeed(updatedFeedWithBookmarkId);
 
         // 로컬 스토리지 업데이트
-        saveBookmarkStatus(
-          feed.postId,
-          newIsBookmarked,
-          response.data.data.bookmarkId
-        );
+        saveBookmarkStatus(feed.postId, newIsBookmarked, newBookmarkId);
+        console.log("북마크 아이디 추가. " + newBookmarkId);
+      } else if (isBookmarked) {
+        // 북마크 삭제 성공 시
+        updatedFeed = {
+          ...feed,
+          bookmarkId: -1,
+        };
+      }
 
-        // 부모 컴포넌트에 상태 변경 알림
-        if (onStateChange) {
-          onStateChange(updatedFeedWithBookmarkId);
-        }
+      setFeed(updatedFeed);
+
+      // 부모 컴포넌트에 상태 변경 알림
+      if (onStateChange) {
+        onStateChange(updatedFeed);
       }
     } catch (error) {
       console.error("북마크 처리 중 오류:", error);
-
-      // API 호출 실패 시 원래 상태로 되돌림
-      setIsBookmarked(!newIsBookmarked);
-
-      // 로컬 스토리지 업데이트
-      saveBookmarkStatus(feed.postId, !newIsBookmarked, feed.bookmarkId);
-
-      // feed 객체 업데이트
-      const revertedFeed = {
-        ...feed,
-        bookmarkId: !newIsBookmarked ? feed.bookmarkId : -1,
-      };
-
-      setFeed(revertedFeed);
-
-      // 부모 컴포넌트에
-      if (onStateChange) {
-        onStateChange(revertedFeed);
-      }
     }
   };
 
@@ -306,6 +248,7 @@ export default function FeedDetailModal({
 
         setFeed(foundFeed);
         setIsLiked(storedLiked);
+        setLikeCount(storedLikeCount);
         setIsBookmarked(storedBookmarked);
 
         // 피드를 찾은 후 댓글 데이터도 불러오기
@@ -513,7 +456,7 @@ export default function FeedDetailModal({
                 {/* 좋아요 수 */}
                 <div className="my-2">
                   <span className="font-medium text-sm">
-                    {feed.likeCount || 0} 좋아요
+                    {likeCount} 좋아요
                   </span>
                 </div>
 
