@@ -1,5 +1,6 @@
 package com.example.backend.content.notification.sse;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -8,10 +9,10 @@ import java.util.Set;
  */
 public interface SseConnectionPoolIfs<R> {
 	// Connection Pool 에 세션 추가
-	void add(String key, R session);
+	void add(String key, String browserName, R session);
 
 	// Pool 에서 Session 꺼내기
-	Set<R> get(String key);
+	Map<String, R> get(String key);
 
 	// Connection Pool 에서 세션 제거
 	void remove(R session);

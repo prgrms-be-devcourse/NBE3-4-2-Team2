@@ -8,8 +8,10 @@ import com.example.backend.content.notification.exception.NotificationErrorCode;
 import com.example.backend.content.notification.exception.NotificationException;
 import com.example.backend.content.notification.service.NotificationService;
 import com.example.backend.content.notification.type.NotificationType;
+import com.example.backend.entity.NotificationEntity;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author kwak
@@ -19,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @Async
 @RequiredArgsConstructor
+@Slf4j
 public class LikeEventListener {
 
 	private final NotificationService notificationService;
@@ -29,23 +32,23 @@ public class LikeEventListener {
 	public void handleLikeEvent(LikeEvent likeEvent) {
 		int retryCount = 0;
 
+		// 리소스 타입에 따른 컨텐츠 이름 설정
+		String resourceName = getResourceName(likeEvent.resourceType());
+
+		// 알림 메시지 생성
+		String message = likeEvent.likerName() + "님이 당신의 " + resourceName + "에 좋아요를 눌렀습니다.";
+
+		// 알림 저장
+		NotificationEntity notification = notificationService.createNotification(
+			likeEvent.resourceOwnerId(),
+			likeEvent.resourceId(),
+			NotificationType.LIKE,
+			message);
+
 		while (retryCount < MAX_RETRY_COUNT) {
-
 			try {
-				// 리소스 타입에 따른 컨텐츠 이름 설정
-				String resourceName = getResourceName(likeEvent.resourceType());
-
-				// 알림 메시지 생성
-				String message = likeEvent.likerName() + "님이 당신의 " + resourceName + "에 좋아요를 눌렀습니다.";
-
 				// 알림 전송
-				notificationService.createAndSendNotification(
-					likeEvent.resourceOwnerId(),
-					likeEvent.resourceId(),
-					NotificationType.LIKE,
-					message
-				);
-
+				notificationService.sendNotification(likeEvent.resourceOwnerId(), notification);
 				// 성공 시 바로 리턴
 				return;
 			} catch (Exception e) {

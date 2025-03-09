@@ -51,6 +51,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         const filtered = prev.filter(
           (n) => n.notificationId !== notification.notificationId
         );
+        console.log(filtered, "filtered");
         // 최대 알림 개수 유지
         return [notification, ...filtered].slice(0, maxNotifications);
       });
@@ -93,6 +94,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     connected,
     error,
   };
+  console.log(contextValue, "contextValue");
 
   return (
     <NotificationContext.Provider value={contextValue}>
