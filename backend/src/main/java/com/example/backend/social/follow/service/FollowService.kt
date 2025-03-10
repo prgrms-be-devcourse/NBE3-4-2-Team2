@@ -6,10 +6,12 @@ import com.example.backend.social.exception.SocialErrorCode
 import com.example.backend.social.exception.SocialException
 import com.example.backend.social.follow.converter.FollowConverter
 import com.example.backend.social.follow.dto.FollowResponse
-import jakarta.transaction.Transactional
+import com.example.backend.social.follow.dto.FollowerListResponse
+import com.example.backend.social.follow.dto.FollowingListResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * 팔로우 서비스
@@ -23,6 +25,12 @@ open class FollowService @Autowired constructor(
     private val memberRepository: MemberRepository,
     private val applicationEventPublisher: ApplicationEventPublisher
 ) {
+    // 본인을 팔로우 신청하는지 확인
+    private fun checkNotSelfFollow(senderUsername: String, receiverUsername: String) {
+        if (senderUsername == receiverUsername) {
+            throw SocialException(SocialErrorCode.CANNOT_PERFORM_ON_SELF)
+        }
+    }
     /**
      * 팔로우 요청 메서드
      * sender(followingList add, followingCount ++)
@@ -130,10 +138,55 @@ open class FollowService @Autowired constructor(
         return senderFollowsReceiver && receiverFollowsSender
     }
 
-    // 본인을 팔로우 신청하는지 확인
-    private fun checkNotSelfFollow(senderUsername: String, receiverUsername: String) {
-        if (senderUsername == receiverUsername) {
-            throw SocialException(SocialErrorCode.CANNOT_PERFORM_ON_SELF)
+    /**
+     * 팔로우 여부 확인 메서드
+     *
+     * @param senderUsername, receiverUsername
+     * @return boolean
+     */
+    @Transactional(readOnly = true)
+    open fun isFollowing(senderUsername: String, receiverUsername: String): Boolean {
+        // 1. 팔로우 요청 측(요청자) 검증 후 엔티티 가져오기
+        val sender = memberRepository.findByUsername(senderUsername)
+            .orElseThrow { SocialException(SocialErrorCode.NOT_FOUND, "요청측 회원 검증에 실패했습니다.") }
+
+        // 2. sender 의 followingList 에 receiverUsername 이 있는지 확인
+        return sender.followingList.any { it == receiverUsername }
+    }
+
+    /**
+     * 팔로잉 목록 조회 메서드
+     *
+     * @param username
+     * @return FollowingListResponse (DTO)
+     */
+    @Transactional(readOnly = true)
+    open fun getFollowingList(username: String): FollowingListResponse {
+        val member = memberRepository.findByUsername(username)
+            .orElseThrow { SocialException(SocialErrorCode.NOT_FOUND, "회원 검증에 실패했습니다.") }
+
+        val followingMembers = member.followingList.mapNotNull { followingUsername ->
+            memberRepository.findByUsername(followingUsername).orElse(null)
         }
+
+        return FollowConverter.toFollowingListResponse(followingMembers)
+    }
+
+    /**
+     * 팔로워 목록 조회 메서드
+     *
+     * @param username
+     * @return FollowerListResponse (DTO)
+     */
+    @Transactional(readOnly = true)
+    open fun getFollowerList(username: String): FollowerListResponse {
+        val member = memberRepository.findByUsername(username)
+            .orElseThrow { SocialException(SocialErrorCode.NOT_FOUND, "회원 검증에 실패했습니다.") }
+
+        val followerMembers = member.followerList.mapNotNull { followerUsername ->
+            memberRepository.findByUsername(followerUsername).orElse(null)
+        }
+
+        return FollowConverter.toFollowerListResponse(followerMembers)
     }
 }
