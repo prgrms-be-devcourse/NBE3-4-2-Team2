@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.backend.global.rs.RsData;
 import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.social.follow.dto.FollowResponse;
+import com.example.backend.social.follow.dto.FollowerListResponse;
+import com.example.backend.social.follow.dto.FollowingListResponse;
+import com.example.backend.social.follow.dto.IsFollowingResponse;
 import com.example.backend.social.follow.dto.MutualFollowResponse;
 import com.example.backend.social.follow.service.FollowService;
 
@@ -93,5 +96,65 @@ public class FollowController {
 		MutualFollowResponse getResponse = new MutualFollowResponse(isMutualFollow);
 
 		return RsData.success(getResponse, "맞팔로우 여부 조회에 성공했습니다.");
+	}
+
+	/**
+	 * 상대방을 팔로우 중인지 확인
+	 *
+	 * @param securityUser(본인), receiver(상대)
+	 * @return IsFollowingResponse (DTO)
+	 */
+	@Operation(summary = "팔로우 여부 확인", description = "상대 멤버를 팔로우하고 있는지 확인합니다.")
+	@GetMapping("/following/{receiver}")
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<IsFollowingResponse> isFollowing(
+		@PathVariable String receiver,
+		@AuthenticationPrincipal CustomUser securityUser
+	) {
+		boolean isFollowing = followService.isFollowing(
+			securityUser.getUsername(), receiver
+		);
+
+		IsFollowingResponse getResponse = new IsFollowingResponse(isFollowing);
+
+		return RsData.success(getResponse, "팔로우 여부 조회에 성공했습니다.");
+	}
+
+	/**
+	 * 내가 팔로우하고 있는 유저 List (Following)
+	 *
+	 * @param securityUser(본인)
+	 * @return FollowingListResponse (DTO)
+	 */
+	@Operation(summary = "팔로잉 목록 조회", description = "내가 팔로우하고 있는 멤버 목록을 조회합니다.")
+	@GetMapping("/following")
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<FollowingListResponse> getFollowingList(
+		@AuthenticationPrincipal CustomUser securityUser
+	) {
+		FollowingListResponse listResponse = followService.getFollowingList(
+			securityUser.getUsername()
+		);
+
+		return RsData.success(listResponse, "팔로잉 목록 조회에 성공했습니다.");
+	}
+
+	/**
+	 * 나를 팔로우하고 있는 유저 List (Follower)
+	 *
+	 * @param securityUser(본인)
+	 * @return FollowerListResponse (DTO)
+	 */
+	@Operation(summary = "팔로워 목록 조회", description = "나를 팔로우하고 있는 멤버 목록을 조회합니다.")
+	@GetMapping("/followers")
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<FollowerListResponse> getFollowerList(
+		@AuthenticationPrincipal CustomUser securityUser
+	) {
+		FollowerListResponse listResponse = followService.getFollowerList(
+			securityUser.getUsername()
+		);
+
+		return RsData.success(listResponse, "팔로워 목록 조회에 성공했습니다.");
 	}
 }

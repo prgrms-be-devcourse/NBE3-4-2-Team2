@@ -234,9 +234,10 @@ db_dev.mv.db
 db_dev.trace.db
 docker-compose.yml
 
-/src/test/resources/application.yml
 /src/main/resources/application-test.yml
 /src/main/resources/application-dev.yml
+/src/test/resources/application.yml
+/src/test/resources/application-test.yml
 
 # 환경변수 파일
 .env

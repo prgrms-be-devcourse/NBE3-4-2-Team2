@@ -121,4 +121,17 @@ public class MemberEntity extends BaseEntity {
 			this.followerCount--;
 		}
 	}
+
+	// Kotlin을 위한 Getter 메서드
+	public List<String> getFollowingList() {
+		return this.followingList;
+	}
+
+	public List<String> getFollowerList() {
+		return this.followerList;
+	}
+
+	public String getUsername() {
+		return this.username;
+	}
 }
