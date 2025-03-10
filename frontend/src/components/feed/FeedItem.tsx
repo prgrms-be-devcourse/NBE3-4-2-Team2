@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { components } from "../../lib/backend/apiV1/schema";
 import { getImageUrl } from "../../utils/imageUtils";
@@ -43,7 +43,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
     feed.postId,
     feed.bookmarkId
   );
-
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState<boolean>(initialLiked);
   const [likeCount, setLikeCount] = useState<number>(initialCount);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(initialBookmarked);
@@ -212,6 +212,9 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   const handleProfileImage = (e: React.MouseEvent): void => {
     e.stopPropagation();
     console.log("프로필로 이동합니다." + feed.authorId);
+
+    // TODO : 프로필로 이동
+    router.push(`/member/${feed.authorName}`);
   };
 
   // 이미지 슬라이더 이동

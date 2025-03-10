@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { components } from "../../lib/backend/apiV1/schema";
 import { useComments } from "@/components/feed/useComments";
@@ -37,7 +37,7 @@ export default function FeedDetailModal({
   const [feed, setFeed] = useState<FeedInfoResponse | null>(
     initialFeed || null
   );
-
+  const router = useRouter();
   const [loading, setLoading] = useState<Boolean>(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
 
@@ -281,6 +281,14 @@ export default function FeedDetailModal({
   // 모달이 닫혀 있으면 아무것도 렌더링하지 않음
   if (!isOpen) return null;
 
+  const handleProfileImage = (e: React.MouseEvent): void => {
+    e.stopPropagation();
+    console.log("프로필로 이동합니다." + feed.authorId);
+
+    // TODO : 프로필로 이동
+    router.push(`/member/${feed.authorName}`);
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-gray-500 bg-opacity-75 flex items-center justify-center">
       <div className="relative max-w-6xl w-full max-h-[90vh] flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-xl">
@@ -418,6 +426,7 @@ export default function FeedDetailModal({
                         src={getImageUrl(feed.profileImgUrl)}
                         alt="프로필"
                         className="w-full h-full object-cover"
+                        onClick={handleProfileImage}
                       />
                     )}
                   </div>
