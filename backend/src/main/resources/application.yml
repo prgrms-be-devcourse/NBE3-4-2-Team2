@@ -61,7 +61,7 @@ spring:
       host: localhost
 logging:
   level:
-    org.hibernate.SQL: DEBUG
+    org.hibernate.SQL: TRACE
     org.hibernate.orm.jdbc.bind: TRACE
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
