@@ -77,11 +77,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('accessToken', token)
   }
 
-  const logout = () => {
+  const logout = async () => {
     setAccessToken(null)
     localStorage.removeItem('accessToken')
     document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
     // TODO: refresh token 삭제. 인데 http-only라서 삭제가 안됨
+    await client.DELETE("/api-v1/members/logout", {});
   }
 
   if (isLoading) {
