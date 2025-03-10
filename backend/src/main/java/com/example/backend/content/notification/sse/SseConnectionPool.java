@@ -3,7 +3,6 @@ package com.example.backend.content.notification.sse;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.example.backend.content.notification.dto.NotificationResponse;
@@ -31,12 +30,10 @@ public class SseConnectionPool implements SseConnectionPoolIfs<SseConnection> {
 
 		// 기존에 존재하는 key 면 oldConnection 반환
 		SseConnection oldConnection = browserConnections.put(browserName, connection);
-		log.info("new connection ,old connection : {} {}", connection, oldConnection);
 
 		if (oldConnection != null) {
 			try {
 				oldConnection.getSseEmitter().complete();
-				log.info("old connection complete");
 			} catch (Exception e) {
 				log.debug("Error closing previous connection for user {} browser {}", key, browserName, e);
 			}

@@ -35,10 +35,10 @@ public class NotificationController {
 
 	@GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public SseEmitter subscribe(
-		@AuthenticationPrincipal CustomUser customUser,
+		@RequestParam(name = "userId") String userId,
 		@RequestParam(name = "browserName", defaultValue = "unknown") String browserName) {
 		SseConnection connection = SseConnection.connect(
-			String.valueOf(customUser.getId()), browserName, sseConnectionPool);
+			String.valueOf(userId), browserName, sseConnectionPool);
 
 		return connection.getSseEmitter();
 	}

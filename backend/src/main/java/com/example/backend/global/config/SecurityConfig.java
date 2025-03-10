@@ -77,6 +77,8 @@ public class SecurityConfig {
 			// ✅ 인증 및 접근 권한 설정
 			.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
+				.requestMatchers("/api-v1/notification/subscribe").permitAll() // SSE 엔드포인트 명시적 설정
+
 				.requestMatchers("/api-v1/members/login", "/api-v1/members/join").permitAll() // 로그인 & 회원가입 허용
 				.requestMatchers(SWAGGER_PATHS).permitAll() // Swagger 문서 접근 허용
 				.anyRequest().authenticated()) // 그 외 요청은 인증 필요
