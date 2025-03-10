@@ -30,7 +30,7 @@ public class FeedConstants {
 	 * RECOMMEND_SEARCH_DATE_RANGE
 	 * 추천 게시물만 내보내는 경우 탐색 범위로 지정하는 날짜 범위 (일 단위)
 	 */
-	public static final long RECOMMEND_SEARCH_DATE_RANGE = 1;
+	public static final long RECOMMEND_SEARCH_DATE_RANGE = 50;
 
 	/**
 	 * POPULAR_HASHTAG_COUNT
