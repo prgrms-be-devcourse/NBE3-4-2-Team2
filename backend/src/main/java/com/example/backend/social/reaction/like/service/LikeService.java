@@ -11,6 +11,7 @@ import com.example.backend.social.exception.SocialErrorCode;
 import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.reaction.like.converter.LikeConverter;
 import com.example.backend.social.reaction.like.dto.LikeInfo;
+import com.example.backend.social.reaction.like.dto.LikeStateInfo;
 import com.example.backend.social.reaction.like.dto.LikeToggleResponse;
 import com.example.backend.social.reaction.like.scheduler.LikeSyncManager;
 import com.example.backend.social.reaction.like.util.RedisKeyUtil;
@@ -66,9 +67,9 @@ public class LikeService {
 		String countKey = RedisKeyUtil.getLikeCountKey(upperResourceType, resourceId);
 
 		// 5. 현재 좋아요 상태 확인
-		RedisLikeService.LikeStateInfo likeStateInfo = redisLikeService.getLikeState(
+		LikeStateInfo likeStateInfo = redisLikeService.getLikeState(
 			likeKey, memberId, resourceId, upperResourceType);
-		boolean currentlyLiked = likeStateInfo.isCurrentlyLiked();
+		boolean currentlyLiked = likeStateInfo.currentlyLiked();
 		boolean isNewLike = likeStateInfo.isNewLike();
 
 		// 6. 상태 토글
