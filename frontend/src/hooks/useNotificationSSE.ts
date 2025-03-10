@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { EventSourcePolyfill } from 'event-source-polyfill';
-import { useAuth } from '@/contexts/AuthContext';
+import { getCurrentUserId } from '@/utils/jwtUtils'; // auth 유틸리티 import 추가
 
 export type NotificationType = 'COMMENT' | 'LIKE' | 'FOLLOW';
 
@@ -14,6 +14,7 @@ export interface NotificationEvent {
 }
 
 interface UseNotificationSSEProps {
+  userId?: number; // 선택적 파라미터로 변경 (직접 제공하거나 토큰에서 가져오기)
   onNotification?: (notification: NotificationEvent) => void;
   baseUrl?: string;
 }
@@ -29,21 +30,67 @@ const extractBrowserInfo = (userAgent: string): string => {
 };
 
 export const useNotificationSSE = ({
+  userId: providedUserId, // 외부에서 제공된 userId (선택적)
   onNotification,
   baseUrl = 'http://localhost:8080'
 }: UseNotificationSSEProps = {}) => {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, accessToken } = useAuth();
+  
+  // 사용자 ID 추적 (props에서 제공되거나 토큰에서 추출)
+  const [userId, setUserId] = useState<number | null>(providedUserId || null);
   
   const onNotificationRef = useRef(onNotification);
   const eventSourceRef = useRef<EventSourcePolyfill | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 컴포넌트 시작 부분에 추가
+useEffect(() => {
+  const originalConsoleError = console.error;
+  
+  console.error = (...args) => {
+    const errorMessage = args[0]?.toString() || '';
+    if (
+      errorMessage.includes('EventSource') && 
+      errorMessage.includes('status 503') && 
+      errorMessage.includes('Aborting the connection')
+    ) {
+      // 이 메시지는 출력하지 않음
+      return;
+    }
+    
+    // 다른 에러 메시지는 정상적으로 출력
+    originalConsoleError.apply(console, args);
+  };
+  
+  // 클린업 함수에서 원래 console.error 복원
+  return () => {
+    console.error = originalConsoleError;
+  };
+}, []);
   
   // onNotification 콜백 최신 상태 유지
   useEffect(() => {
     onNotificationRef.current = onNotification;
   }, [onNotification]);
+  
+  // 컴포넌트 마운트 시 토큰에서 userId 추출
+  useEffect(() => {
+    // 외부에서 제공된 userId가 있으면 사용
+    if (providedUserId) {
+      setUserId(providedUserId);
+      return;
+    }
+    
+    // 없으면 토큰에서 사용자 ID 가져오기
+    const currentUserId = getCurrentUserId();
+    if (currentUserId) {
+      setUserId(currentUserId);
+    } else {
+      setUserId(null);
+      setError('사용자 ID를 찾을 수 없습니다');
+    }
+  }, [providedUserId]);
 
   // 연결 종료 함수
   const disconnectSSE = useCallback(() => {
@@ -68,8 +115,9 @@ export const useNotificationSSE = ({
     // 기존 연결이 있으면 먼저 종료
     disconnectSSE();
     
-    if (!accessToken) {
-      console.log('토큰 없음 - 연결 시도 중단');
+    if (!userId) {
+      console.log('userId 없음 - 연결 시도 중단');
+      setError('사용자 ID가 필요합니다');
       return;
     }
     
@@ -77,16 +125,14 @@ export const useNotificationSSE = ({
       // 브라우저 정보 가져오기
       const browserInfo = extractBrowserInfo(navigator.userAgent);
       const encodedBrowserInfo = encodeURIComponent(browserInfo);
-      const url = `${baseUrl}/api-v1/notification/subscribe?browserName=${encodedBrowserInfo}`;
+      const url = `${baseUrl}/api-v1/notification/subscribe?userId=${userId}&browserName=${encodedBrowserInfo}`;
       
       console.log(`${browserInfo} 브라우저로 SSE 연결 시도`);
       
-      // EventSourcePolyfill 생성
+      // EventSourcePolyfill 생성 (인증 헤더 제거)
       eventSourceRef.current = new EventSourcePolyfill(url, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        },
-        withCredentials: true
+        withCredentials: true,  // 쿠키는 계속 전송 (필요시 제거 가능)
+        heartbeatTimeout: 1000 * 60 * 10 // 10분
       });
       
       // 연결 성공 핸들러
@@ -126,24 +172,18 @@ export const useNotificationSSE = ({
       };
       
       // 에러 핸들러
-      eventSourceRef.current.onerror = (err) => {
-        console.error('SSE 연결 오류 발생');
+      eventSourceRef.current.onerror = (err: any) => {
+      
+        // 503 상태 코드 확인 후 즉시 연결 종료
+        if (err?.status === 503) {
         
-        // 연결 상태 업데이트
+          reconnectTimeoutRef.current = setTimeout(connectSSE, 3000);
+          console.log("새 커넥션을 요청합니다")
+          return;
+        }
         setConnected(false);
         setError('알림 서비스 연결에 실패했습니다');
-        
-        // 연결 종료
-        if (eventSourceRef.current) {
-          eventSourceRef.current.close();
-          eventSourceRef.current = null;
-        }
-        
-        // 재연결 예약 (3초 후)
-        reconnectTimeoutRef.current = setTimeout(() => {
-          console.log('연결 재시도 중...');
-          connectSSE();
-        }, 3000);
+      
       };
       
     } catch (err) {
@@ -153,11 +193,11 @@ export const useNotificationSSE = ({
       // 오류 발생 시 재연결 예약
       reconnectTimeoutRef.current = setTimeout(connectSSE, 3000);
     }
-  }, [accessToken, baseUrl, disconnectSSE]);
+  }, [userId, baseUrl, disconnectSSE]);
 
-  // 인증 상태 변경 감지
+  // userId가 변경되면 연결 시작/재시작
   useEffect(() => {
-    if (isAuthenticated && accessToken) {
+    if (userId) {
       connectSSE();
     } else {
       disconnectSSE();
@@ -166,7 +206,7 @@ export const useNotificationSSE = ({
     return () => {
       disconnectSSE();
     };
-  }, [isAuthenticated, accessToken, connectSSE, disconnectSSE]);
+  }, [userId, connectSSE, disconnectSSE]);
   
   // 페이지 언로드 이벤트 처리
   useEffect(() => {
@@ -193,7 +233,7 @@ export const useNotificationSSE = ({
       } else {
         console.log('페이지 표시됨');
         // 연결이 끊어진 상태라면 재연결 시도
-        if (isAuthenticated && accessToken && !eventSourceRef.current) {
+        if (userId && !eventSourceRef.current) {
           console.log('연결이 없음 - 재연결 시도');
           connectSSE();
         }
@@ -205,7 +245,7 @@ export const useNotificationSSE = ({
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isAuthenticated, accessToken, connectSSE]);
+  }, [userId, connectSSE]);
   
-  return { connected, error };
+  return { connected, error, userId };
 };
