@@ -1,6 +1,6 @@
-server:
-  port: 8080
 spring:
+  main:
+    allow-bean-definition-overriding: true
   application:
     name: backend
   profiles:
@@ -75,3 +75,4 @@ custom:
       expirationSeconds: "#{30 * 24 * 60 * 60}" # 30 days
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8
+

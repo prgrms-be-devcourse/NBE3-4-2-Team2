@@ -22,5 +22,12 @@ public class ImageConverter {
 
 		return new ImageUploadResponse(postId, imageUrls);
 	}
+	// public static ImageUploadResponse fromEntityToResponse(Long postId, List<ImageEntity> images) {
+	// 	List<String> imageUrls = images.stream()
+	// 		.map(image -> "/localhost/uploads/" + image.getImageUrl())
+	// 		.collect(Collectors.toList());
+	//
+	// 	return new ImageUploadResponse(postId, imageUrls);
+	// }
 
 }

@@ -1,9 +1,12 @@
 package com.example.backend.social.reaction.bookmark.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.global.rs.RsData;
 import com.example.backend.identity.security.user.CustomUser;
+import com.example.backend.social.reaction.bookmark.dto.BookmarkListResponse;
 import com.example.backend.social.reaction.bookmark.dto.CreateBookmarkResponse;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkRequest;
 import com.example.backend.social.reaction.bookmark.dto.DeleteBookmarkResponse;
@@ -74,6 +78,21 @@ public class BookmarkController {
 			deleteRequest.bookmarkId(), securityUser.getId(), postId
 		);
 		return RsData.success(deleteResponse, "북마크가 성공적으로 제거되었습니다.");
+	}
+
+	/**
+	 * 자신이 북마크한 게시물 목록을 가져옵니다.
+	 * @param securityUser
+	 * @return 북마크 리스트 (DTO)
+	 */
+	@Operation(summary = "북마크 목록 조회", description = "자신이 북마크한 게시물 목록을 조회합니다.")
+	@GetMapping("/list")
+	@ResponseStatus(HttpStatus.OK)
+	public RsData<List<BookmarkListResponse>> getBookmarkList(
+		@AuthenticationPrincipal CustomUser securityUser
+	) {
+		List<BookmarkListResponse> bookmarkList = bookmarkService.getBookmarkList(securityUser.getId());
+		return RsData.success(bookmarkList, "북마크 목록을 성공적으로 가져왔습니다.");
 	}
 }
 

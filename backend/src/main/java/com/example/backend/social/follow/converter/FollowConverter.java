@@ -1,42 +1,48 @@
 package com.example.backend.social.follow.converter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-import com.example.backend.entity.FollowEntity;
-import com.example.backend.social.follow.dto.CreateFollowResponse;
-import com.example.backend.social.follow.dto.DeleteFollowResponse;
+import com.example.backend.entity.MemberEntity;
+import com.example.backend.social.follow.dto.FollowResponse;
+import com.example.backend.social.follow.dto.FollowerListResponse;
+import com.example.backend.social.follow.dto.FollowingListResponse;
 
 public class FollowConverter {
 	/**
 	 * 팔로우 응답 DTO 변환 메서드
-	 * FollowEntity 객체를 CreateFollowResponse DTO 변환
+	 * FollowResponse에 타임스탬프(now) 추가해 변환
 	 *
-	 * @param follow (FollowEntity)
+	 * @param sender, receiver
 	 * @return CreateFollowResponse
 	 */
-	public static CreateFollowResponse toCreateResponse(FollowEntity follow) {
-		return new CreateFollowResponse(
-			follow.getId(),
-			follow.getSender().getId(),
-			follow.getReceiver().getId(),
-			follow.getCreateDate()
+	public static FollowResponse toResponse(MemberEntity sender, MemberEntity receiver) {
+		return new FollowResponse(
+			sender.getUsername(),
+			receiver.getUsername(),
+			LocalDateTime.now()
 		);
 	}
 
 	/**
-	 /**
-	 * 팔로우 취소 응답 DTO 변환 메서드
-	 * FollowEntity 객체를 DeleteFollowResponse DTO 변환
-	 *
-	 * @param follow (FollowEntity)
-	 * @return DeleteFollowResponse
+	 * 팔로잉 목록 응답 객체 생성
 	 */
-	public static DeleteFollowResponse toDeleteResponse(FollowEntity follow) {
-		return new DeleteFollowResponse(
-			follow.getId(),
-			follow.getSender().getId(),
-			follow.getReceiver().getId(),
-			LocalDateTime.now()
-		);
+	public static FollowingListResponse toFollowingListResponse(List<MemberEntity> followingMembers) {
+		List<FollowingListResponse.FollowingMemberDto> dtoList = followingMembers.stream()
+			.map(FollowingListResponse.FollowingMemberDto::from)
+			.toList();
+
+		return FollowingListResponse.of(dtoList);
+	}
+
+	/**
+	 * 팔로워 목록 응답 객체 생성
+	 */
+	public static FollowerListResponse toFollowerListResponse(List<MemberEntity> followerMembers) {
+		List<FollowerListResponse.FollowerMemberDto> dtoList = followerMembers.stream()
+			.map(FollowerListResponse.FollowerMemberDto::from)
+			.toList();
+
+		return FollowerListResponse.of(dtoList);
 	}
 }

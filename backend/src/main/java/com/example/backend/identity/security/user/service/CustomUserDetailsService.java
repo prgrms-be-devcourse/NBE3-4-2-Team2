@@ -40,9 +40,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 	public CustomUser getUserByAccessToken(String accessToken) {
 		try {
 			Map<String, Object> payload = accessTokenService.getAccessTokenPayload(accessToken);
+			String username = accessTokenService.getSubject(accessToken);
 
 			long id = ((Number) payload.get("id")).longValue();
-			String username = (String) payload.get("username");
 
 			MemberEntity actor = new MemberEntity(id, username);
 			return new CustomUser(actor, null);
@@ -55,14 +55,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 	public CustomUser getUserByRefreshToken(String refreshToken) {
 		try {
 			Map<String, Object> payload = refreshTokenService.getRefreshTokenPayload(refreshToken); // jwt가 유효하지 않다면 에러를 던진다.
+			String username = refreshTokenService.getSubject(refreshToken);
 
-			long id = ((Number)payload.get("id")).longValue(); // 유효하다면 id는 무조건 있다.
-			String username = (String)payload.get("username");
+			long id = ((Number) payload.get("id")).longValue();
 
 			MemberEntity actor = new MemberEntity(id, username);
 			return new CustomUser(actor, null);
 		} catch (JwtException e) {
-			// Jwt 에러는 굳이 예외처리 하지 않음.
+			// Jwt 에러는 굳이 예외처리 하지 않음. // todo : 필터 순서를 조정해서 예외로 처리하는게 더 적절하려나
 			return null;
 		}
 	}

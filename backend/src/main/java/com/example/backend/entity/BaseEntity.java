@@ -14,10 +14,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Setter;
 
-@Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @EntityListeners(AuditingEntityListener.class)
 @MappedSuperclass
@@ -35,4 +33,16 @@ public class BaseEntity {
 	@LastModifiedDate
 	@Setter(AccessLevel.PRIVATE)
 	private LocalDateTime modifyDate;
+
+	public LocalDateTime getModifyDate() {
+		return modifyDate;
+	}
+
+	public LocalDateTime getCreateDate() {
+		return createDate;
+	}
+
+	public Long getId() {
+		return id;
+	}
 }

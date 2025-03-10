@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -18,12 +19,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.example.backend.entity.MemberEntity;
 import com.example.backend.entity.MemberRepository;
-import com.example.backend.global.exception.GlobalException;
-import com.example.backend.identity.member.exception.MemberErrorCode;
-import com.example.backend.identity.security.user.CustomUser;
 import com.example.backend.identity.security.oauth.dto.GoogleResponse;
 import com.example.backend.identity.security.oauth.dto.NaverResponse;
 import com.example.backend.identity.security.oauth.dto.OAuth2Response;
+import com.example.backend.identity.security.user.CustomUser;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -74,9 +73,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
 		// 일치하는 정보가 없으면 예외 발생
 		if (member.isEmpty()) {
-				throw new GlobalException(
-					MemberErrorCode.UNAUTHORIZED
-				);
+				// throw new GlobalException( // Todo : 회원 정보가 없을 경우면 failure
+				// 	MemberErrorCode.UNAUTHORIZED
+				// );
+			throw new UsernameNotFoundException("회원 정보가 없습니다.");
 		}
 
 		return new CustomUser(member.get(), oAuth2Response);

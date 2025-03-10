@@ -2,6 +2,8 @@ package com.example.backend.entity;
 
 import static com.example.backend.entity.QBookmarkEntity.*;
 
+import java.util.List;
+
 import org.springframework.stereotype.Repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -24,5 +26,14 @@ public class BookmarkRepositoryImpl implements BookmarkRepositoryCustom {
 			.fetchOne();
 
 		return count != null && count > 0;
+	}
+
+	@Override
+	public List<BookmarkEntity> findAllByMemberId(Long memberId) {
+		return queryFactory
+			.selectFrom(bookmarkEntity)
+			.where(bookmarkEntity.member.id.eq(memberId))
+			.orderBy(bookmarkEntity.createDate.desc())
+			.fetch();
 	}
 }

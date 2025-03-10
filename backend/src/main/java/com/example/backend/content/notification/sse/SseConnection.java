@@ -6,6 +6,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 각각의 단일 사용자 연결을 담당하는 객체
@@ -13,23 +14,24 @@ import lombok.RequiredArgsConstructor;
  * 2025-02-09
  */
 @Getter
+@Slf4j
 public class SseConnection {
 
 	private final String uniqueKey;
+	private final String browserName;
 	private final SseEmitter sseEmitter;
-	private final SseEmitterFactory sseEmitterFactory;
 	private final SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs;
 
-	private static final Long DEFAULT_MINUTE = 1000L * 60 * 5;
+	private static final Long DEFAULT_MINUTE = 1000L * 30;
 
 	private SseConnection(
 		String uniqueKey,
-		SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs,
-		SseEmitterFactory sseEmitterFactory
+		String browserName,
+		SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs
 	) {
 		this.uniqueKey = uniqueKey;
-		this.sseEmitterFactory = sseEmitterFactory;
-		this.sseEmitter = sseEmitterFactory.create(DEFAULT_MINUTE);
+		this.browserName = browserName;
+		this.sseEmitter = new SseEmitter(DEFAULT_MINUTE);
 		this.sseConnectionPoolIfs = sseConnectionPoolIfs;
 
 		this.sseEmitter.onTimeout(sseEmitter::complete);
@@ -43,23 +45,26 @@ public class SseConnection {
 	 * @since 2025-02-10
 	 */
 	public static SseConnection connect(
-		String uniqueKey,
-		SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs,
-		SseEmitterFactory sseEmitterFactory
+		String userId,
+		String browserName,
+		SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs
 	) {
-		SseConnection connection = new SseConnection(uniqueKey, sseConnectionPoolIfs, sseEmitterFactory);
-		sseConnectionPoolIfs.add(uniqueKey, connection);
+		SseConnection connection = new SseConnection(userId, browserName, sseConnectionPoolIfs);
+		sseConnectionPoolIfs.add(userId, browserName, connection);
 		return connection;
 	}
 
 	public void sendMessage(String eventName, Object data) {
 		try {
+
 			SseEmitter.SseEventBuilder event = SseEmitter.event()
 				.name(eventName) // 이벤트 이름 설정
 				.data(data); // 전송할 데이터 설정
 			this.sseEmitter.send(event);
+			log.info("Message sent successfully: {}", eventName);
 
-		} catch (IOException e) {
+		} catch (Exception e) {
+			log.error("Message sent failed: {}", eventName);
 			sseEmitter.completeWithError(e);
 		}
 	}

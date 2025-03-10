@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,13 +43,18 @@ public class NotificationService {
 	 * @since 2025-02-11
 	 */
 	@Transactional
-	public void createAndSendNotification(Long memberId, Long targetId, NotificationType type, String message) {
+	public NotificationEntity createNotification(Long memberId, Long targetId, NotificationType type, String message) {
 		// 알림 엔티티 생성 및 저장
 		NotificationEntity notificationEntity = NotificationEntity.create(message, memberId, type, targetId);
-		NotificationEntity notification = notificationRepository.save(notificationEntity);
+		return notificationRepository.save(notificationEntity);
 
 		// sse 로 실시간 알림 전송
-		sseConnectionPool.sendNotification(memberId, converter.toResponse(notification, targetId));
+		// sseConnectionPool.sendNotification(memberId, converter.toResponse(notification, targetId));
+	}
+
+	@Async
+	public void sendNotification(Long memberId, NotificationEntity notification) {
+		sseConnectionPool.sendNotification(memberId, converter.toResponse(notification, notification.getTargetId()));
 	}
 
 	@Transactional

@@ -32,12 +32,13 @@ public class JwtUtil {
 	 * @param claims         토큰에 포함할 클레임 (key-value 형태)
 	 * @return 생성된 JWT 토큰 문자열
 	 */
-	public static String generateToken(String secret, long expireSeconds, Map<String, Object> claims) {
+	public static String generateToken(String username, Map<String, Object> claims, String secret, long expireSeconds) {
 		Date issuedAt = new Date();
 		Date expiration = new Date(issuedAt.getTime() + (expireSeconds * 1000L));
 		SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes());
 
 		return Jwts.builder()
+			.subject(username)
 			.claims(claims)
 			.issuedAt(issuedAt)
 			.expiration(expiration)
@@ -74,6 +75,23 @@ public class JwtUtil {
 				.getPayload();
 
 			return claims.getExpiration();  // 만료 시간을 반환
+		} catch (JwtException e) {
+			// 토큰이 유효하지 않은 경우 처리
+			return null;
+		}
+	}
+
+	public static String getSubject(String jwtStr, String secret) throws JwtException {
+		SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+
+		try {
+			Claims claims = Jwts.parser()
+				.verifyWith(secretKey)
+				.build()
+				.parseSignedClaims(jwtStr)
+				.getPayload();
+
+			return claims.getSubject();  // 토큰 주제를 반환
 		} catch (JwtException e) {
 			// 토큰이 유효하지 않은 경우 처리
 			return null;
