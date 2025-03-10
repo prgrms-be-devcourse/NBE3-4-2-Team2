@@ -1,7 +1,5 @@
 package com.example.backend.content.notification.sse;
 
-import java.io.IOException;
-
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import lombok.Getter;
@@ -22,7 +20,7 @@ public class SseConnection {
 	private final SseEmitter sseEmitter;
 	private final SseConnectionPoolIfs<SseConnection> sseConnectionPoolIfs;
 
-	private static final Long DEFAULT_MINUTE = 1000L * 30;
+	private static final Long DEFAULT_MINUTE = 1000L * 30 * 5;
 
 	private SseConnection(
 		String uniqueKey,
