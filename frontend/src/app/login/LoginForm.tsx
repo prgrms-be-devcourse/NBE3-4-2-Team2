@@ -58,24 +58,24 @@ export default function LoginForm() {
   
 
   return (
-    <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center text-black">로그인</h1>
+    <div className="w-full max-w-sm p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-6 text-center text-black dark:text-white">로그인</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-black">아이디</label>
+          <label className="text-sm font-medium text-black dark:text-gray-200">아이디</label>
           <input
             type="text"
             name="username"
-            className="p-2 border rounded-md w-full text-black"
+            className="p-2 border dark:border-gray-600 rounded-md w-full text-black dark:text-white bg-white dark:bg-gray-700"
             placeholder="아이디"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-black">비밀번호</label>
+          <label className="text-sm font-medium text-black dark:text-gray-200">비밀번호</label>
           <input
             type="password"
             name="password"
-            className="p-2 border rounded-md w-full text-black"
+            className="p-2 border dark:border-gray-600 rounded-md w-full text-black dark:text-white bg-white dark:bg-gray-700"
             placeholder="비밀번호"
           />
         </div>
@@ -91,17 +91,17 @@ export default function LoginForm() {
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">간편 로그인</span>
+            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">간편 로그인</span>
           </div>
         </div>
         
         <div className="mt-6 space-y-3">
           <button
             onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/google'}
-            className="w-full flex items-center relative px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            className="w-full flex items-center relative px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             <img src="/google.svg" alt="Google" className="w-5 h-5 absolute left-4" />
             <span className="flex-1 text-center">Google로 계속하기</span>
@@ -118,4 +118,4 @@ export default function LoginForm() {
       </div>
     </div>
   );
-} 
+}

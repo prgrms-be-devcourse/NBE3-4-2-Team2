@@ -164,7 +164,7 @@ const ClientPage = () => {
         <button
           key="prev"
           onClick={() => handlePageChange(currentPage - 1)}
-          className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300"
+          className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
         >
           이전
         </button>
@@ -180,7 +180,7 @@ const ClientPage = () => {
           className={`px-3 py-1 rounded-md ${
             i === currentPage
               ? "bg-blue-500 text-white"
-              : "bg-gray-200 hover:bg-gray-300"
+              : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
           }`}
         >
           {i + 1}
@@ -194,7 +194,7 @@ const ClientPage = () => {
         <button
           key="next"
           onClick={() => handlePageChange(currentPage + 1)}
-          className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300"
+          className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
         >
           다음
         </button>
@@ -214,11 +214,11 @@ const ClientPage = () => {
 
   if (error) {
     return (
-      <div className="bg-red-100 p-4 rounded-md text-red-700">
+      <div className="bg-red-100 dark:bg-red-900 p-4 rounded-md text-red-700 dark:text-red-200">
         <p>{error}</p>
         <button
           onClick={() => fetchNotifications(currentPage)}
-          className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
         >
           다시 시도
         </button>
@@ -227,26 +227,26 @@ const ClientPage = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-4 border-b flex justify-between items-center">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <div>
-          <span className="font-medium">전체 알림</span>
-          <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+          <span className="font-medium text-gray-900 dark:text-gray-100">전체 알림</span>
+          <span className="ml-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium px-2.5 py-0.5 rounded">
             {totalCount}
           </span>
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
           페이지 {currentPage + 1} / {totalPages}
         </div>
       </div>
 
       {notifications.length > 0 ? (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {notifications.map((notification) => (
             <li
               key={notification.notificationId}
-              className={`p-4 hover:bg-gray-50 transition-colors ${
-                notification.isRead ? "bg-gray-50" : ""
+              className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                notification.isRead ? "bg-gray-50 dark:bg-gray-750" : ""
               }`}
             >
               <div className="flex items-start">
@@ -258,14 +258,14 @@ const ClientPage = () => {
                     <span
                       className={`text-xs font-medium px-2 py-0.5 rounded mr-2 ${
                         notification.isRead
-                          ? "bg-gray-200 text-gray-800"
-                          : "bg-blue-100 text-blue-800"
+                          ? "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                       }`}
                     >
                       {getNotificationTypeName(notification.type)}
                     </span>
                     {!notification.isRead && (
-                      <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded">
+                      <span className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-medium px-2 py-0.5 rounded">
                         새 알림
                       </span>
                     )}
@@ -273,13 +273,13 @@ const ClientPage = () => {
                   <p
                     className={`mt-1 text-sm ${
                       notification.isRead
-                        ? "text-gray-500"
-                        : "text-gray-900 font-medium"
+                        ? "text-gray-500 dark:text-gray-400"
+                        : "text-gray-900 dark:text-gray-100 font-medium"
                     }`}
                   >
                     {notification.message}
                   </p>
-                  <div className="mt-2 text-xs text-gray-500">
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                     {formatDate(notification.createdAt)}
                   </div>
                 </div>
@@ -288,11 +288,11 @@ const ClientPage = () => {
           ))}
         </ul>
       ) : (
-        <div className="p-8 text-center text-gray-500">알림이 없습니다.</div>
+        <div className="p-8 text-center text-gray-500 dark:text-gray-400">알림이 없습니다.</div>
       )}
 
       {totalPages > 1 && (
-        <div className="p-4 border-t flex justify-center gap-2">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-center gap-2">
           {renderPagination()}
         </div>
       )}

@@ -76,42 +76,42 @@ export default function JoinForm() {
   };
 
   return (
-    <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center text-black">회원가입</h1>
+    <div className="w-full max-w-sm p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-6 text-center text-black dark:text-white">회원가입</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-black">아이디</label>
+          <label className="text-sm font-medium text-black dark:text-gray-200">아이디</label>
           <input
             type="text"
             name="username"
-            className="p-2 border rounded-md w-full text-black"
+            className="p-2 border dark:border-gray-600 rounded-md w-full text-black dark:text-white bg-white dark:bg-gray-700"
             placeholder="아이디"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-black">비밀번호</label>
+          <label className="text-sm font-medium text-black dark:text-gray-200">비밀번호</label>
           <input
             type="password"
             name="password"
-            className="p-2 border rounded-md w-full text-black"
+            className="p-2 border dark:border-gray-600 rounded-md w-full text-black dark:text-white bg-white dark:bg-gray-700"
             placeholder="비밀번호"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-black">비밀번호 확인</label>
+          <label className="text-sm font-medium text-black dark:text-gray-200">비밀번호 확인</label>
           <input
             type="password"
             name="passwordConfirm"
-            className="p-2 border rounded-md w-full text-black"
+            className="p-2 border dark:border-gray-600 rounded-md w-full text-black dark:text-white bg-white dark:bg-gray-700"
             placeholder="비밀번호 확인"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-black">이메일</label>
+          <label className="text-sm font-medium text-black dark:text-gray-200">이메일</label>
           <input
             type="email"
             name="email"
-            className="p-2 border rounded-md w-full text-black"
+            className="p-2 border dark:border-gray-600 rounded-md w-full text-black dark:text-white bg-white dark:bg-gray-700"
             placeholder="이메일"
           />
         </div>
