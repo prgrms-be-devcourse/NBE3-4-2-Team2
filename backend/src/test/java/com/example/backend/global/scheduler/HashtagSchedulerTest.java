@@ -15,9 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.backend.content.hashtag.scheduler.HashtagScheduler;
-import com.example.backend.content.hashtag.service.HashtagService;
-import com.example.backend.content.hashtag.service.HashtagUsageCollector;
-import com.example.backend.content.hashtag.service.PostHashtagService;
 
 /**
  * 각 비즈니스 로직 단위 테스트만 진행하고
