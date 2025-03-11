@@ -8,6 +8,7 @@ import com.example.backend.content.notification.sse.SseConnectionPool
 import com.example.backend.content.notification.type.NotificationType
 import com.example.backend.entity.NotificationEntity
 import com.example.backend.entity.NotificationRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Async
@@ -20,7 +21,7 @@ import java.time.LocalDateTime
  * 2025. 3. 11.
  */
 @Service
-open class NotificationService(
+open class NotificationService @Autowired constructor(
     private val notificationRepository: NotificationRepository,
     private val converter: NotificationConverter,
     private val sseConnectionPool: SseConnectionPool
@@ -64,7 +65,8 @@ open class NotificationService(
         notification.markRead()
     }
 
-    fun getNotificationPage(page: Int, memberId: Long): NotificationPageResponse {
+    @Transactional
+    open fun getNotificationPage(page: Int, memberId: Long): NotificationPageResponse {
         val pageRequest = PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createDate"))
         // 알림 목록 조회 (최근 30일)
         val thirtyDaysAgo = LocalDateTime.now().minusDays(THIRTY_DAYS)
