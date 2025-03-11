@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -78,8 +77,8 @@ public class SecurityConfig {
 			.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
 				.requestMatchers("/api-v1/notification/subscribe").permitAll() // SSE 엔드포인트 명시적 설정
-
-				.requestMatchers("/api-v1/members/login", "/api-v1/members/join").permitAll() // 로그인 & 회원가입 허용
+				.requestMatchers("/error", "/favicon.ico").permitAll() // 프론트엔드에서 적용될 예외 포인트 설정
+				.requestMatchers("/api-v1/members/login", "/api-v1/members/join", "/api-v1/members/logout").permitAll() // 로그인 & 회원가입 허용
 				.requestMatchers(SWAGGER_PATHS).permitAll() // Swagger 문서 접근 허용
 				.anyRequest().authenticated()) // 그 외 요청은 인증 필요
 
@@ -115,13 +114,6 @@ public class SecurityConfig {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
 		return source;
-	}
-
-	@Bean
-	public WebSecurityCustomizer webSecurityCustomizer() { // security를 적용하지 않을 리소스
-		return web -> web.ignoring()
-			// OAuth를 사용하려면 error endpoint를 열어줘야 함
-			.requestMatchers("/error", "/favicon.ico");
 	}
 
 	@Bean

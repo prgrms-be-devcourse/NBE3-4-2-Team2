@@ -121,23 +121,11 @@ public class FollowController {
 	}
 
 	/**
-	 * 내가 팔로우하고 있는 유저 List (Following)
+	 * 특정 사용자를 팔로우하고 있는 유저 List (Following)
 	 *
-	 * @param securityUser(본인)
+	 * @param username 조회할 사용자의 username
 	 * @return FollowingListResponse (DTO)
 	 */
-	// @Operation(summary = "팔로잉 목록 조회", description = "내가 팔로우하고 있는 멤버 목록을 조회합니다.")
-	// @GetMapping("/following")
-	// @ResponseStatus(HttpStatus.OK)
-	// public RsData<FollowingListResponse> getFollowingList(
-	// 	@AuthenticationPrincipal CustomUser securityUser
-	// ) {
-	// 	FollowingListResponse listResponse = followService.getFollowingList(
-	// 		securityUser.getUsername()
-	// 	);
-	//
-	// 	return RsData.success(listResponse, "팔로잉 목록 조회에 성공했습니다.");
-	// }
 	@Operation(summary = "팔로잉 목록 조회", description = "특정 사용자가 팔로우하고 있는 멤버 목록을 조회합니다.")
 	@GetMapping("/{username}/following")
 	@ResponseStatus(HttpStatus.OK)
@@ -150,24 +138,6 @@ public class FollowController {
 	}
 
 
-	// /**
-	//  * 나를 팔로우하고 있는 유저 List (Follower)
-	//  *
-	//  * @param securityUser(본인)
-	//  * @return FollowerListResponse (DTO)
-	//  */
-	// @Operation(summary = "팔로워 목록 조회", description = "나를 팔로우하고 있는 멤버 목록을 조회합니다.")
-	// @GetMapping("/followers")
-	// @ResponseStatus(HttpStatus.OK)
-	// public RsData<FollowerListResponse> getFollowerList(
-	// 	@AuthenticationPrincipal CustomUser securityUser
-	// ) {
-	// 	FollowerListResponse listResponse = followService.getFollowerList(
-	// 		securityUser.getUsername()
-	// 	);
-	//
-	// 	return RsData.success(listResponse, "팔로워 목록 조회에 성공했습니다.");
-	// }
 	/**
 	 * 특정 사용자를 팔로우하고 있는 유저 목록 (Follower)
 	 *
