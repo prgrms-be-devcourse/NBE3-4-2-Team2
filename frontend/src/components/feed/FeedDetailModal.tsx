@@ -80,6 +80,9 @@ export default function FeedDetailModal({
   useEffect(() => {
     if (isOpen && feedId && !initialFeed) {
       fetchFeedDetail();
+    } else if (initialFeed && isOpen) {
+      // initialFeed가 있으면 댓글만 불러움
+      fetchComments();
     }
 
     // 초기 상태 설정
