@@ -4,6 +4,8 @@ import com.example.backend.content.notification.type.NotificationType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,6 +26,7 @@ public class NotificationEntity extends BaseEntity {
 	private Long memberId;
 
 	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
 	private NotificationType type;
 
 	@Column(nullable = false)
@@ -46,5 +49,25 @@ public class NotificationEntity extends BaseEntity {
 			.type(type)
 			.targetId(targetId)
 			.build();
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public Long getMemberId() {
+		return memberId;
+	}
+
+	public NotificationType getType() {
+		return type;
+	}
+
+	public boolean isRead() {
+		return isRead;
+	}
+
+	public Long getTargetId() {
+		return targetId;
 	}
 }

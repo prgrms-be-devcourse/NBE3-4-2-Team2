@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend.content.hashtag.service.HashtagService;
 import com.example.backend.content.hashtag.service.HashtagUsageCollector;
 import com.example.backend.content.hashtag.service.PostHashtagService;
-import com.example.backend.entity.HashtagRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -38,6 +38,7 @@ public class PostEntity extends BaseEntity {
 	@Builder.Default
 	private Boolean isDeleted = false; // true : 삭제, false : 활성
 
+	@Getter
 	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
 	@Builder.Default
 	private List<ImageEntity> images = new ArrayList<>();
@@ -106,4 +107,27 @@ public class PostEntity extends BaseEntity {
 		this.images.remove(image);
 	}
 
+	public String getContent() {
+		return content;
+	}
+
+	public MemberEntity getMember() {
+		return member;
+	}
+
+	public Boolean getIsDeleted() {
+		return isDeleted;
+	}
+
+	public List<ImageEntity> getImages() {
+		return images;
+	}
+
+	public Long getLikeCount() {
+		return likeCount;
+	}
+
+	public List<CommentEntity> getComments() {
+		return comments;
+	}
 }

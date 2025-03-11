@@ -4,10 +4,11 @@ import lombok.Builder;
 
 @Builder
 public record CommentCreateResponse(
-		Long id,
-		String content,
-		Long ref,
-        Long postId,
-		Long memberId,
-		Long parentId
-) {}
+	Long id,
+	String content,
+	Long ref,
+	Long postId,
+	Long memberId,
+	Long parentNum
+) {
+}

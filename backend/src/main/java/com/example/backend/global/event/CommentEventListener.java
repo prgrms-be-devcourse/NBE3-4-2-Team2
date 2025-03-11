@@ -8,6 +8,7 @@ import com.example.backend.content.notification.exception.NotificationErrorCode;
 import com.example.backend.content.notification.exception.NotificationException;
 import com.example.backend.content.notification.service.NotificationService;
 import com.example.backend.content.notification.type.NotificationType;
+import com.example.backend.entity.NotificationEntity;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,12 +29,15 @@ public class CommentEventListener {
 	public void handleCommentEvent(CommentEvent commentEvent) {
 		int retryCount = 0;
 
-		while (retryCount < MAX_RETRY_COUNT) {
+		NotificationEntity notification = notificationService.createNotification(
+			commentEvent.receiverId(),
+			commentEvent.commentId(),
+			NotificationType.COMMENT,
+			commentEvent.commenterName() + "님이 게시물 (ID: " + commentEvent.postId() + ")에 댓글을 달았습니다.");
 
+		while (retryCount < MAX_RETRY_COUNT) {
 			try {
-				notificationService.createAndSendNotification(
-					commentEvent.receiverId(), commentEvent.commentId(), NotificationType.COMMENT,
-					commentEvent.commenterName() + "님이 댓글을 달았습니다.");
+				notificationService.sendNotification(commentEvent.receiverId(), notification);
 				// 성공 시 바로 리턴
 				return;
 

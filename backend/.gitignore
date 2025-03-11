@@ -232,20 +232,23 @@ gradle-app.setting
 ### Custom ###
 db_dev.mv.db
 db_dev.trace.db
+docker-compose.yml
 
-/src/test/resources/application.yml
 /src/main/resources/application-test.yml
 /src/main/resources/application-dev.yml
+/src/test/resources/application.yml
+/src/test/resources/application-test.yml
 
 # 환경변수 파일
 .env
 .env*
 /backend/.env
-/backend/en
 
 # QueryDSL QClass 자동 생성 파일 무시
 /build/
 /out/
 /generated/
 /src/main/generated/
-**/Q*.java
+
+# 로컬 이미지 저장 경로 Service
+src/main/java/com/example/backend/global/storage/LocalFileStorageService.java

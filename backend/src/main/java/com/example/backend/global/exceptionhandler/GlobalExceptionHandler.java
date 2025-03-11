@@ -24,10 +24,8 @@ import com.example.backend.global.error.GlobalErrorCode;
 import com.example.backend.global.exception.GlobalException;
 import com.example.backend.global.rs.ErrorRs;
 import com.example.backend.global.rs.RsData;
+import com.example.backend.social.exception.SocialException;
 import com.example.backend.social.feed.exception.FeedException;
-import com.example.backend.social.follow.exception.FollowException;
-import com.example.backend.social.reaction.bookmark.exception.BookmarkException;
-import com.example.backend.social.reaction.likes.exception.LikesException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
@@ -117,24 +115,8 @@ public class GlobalExceptionHandler {
 			.body(response);
 	}
 
-	@ExceptionHandler(LikesException.class)
-	public ResponseEntity<RsData<?>> handleLikesException(LikesException ex) {
-		RsData<?> response = RsData.error(null, ex.getMessage());
-		return ResponseEntity
-			.status(ex.getStatus())
-			.body(response);
-	}
-
-	@ExceptionHandler(BookmarkException.class)
-	public ResponseEntity<RsData<?>> handleBookmarkException(BookmarkException ex) {
-		RsData<?> response = RsData.error(null, ex.getMessage());
-		return ResponseEntity
-			.status(ex.getStatus())
-			.body(response);
-	}
-
-	@ExceptionHandler(FollowException.class)
-	public ResponseEntity<RsData<?>> handleFollowException(FollowException ex) {
+	@ExceptionHandler(SocialException.class)
+	public ResponseEntity<RsData<?>> handleSocialException(SocialException ex) {
 		RsData<?> response = RsData.error(null, ex.getMessage());
 		return ResponseEntity
 			.status(ex.getStatus())
@@ -195,20 +177,21 @@ public class GlobalExceptionHandler {
 			.body(response);
 	}
 
-	@ExceptionHandler(AuthenticationException.class)
-	public ResponseEntity<RsData<?>> handleAuthenticationException(AuthenticationException ex) {
-		RsData<?> response = RsData.error(null, "인증 정보가 일치하지 않습니다.");
-		return ResponseEntity
-			.status(HttpStatus.UNAUTHORIZED)
-			.body(response);
-	}
-
-	@ExceptionHandler(AccessDeniedException.class)
-	public ResponseEntity<RsData<?>> handleAccessDeniedException(AccessDeniedException ex) {
-		RsData<?> response = RsData.error(null, "접근 권한이 없습니다..");
-		return ResponseEntity
-			.status(HttpStatus.FORBIDDEN)
-			.body(response);
-	}
+	// @ExceptionHandler(AuthenticationException.class)
+	// public ResponseEntity<RsData<?>> handleAuthenticationException(AuthenticationException ex) {
+	// 	log.error(ex.getMessage(), ex); // 에러 표시
+	// 	RsData<?> response = RsData.error(null, "인증 정보가 일치하지 않습니다.");
+	// 	return ResponseEntity
+	// 		.status(HttpStatus.UNAUTHORIZED)
+	// 		.body(response);
+	// }
+	//
+	// @ExceptionHandler(AccessDeniedException.class)
+	// public ResponseEntity<RsData<?>> handleAccessDeniedException(AccessDeniedException ex) {
+	// 	RsData<?> response = RsData.error(null, "접근 권한이 없습니다..");
+	// 	return ResponseEntity
+	// 		.status(HttpStatus.FORBIDDEN)
+	// 		.body(response);
+	// }
 
 }

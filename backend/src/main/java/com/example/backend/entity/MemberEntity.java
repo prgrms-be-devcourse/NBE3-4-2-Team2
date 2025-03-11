@@ -7,8 +7,12 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -38,31 +42,33 @@ public class MemberEntity extends BaseEntity {
 
 	private String phoneNumber;
 
-	// private String refreshToken;
-
 	@Column(nullable = false)
 	@Builder.Default
 	private Long followerCount = 0L; // 팔로워 : 본인이 팔로우중인 인원수
 
 	@Column(nullable = false)
 	@Builder.Default
-	private Long followeeCount = 0L; // 팔로위 : 본인을 팔로우중인 인원수
+	private Long followingCount = 0L; // 팔로잉 : 본인을 팔로우중인 인원수
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
 	private List<PostEntity> postList = new ArrayList<>();
 
-	@OneToMany(mappedBy = "receiver") // receiver가 자기 자신 => 나를 팔로우하는
+	@ElementCollection(fetch = FetchType.LAZY)
+	@CollectionTable(name = "member_following_usernames", joinColumns = @JoinColumn(name = "member_id"))
+	@Column(name = "following_username")
 	@Builder.Default
-	private List<FollowEntity> followerList = new ArrayList<>();
+	private List<String> followingList = new ArrayList<>(); // 내가 팔로우하는 유저 List
 
-	@OneToMany(mappedBy = "sender") // sender가 자기 자신 => 내가 팔로잉하는
+	@ElementCollection(fetch = FetchType.LAZY)
+	@CollectionTable(name = "member_follower_usernames", joinColumns = @JoinColumn(name = "member_id"))
+	@Column(name = "follower_username")
 	@Builder.Default
-	private List<FollowEntity> followingList = new ArrayList<>();
+	private List<String> followerList = new ArrayList<>(); // 나를 팔로우하는 유저 List
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
-	private List<LikesEntity> likeList = new ArrayList<>();
+	private List<LikeEntity> likeList = new ArrayList<>();
 
 	@OneToMany(mappedBy = "member")
 	@Builder.Default
@@ -76,6 +82,16 @@ public class MemberEntity extends BaseEntity {
 		super();
 		setId(id);
 		this.username = username;
+		this.followingCount = 0L;
+		this.followerCount = 0L;
+	}
+
+	public MemberEntity(String username, String password, String email) {
+		this.username = username;
+		this.password = password;
+		this.email = email;
+		this.followingCount = 0L;
+		this.followerCount = 0L;
 	}
 
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -92,5 +108,44 @@ public class MemberEntity extends BaseEntity {
 			authorities.add("ROLE_ADMIN");
 
 		return authorities;
+	}
+
+	public void addFollowing(MemberEntity receiver) {
+		this.followingList.add(receiver.getUsername());
+		this.followingCount++;
+	}
+
+	public void addFollower(MemberEntity sender) {
+		this.followerList.add(sender.getUsername());
+		this.followerCount++;
+	}
+
+	public void removeFollowing(MemberEntity receiver) {
+		if(this.followingList.remove(receiver.getUsername())) {
+			this.followingCount--;
+		}
+	}
+
+	public void removeFollower(MemberEntity sender) {
+		if(this.followerList.remove(sender.getUsername())) {
+			this.followerCount--;
+		}
+	}
+
+	// Kotlin을 위한 Getter 메서드
+	public List<String> getFollowingList() {
+		return this.followingList;
+	}
+
+	public List<String> getFollowerList() {
+		return this.followerList;
+	}
+
+	public String getUsername() {
+		return this.username;
+	}
+
+	public String getPassword() {
+		return password;
 	}
 }
