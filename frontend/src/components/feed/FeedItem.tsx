@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { components } from "../../lib/backend/apiV1/schema";
 import { getImageUrl } from "../../utils/imageUtils";
@@ -51,7 +51,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   // 모달 상태 추가
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
+  const router = useRouter();
   // 슬라이더 참조
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -212,6 +212,8 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
   const handleProfileImage = (e: React.MouseEvent): void => {
     e.stopPropagation();
     console.log("프로필로 이동합니다." + feed.authorId);
+
+    router.push(`/member/${feed.authorName}`);
   };
 
   // 이미지 슬라이더 이동
