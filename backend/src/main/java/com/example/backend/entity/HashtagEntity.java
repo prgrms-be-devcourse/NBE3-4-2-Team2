@@ -63,4 +63,16 @@ public class HashtagEntity {
 		}
 
 	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public LocalDateTime getLastUsedAt() {
+		return lastUsedAt;
+	}
 }

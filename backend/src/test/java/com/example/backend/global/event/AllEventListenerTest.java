@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.backend.content.notification.exception.NotificationErrorCode;
 import com.example.backend.content.notification.exception.NotificationException;
-import com.example.backend.content.notification.service.NotificationService;
 import com.example.backend.content.notification.type.NotificationType;
 
 /**

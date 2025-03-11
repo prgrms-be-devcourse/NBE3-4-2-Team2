@@ -1,35 +1,24 @@
 package com.example.backend.content.search.controller;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.backend.content.search.dto.SearchPostCursorResponse;
 import com.example.backend.content.search.dto.SearchPostResponse;
-import com.example.backend.content.search.service.SearchService;
 import com.example.backend.content.search.type.SearchType;
-import com.example.backend.global.config.SecurityConfig;
-import com.example.backend.global.rs.RsData;
 import com.example.backend.identity.security.jwt.AccessTokenService;
 import com.example.backend.identity.security.jwt.RefreshTokenService;
 import com.example.backend.identity.security.user.service.CustomUserDetailsService;
