@@ -47,6 +47,15 @@ public class PostHashtagEntity {
 			.build();
 	}
 
+	public Long getId() {
+		return id;
+	}
 
+	public PostEntity getPost() {
+		return post;
+	}
 
+	public HashtagEntity getHashtag() {
+		return hashtag;
+	}
 }

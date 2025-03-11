@@ -50,4 +50,24 @@ public class NotificationEntity extends BaseEntity {
 			.targetId(targetId)
 			.build();
 	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public Long getMemberId() {
+		return memberId;
+	}
+
+	public NotificationType getType() {
+		return type;
+	}
+
+	public boolean isRead() {
+		return isRead;
+	}
+
+	public Long getTargetId() {
+		return targetId;
+	}
 }

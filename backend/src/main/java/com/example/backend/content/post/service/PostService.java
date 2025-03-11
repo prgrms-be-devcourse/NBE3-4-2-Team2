@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend.content.hashtag.service.HashtagExtractor;
+import com.example.backend.content.hashtag.service.PostHashtagService;
 import com.example.backend.content.image.dto.ImageUploadResponse;
 import com.example.backend.content.image.service.ImageService;
 import com.example.backend.content.post.converter.PostConverter;
