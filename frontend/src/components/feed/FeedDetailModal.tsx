@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { components } from "../../lib/backend/apiV1/schema";
 import { useComments } from "@/components/feed/useComments";
@@ -47,6 +47,7 @@ export default function FeedDetailModal({
 
   // 이미지가 있는지 확인하는 변수
   const hasImages = feed?.imgUrlList && feed.imgUrlList.length > 0;
+  const router = useRouter();
 
   // 로컬 스토리지의 상태가 있다면 먼저 적용
   const initialLikedState = initialFeed
@@ -139,6 +140,13 @@ export default function FeedDetailModal({
     } catch (error) {
       console.error("좋아요 처리 중 오류:", error);
     }
+  };
+
+  const handleProfileImage = (e: React.MouseEvent): void => {
+    e.stopPropagation();
+    console.log("프로필로 이동합니다." + feed.authorId);
+
+    router.push(`/member/${feed.authorName}`);
   };
 
   const handleBookmark = async (e: React.MouseEvent): Promise<void> => {
@@ -432,6 +440,7 @@ export default function FeedDetailModal({
                       src={getImageUrl(feed.profileImgUrl)}
                       alt="프로필"
                       className="w-full h-full object-cover"
+                      onClick={handleProfileImage}
                     />
                   </div>
                   <span className="ml-3 font-medium">{feed.authorName}</span>
