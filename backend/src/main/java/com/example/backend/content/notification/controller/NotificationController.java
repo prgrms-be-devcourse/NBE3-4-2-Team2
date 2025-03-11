@@ -16,7 +16,6 @@ import com.example.backend.content.notification.dto.NotificationPageResponse;
 import com.example.backend.content.notification.service.NotificationService;
 import com.example.backend.content.notification.sse.SseConnection;
 import com.example.backend.content.notification.sse.SseConnectionPool;
-import com.example.backend.content.notification.sse.SseEmitterFactory;
 import com.example.backend.global.rs.RsData;
 import com.example.backend.identity.security.user.CustomUser;
 
@@ -33,12 +32,13 @@ public class NotificationController {
 
 	private final SseConnectionPool sseConnectionPool;
 	private final NotificationService notificationService;
-	private final SseEmitterFactory sseEmitterFactory;
 
 	@GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter subscribe(@AuthenticationPrincipal CustomUser customUser) {
+	public SseEmitter subscribe(
+		@RequestParam(name = "userId") String userId,
+		@RequestParam(name = "browserName", defaultValue = "unknown") String browserName) {
 		SseConnection connection = SseConnection.connect(
-			String.valueOf(customUser.getId()), sseConnectionPool, sseEmitterFactory);
+			String.valueOf(userId), browserName, sseConnectionPool);
 
 		return connection.getSseEmitter();
 	}

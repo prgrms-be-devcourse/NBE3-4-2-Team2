@@ -1,5 +1,5 @@
 // 수동으로 알림 트리거 (테스트용)
-"use client";
+'use client';
 
 import { useNotifications } from "@/contexts/NotificationContext";
 

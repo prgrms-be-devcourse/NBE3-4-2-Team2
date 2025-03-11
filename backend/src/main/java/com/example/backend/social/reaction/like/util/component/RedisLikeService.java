@@ -10,10 +10,9 @@ import org.springframework.stereotype.Component;
 import com.example.backend.entity.LikeEntity;
 import com.example.backend.entity.LikeRepository;
 import com.example.backend.social.reaction.like.dto.LikeInfo;
+import com.example.backend.social.reaction.like.dto.LikeStateInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -69,13 +68,5 @@ public class RedisLikeService {
             return Long.parseLong(countStr);
         }
         return 0L;
-    }
-
-    // LikeStateInfo 정보를 담는 내부 클래스
-    @Getter
-    @AllArgsConstructor
-    public static class LikeStateInfo {
-        private final boolean currentlyLiked;
-        private final boolean isNewLike;
     }
 }
