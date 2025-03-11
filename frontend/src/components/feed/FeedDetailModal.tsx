@@ -11,7 +11,7 @@ import {
   saveLikeStatus,
   getBookmarkStatus,
   saveBookmarkStatus,
-} from "../../utils/likeUtils";
+} from "@/utils/likeUtils";
 
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
 
@@ -404,7 +404,17 @@ export default function FeedDetailModal({
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <p className="text-gray-400">이미지가 없습니다</p>
+                    <img
+                      src={getImageUrl(null)}
+                      alt="기본 이미지"
+                      className="max-h-full max-w-full object-contain"
+                      style={{
+                        width: "auto",
+                        height: "auto",
+                        maxHeight: "100%",
+                        maxWidth: "100%",
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -413,13 +423,11 @@ export default function FeedDetailModal({
               <div className="border-t border-gray-200 dark:border-gray-700 p-4 overflow-y-auto min-h-[25vh]">
                 <div className="flex items-center mb-3">
                   <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex-shrink-0 overflow-hidden">
-                    {feed.profileImgUrl && (
-                      <img
-                        src={getImageUrl(feed.profileImgUrl)}
-                        alt="프로필"
-                        className="w-full h-full object-cover"
-                      />
-                    )}
+                    <img
+                      src={getImageUrl(feed.profileImgUrl)}
+                      alt="프로필"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <span className="ml-3 font-medium">{feed.authorName}</span>
                 </div>

@@ -273,13 +273,11 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center" onClick={handleProfileImage}>
             <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex-shrink-0 overflow-hidden">
-              {feed.profileImgUrl && (
-                <img
-                  src={getImageUrl(feed.profileImgUrl)}
-                  alt={feed.authorName}
-                  className="w-full h-full object-cover"
-                />
-              )}
+              <img
+                src={getImageUrl(feed.profileImgUrl)}
+                alt={feed.authorName}
+                className="w-full h-full object-cover"
+              />
             </div>
             <span className="ml-2 font-medium text-sm text-black dark:text-white">
               {feed.authorName}
@@ -288,7 +286,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
         </div>
 
         {/* 이미지 슬라이더 */}
-        {hasImages && (
+        {hasImages ? (
           <div className="relative overflow-hidden">
             <div
               className="flex transition-transform duration-300 ease-in-out"
@@ -366,6 +364,14 @@ const FeedItem: React.FC<FeedItemProps> = ({ feed, isActive = false }) => {
                 {currentImageIndex + 1} / {feed.imgUrlList?.length ?? 0}
               </div>
             )}
+          </div>
+        ) : (
+          <div className="w-full aspect-square flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+            <img
+              src={getImageUrl(null)}
+              alt="기본 이미지"
+              className="max-h-full max-w-full object-contain"
+            />
           </div>
         )}
 
