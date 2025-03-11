@@ -29,6 +29,7 @@ public class CommentEntity extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private PostEntity post;
 
+	@Getter
 	@JoinColumn(nullable = false, name = "member_id")
 	@ManyToOne(fetch = FetchType.LAZY)
 	private MemberEntity member;
@@ -101,4 +102,45 @@ public class CommentEntity extends BaseEntity {
 		this.isDeleted = true;
 		this.content = "삭제된 댓글입니다.";
 	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public PostEntity getPost() {
+		return post;
+	}
+
+	public MemberEntity getMember() {
+		return member;
+	}
+
+	public Long getRef() {
+		return ref;
+	}
+
+	public int getStep() {
+		return step;
+	}
+
+	public int getRefOrder() {
+		return refOrder;
+	}
+
+	public Long getAnswerNum() {
+		return answerNum;
+	}
+
+	public Long getParentNum() {
+		return parentNum;
+	}
+
+	public boolean isDeleted() {
+		return isDeleted;
+	}
+
+	public Long getLikeCount() {
+		return likeCount;
+	}
+
 }

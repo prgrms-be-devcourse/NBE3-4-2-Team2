@@ -35,4 +35,8 @@ public class ImageEntity extends BaseEntity {
 		post.addImage(image);
 		return image;
 	}
+
+	public String getImageUrl() {
+		return imageUrl;
+	}
 }

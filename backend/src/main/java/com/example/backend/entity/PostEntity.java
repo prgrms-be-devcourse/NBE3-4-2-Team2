@@ -107,4 +107,27 @@ public class PostEntity extends BaseEntity {
 		this.images.remove(image);
 	}
 
+	public String getContent() {
+		return content;
+	}
+
+	public MemberEntity getMember() {
+		return member;
+	}
+
+	public Boolean getIsDeleted() {
+		return isDeleted;
+	}
+
+	public List<ImageEntity> getImages() {
+		return images;
+	}
+
+	public Long getLikeCount() {
+		return likeCount;
+	}
+
+	public List<CommentEntity> getComments() {
+		return comments;
+	}
 }
