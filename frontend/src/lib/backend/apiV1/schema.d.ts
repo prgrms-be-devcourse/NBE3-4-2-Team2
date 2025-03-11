@@ -102,27 +102,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api-v1/like/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 좋아요 토글
-         * @description 게시물, 댓글, 대댓글의 좋아요를 토글합니다.
-         */
-        post: operations["toggleLike"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api-v1/follow/{receiverId}": {
+    "/api-v1/member/follow/{receiver}": {
         parameters: {
             query?: never;
             header?: never;
@@ -141,6 +121,26 @@ export interface paths {
          * @description 상대 멤버와 팔로우 관계를 끊습니다.
          */
         delete: operations["unfollowMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api-v1/like/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 좋아요 토글
+         * @description 게시물, 댓글, 대댓글의 좋아요를 토글합니다.
+         */
+        post: operations["toggleLike"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -234,7 +234,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api-v1/members/{id}": {
+    "/api-v1/members/{username}": {
         parameters: {
             query?: never;
             header?: never;
@@ -242,7 +242,7 @@ export interface paths {
             cookie?: never;
         };
         /** 회원 정보 조회 */
-        get: operations["publicMemberDetails"];
+        get: operations["publicMemberDetailsByUsername"];
         put?: never;
         post?: never;
         delete?: never;
@@ -268,7 +268,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api-v1/follow/mutual/{memberId}": {
+    "/api-v1/member/{username}/following": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 팔로잉 목록 조회
+         * @description 특정 사용자가 팔로우하고 있는 멤버 목록을 조회합니다.
+         */
+        get: operations["getFollowingList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api-v1/member/{username}/followers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 팔로워 목록 조회
+         * @description 특정 사용자를 팔로우하고 있는 멤버 목록을 조회합니다.
+         */
+        get: operations["getFollowerList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api-v1/member/mutual/{receiver}": {
         parameters: {
             query?: never;
             header?: never;
@@ -277,9 +317,29 @@ export interface paths {
         };
         /**
          * 맞팔로우 확인
-         * @description 상대 멤버와 서로 팔로우 관계인지 확인합니다.
+         * @description 상대 멤버와 팔로우 관계인지 확인합니다.
          */
         get: operations["isMutualFollow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api-v1/member/following/{receiver}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 팔로우 여부 확인
+         * @description 상대 멤버를 팔로우하고 있는지 확인합니다.
+         */
+        get: operations["isFollowing"];
         put?: never;
         post?: never;
         delete?: never;
@@ -471,6 +531,7 @@ export interface components {
             content: string;
             /** Format: int64 */
             memberId: number;
+            imgUrlList?: string[];
         };
         MemberLoginRequest: {
             /** @description 사용자 이름 */
@@ -511,6 +572,19 @@ export interface components {
             data?: components["schemas"]["MemberJoinResponse"];
             success?: boolean;
         };
+        FollowResponse: {
+            senderUsername?: string;
+            receiverUsername?: string;
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        RsDataFollowResponse: {
+            /** Format: date-time */
+            time?: string;
+            message?: string;
+            data?: components["schemas"]["FollowResponse"];
+            success?: boolean;
+        };
         LikeToggleResponse: {
             /** Format: int64 */
             memberId?: number;
@@ -528,23 +602,6 @@ export interface components {
             time?: string;
             message?: string;
             data?: components["schemas"]["LikeToggleResponse"];
-            success?: boolean;
-        };
-        CreateFollowResponse: {
-            /** Format: int64 */
-            followId?: number;
-            /** Format: int64 */
-            senderId?: number;
-            /** Format: int64 */
-            receiverId?: number;
-            /** Format: date-time */
-            createDate?: string;
-        };
-        RsDataCreateFollowResponse: {
-            /** Format: date-time */
-            time?: string;
-            message?: string;
-            data?: components["schemas"]["CreateFollowResponse"];
             success?: boolean;
         };
         CommentCreateRequest: {
@@ -638,19 +695,57 @@ export interface components {
         };
         MemberResponse: {
             /** Format: int64 */
-            id?: number;
-            username?: string;
+            id: number;
+            username: string;
             profileUrl?: string;
             /** Format: int64 */
-            followerCount?: number;
+            postCount: number;
             /** Format: int64 */
-            followingCount?: number;
+            followerCount: number;
+            /** Format: int64 */
+            followingCount: number;
         };
         RsDataMemberResponse: {
             /** Format: date-time */
             time?: string;
             message?: string;
             data?: components["schemas"]["MemberResponse"];
+            success?: boolean;
+        };
+        FollowingListResponse: {
+            followingList?: components["schemas"]["FollowingMemberDto"][];
+            /** Format: int32 */
+            totalCount?: number;
+        };
+        FollowingMemberDto: {
+            /** Format: int64 */
+            id?: number;
+            username?: string;
+            profileUrl?: string;
+        };
+        RsDataFollowingListResponse: {
+            /** Format: date-time */
+            time?: string;
+            message?: string;
+            data?: components["schemas"]["FollowingListResponse"];
+            success?: boolean;
+        };
+        FollowerListResponse: {
+            followerList?: components["schemas"]["FollowerMemberDto"][];
+            /** Format: int32 */
+            totalCount?: number;
+        };
+        FollowerMemberDto: {
+            /** Format: int64 */
+            id?: number;
+            username?: string;
+            profileUrl?: string;
+        };
+        RsDataFollowerListResponse: {
+            /** Format: date-time */
+            time?: string;
+            message?: string;
+            data?: components["schemas"]["FollowerListResponse"];
             success?: boolean;
         };
         MutualFollowResponse: {
@@ -663,13 +758,23 @@ export interface components {
             data?: components["schemas"]["MutualFollowResponse"];
             success?: boolean;
         };
+        IsFollowingResponse: {
+            isFollowing?: boolean;
+        };
+        RsDataIsFollowingResponse: {
+            /** Format: date-time */
+            time?: string;
+            message?: string;
+            data?: components["schemas"]["IsFollowingResponse"];
+            success?: boolean;
+        };
         FeedInfoResponse: {
             /** Format: int64 */
             authorId?: number;
             authorName?: string;
             /** Format: int64 */
             postId?: number;
-            imgUrlList: string[];
+            imgUrlList?: string[];
             content?: string;
             /** Format: int64 */
             likeCount?: number;
@@ -737,14 +842,14 @@ export interface components {
             totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            first?: boolean;
+            last?: boolean;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["CommentResponse"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["Sortnull"];
-            first?: boolean;
-            last?: boolean;
             /** Format: int32 */
             numberOfElements?: number;
             pageable?: components["schemas"]["Pageablenull"];
@@ -763,8 +868,8 @@ export interface components {
         };
         Sortnull: {
             empty?: boolean;
-            unsorted?: boolean;
             sorted?: boolean;
+            unsorted?: boolean;
         };
         BookmarkListResponse: {
             /** Format: int64 */
@@ -787,27 +892,6 @@ export interface components {
             /** Format: int64 */
             postId: number;
             message: string;
-        };
-        DeleteFollowRequest: {
-            /** Format: int64 */
-            followId: number;
-        };
-        DeleteFollowResponse: {
-            /** Format: int64 */
-            followId?: number;
-            /** Format: int64 */
-            senderId?: number;
-            /** Format: int64 */
-            receiverId?: number;
-            /** Format: date-time */
-            deleteDate?: string;
-        };
-        RsDataDeleteFollowResponse: {
-            /** Format: date-time */
-            time?: string;
-            message?: string;
-            data?: components["schemas"]["DeleteFollowResponse"];
-            success?: boolean;
         };
         CommentDeleteResponse: {
             /** Format: int64 */
@@ -1038,6 +1122,50 @@ export interface operations {
             };
         };
     };
+    followMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receiver: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RsDataFollowResponse"];
+                };
+            };
+        };
+    };
+    unfollowMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receiver: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RsDataFollowResponse"];
+                };
+            };
+        };
+    };
     toggleLike: {
         parameters: {
             query: {
@@ -1058,54 +1186,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RsDataLikeToggleResponse"];
-                };
-            };
-        };
-    };
-    followMember: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                receiverId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RsDataCreateFollowResponse"];
-                };
-            };
-        };
-    };
-    unfollowMember: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                receiverId: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeleteFollowRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RsDataDeleteFollowResponse"];
                 };
             };
         };
@@ -1209,7 +1289,9 @@ export interface operations {
     };
     subscribe: {
         parameters: {
-            query?: never;
+            query?: {
+                browserName?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1249,12 +1331,12 @@ export interface operations {
             };
         };
     };
-    publicMemberDetails: {
+    publicMemberDetailsByUsername: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                id: number;
+                username: string;
             };
             cookie?: never;
         };
@@ -1291,12 +1373,56 @@ export interface operations {
             };
         };
     };
+    getFollowingList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RsDataFollowingListResponse"];
+                };
+            };
+        };
+    };
+    getFollowerList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RsDataFollowerListResponse"];
+                };
+            };
+        };
+    };
     isMutualFollow: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                memberId: number;
+                receiver: string;
             };
             cookie?: never;
         };
@@ -1309,6 +1435,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RsDataMutualFollowResponse"];
+                };
+            };
+        };
+    };
+    isFollowing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receiver: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RsDataIsFollowingResponse"];
                 };
             };
         };
