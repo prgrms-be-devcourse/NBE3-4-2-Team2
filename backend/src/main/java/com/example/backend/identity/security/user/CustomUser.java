@@ -16,6 +16,11 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class CustomUser implements OAuth2User, UserDetails {
+	public CustomUser(MemberEntity memberEntity) {
+		this.memberEntity = memberEntity;
+		this.oAuth2Response = null;
+	}
+
 	private final MemberEntity memberEntity;
 	private final OAuth2Response oAuth2Response;
 
