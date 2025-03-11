@@ -16,14 +16,16 @@ interface BookmarkStatus {
 }
 
 // 좋아요 상태 저장
-export const saveLikeStatus = (feedId: number, isLiked: boolean, likeCount: number): void => {
+export const saveLikeStatus = (resourceId: number, isLiked: boolean, likeCount: number, resourceType: "post" | "comment"): void => {
   try {
+    const key = `${LIKE_STORAGE_KEY}_${resourceType}_${resourceId}`;
+
     const status: LikeStatus = {
       isLiked,
       likeCount,
       timestamp: Date.now()
     };
-    localStorage.setItem(`${LIKE_STORAGE_KEY}_${feedId}`, JSON.stringify(status));
+    localStorage.setItem(key, JSON.stringify(status));
   } catch (error) {
     console.error('좋아요 상태 저장 중 오류:', error);
   }
@@ -44,9 +46,10 @@ export const saveBookmarkStatus = (feedId: number, isBookmarked: boolean, bookma
 };
 
 // 좋아요 상태 가져오기
-export const getLikeStatus = (feedId: number, serverLikeStatus: boolean, serverLikeCount: number): { isLiked: boolean, likeCount: number } => {
+export const getLikeStatus = (resourceId: number, serverLikeStatus: boolean, serverLikeCount: number, resourceType: "post" | "comment"): { isLiked: boolean, likeCount: number } => {
   try {
-    const stored = localStorage.getItem(`${LIKE_STORAGE_KEY}_${feedId}`);
+    const key = `${LIKE_STORAGE_KEY}_${resourceType}_${resourceId}`;
+    const stored = localStorage.getItem(key);
     
     if (!stored) {
       return { isLiked: serverLikeStatus, likeCount: serverLikeCount };
@@ -114,7 +117,8 @@ export const syncLikeStatuses = (feeds: any[]): any[] => {
     const { isLiked, likeCount } = getLikeStatus(
       feed.postId, 
       !!feed.likeFlag, 
-      feed.likeCount || 0
+      feed.likeCount || 0,
+      "post"
     );
     
     const { isBookmarked, bookmarkId } = getBookmarkStatus(
