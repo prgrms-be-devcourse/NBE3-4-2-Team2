@@ -15,6 +15,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
   onAddComment,
   onLikeComment,
   onReplyComment,
+  onLoadMoreReplies,
 }) => {
   const [newComment, setNewComment] = React.useState("");
 
@@ -45,6 +46,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
               comment={comment}
               onLike={onLikeComment}
               onReply={onReplyComment}
+              onLoadMoreReplies={onLoadMoreReplies}
             />
           ))
         ) : (

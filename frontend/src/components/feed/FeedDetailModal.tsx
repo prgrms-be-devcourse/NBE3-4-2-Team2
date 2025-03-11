@@ -11,7 +11,7 @@ import {
   saveLikeStatus,
   getBookmarkStatus,
   saveBookmarkStatus,
-} from "../../utils/likeUtils";
+} from "@/utils/likeUtils";
 
 type FeedInfoResponse = components["schemas"]["FeedInfoResponse"];
 
@@ -53,7 +53,8 @@ export default function FeedDetailModal({
     ? getLikeStatus(
         initialFeed.postId,
         !!initialFeed.likeFlag,
-        initialFeed.likeCount || 0
+        initialFeed.likeCount || 0,
+        "post"
       ).isLiked
     : false;
 
@@ -80,6 +81,9 @@ export default function FeedDetailModal({
   useEffect(() => {
     if (isOpen && feedId && !initialFeed) {
       fetchFeedDetail();
+    } else if (initialFeed && isOpen) {
+      // initialFeed가 있으면 댓글만 불러움
+      fetchComments();
     }
 
     // 초기 상태 설정
@@ -116,7 +120,7 @@ export default function FeedDetailModal({
         setLikeCount(newLikeCount);
 
         // 로컬 스토리지에 저장
-        saveLikeStatus(feed.postId, newIsLiked, newLikeCount);
+        saveLikeStatus(feed.postId, newIsLiked, newLikeCount, "post");
 
         // feed 객체 업데이트
         const updatedFeed = {
@@ -233,7 +237,8 @@ export default function FeedDetailModal({
           getLikeStatus(
             foundFeed.postId,
             !!foundFeed.likeFlag,
-            foundFeed.likeCount || 0
+            foundFeed.likeCount || 0,
+            "post"
           );
 
         // 로컬 스토리지에서 북마크 상태 가져오기
@@ -404,7 +409,17 @@ export default function FeedDetailModal({
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <p className="text-gray-400">이미지가 없습니다</p>
+                    <img
+                      src={getImageUrl(null)}
+                      alt="기본 이미지"
+                      className="max-h-full max-w-full object-contain"
+                      style={{
+                        width: "auto",
+                        height: "auto",
+                        maxHeight: "100%",
+                        maxWidth: "100%",
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -413,13 +428,11 @@ export default function FeedDetailModal({
               <div className="border-t border-gray-200 dark:border-gray-700 p-4 overflow-y-auto min-h-[25vh]">
                 <div className="flex items-center mb-3">
                   <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex-shrink-0 overflow-hidden">
-                    {feed.profileImgUrl && (
-                      <img
-                        src={getImageUrl(feed.profileImgUrl)}
-                        alt="프로필"
-                        className="w-full h-full object-cover"
-                      />
-                    )}
+                    <img
+                      src={getImageUrl(feed.profileImgUrl)}
+                      alt="프로필"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <span className="ml-3 font-medium">{feed.authorName}</span>
                 </div>

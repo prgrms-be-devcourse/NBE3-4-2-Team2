@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import client from "@/lib/backend/client";
 import { getCurrentUserId } from "../../utils/jwtUtils";
+import { saveLikeStatus, getLikeStatus } from "@/utils/likeUtils"; 
 
 export interface Comment {
   id: number;
@@ -11,13 +12,26 @@ export interface Comment {
   likeCount?: number;
   parentNum?: number | null;
   replies?: Comment[]; // 대댓글 목록
-
   answerNum?: number;
+  isLikedByMe?: boolean;
 }
 
 export function useComments(feedId: number) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  function findCommentByIdInTree(list: Comment[], commentId: number): Comment | undefined {
+    for (const c of list) {
+      if (c.id === commentId) {
+        return c;
+      }
+      if (c.replies && c.replies.length > 0) {
+        const found = findCommentByIdInTree(c.replies, commentId);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  }
 
   // 댓글 목록 가져오기 (실제 구현에서는 API 호출)
   const fetchComments = useCallback(async () => {
@@ -29,6 +43,19 @@ export function useComments(feedId: number) {
       });
       if (response?.data?.content) {
         const list = response.data.content as Comment[];
+        list.forEach((c) => {
+          const serverIsLiked = c.isLikedByMe ?? false;
+          const serverLikeCount = c.likeCount ?? 0;
+    
+          const { isLiked, likeCount } = getLikeStatus(
+            c.id,
+            serverIsLiked,
+            serverLikeCount,
+            "comment" // ← 댓글
+          );
+          c.isLikedByMe = isLiked;
+          c.likeCount = likeCount;
+        });
         const tree = buildCommentTree(list);
         setComments(tree);
       } else {
@@ -86,11 +113,6 @@ export function useComments(feedId: number) {
             parentNum,
           },
         });
-<<<<<<< HEAD
-        
-=======
-
->>>>>>> origin/frontend/comment-01
         if (response?.data) {
           const newReply = response.data as Comment;
           setComments((prev) =>
@@ -104,36 +126,123 @@ export function useComments(feedId: number) {
     },
     [feedId]
   );
-  // 댓글에 좋아요 추가/취소하기
-  const likeComment = useCallback((commentId: number) => {
-    // 실제 구현에서는 API 호출 후 응답으로 업데이트
-    /*
-      // 예시 1: 토글 방식 좋아요
-      const response = await api.post(`/comments/${commentId}/like`);
-      const updatedComment = response.data;
-      
-      // 예시 2: 좋아요/좋아요 취소를 구분하는 경우
-      const comment = comments.find(c => c.id === commentId);
-      if (comment) {
-        if (comment.isLikedByMe) {
-          // 좋아요 취소 API 호출
-          await api.delete(`/comments/${commentId}/like`);
-        } else {
-          // 좋아요 API 호출
-          await api.post(`/comments/${commentId}/like`);
-        }
+
+  function updateLikeInTree(
+    list: Comment[],
+    commentId: number,
+    newIsLiked: boolean,
+    newCount: number
+  ): Comment[] {
+    return list.map((c) => {
+      if (c.id === commentId) {
+        return {
+          ...c,
+          isLikedByMe: newIsLiked,
+          likeCount: newCount,
+        };
+      } else if (c.replies && c.replies.length > 0) {
+        return {
+          ...c,
+          replies: updateLikeInTree(c.replies, commentId, newIsLiked, newCount),
+        };
       }
-    */
+      return c;
+    });
+  }
+
+  function rollbackLikeInTree(
+    list: Comment[],
+    commentId: number,
+    oldIsLiked: boolean,
+    oldCount: number
+  ): Comment[] {
+    return list.map((c) => {
+      if (c.id === commentId) {
+        return {
+          ...c,
+          isLikedByMe: oldIsLiked,
+          likeCount: oldCount,
+        };
+      } else if (c.replies && c.replies.length > 0) {
+        return {
+          ...c,
+          replies: rollbackLikeInTree(c.replies, commentId, oldIsLiked, oldCount),
+        };
+      }
+      return c;
+    });
+  }
+  // 댓글에 좋아요 추가/취소하기
+  const likeComment = useCallback(
+    async (commentId: number) => {
+      const target = findCommentByIdInTree(comments, commentId);
+      if (!target) return;
+      const oldIsLiked = target.isLikedByMe ?? false;
+      const oldLikeCount = target.likeCount ?? 0;
+
+      const newIsLiked = !oldIsLiked;
+      const newCount = newIsLiked ? oldLikeCount + 1 : Math.max(oldLikeCount - 1, 0);
+
+      setComments((prev) => updateLikeInTree(prev, commentId, newIsLiked, newCount));
+
+      // 로컬 스토리지
+      saveLikeStatus(commentId, newIsLiked, newCount, "comment");
+
+      try {
+        // 3) 서버 호출
+        const response = await client.POST("/api-v1/like/{id}", {
+          params: {
+            path: { id: commentId },
+            query: { resourceType: "comment" },
+          },
+        });
+        if (response.response.status !== 200) {
+          // 4) 실패 시 롤백
+          setComments((prev) => rollbackLikeInTree(prev, commentId, oldIsLiked, oldLikeCount));
+          saveLikeStatus(commentId, oldIsLiked, oldLikeCount, "comment");
+        }
+      } catch (error) {
+        console.error("댓글 좋아요 API 오류:", error);
+        // 롤백
+        setComments((prev) => rollbackLikeInTree(prev, commentId, oldIsLiked, oldLikeCount));
+        saveLikeStatus(commentId, oldIsLiked, oldLikeCount, "comment");
+      }
+    },
+    [comments]
+  );
+
+  /**
+   * 좋아요 롤백
+   */
+  const rollbackLike = useCallback(
+    (commentId: number, oldIsLiked: boolean, oldLikeCount: number) => {
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId
+            ? {
+                ...c,
+                isLikedByMe: oldIsLiked,
+                likeCount: oldLikeCount,
+              }
+            : c
+        )
+      );
+
+      // 로컬 스토리지에서도 롤백
+      saveLikeStatus(commentId, oldIsLiked, oldLikeCount, "comment");
+    },
+    []
+  );
 
     // 현재는 로컬 상태만 업데이트 (단순 좋아요 수 증가)
-    setComments((prevComments) =>
-      prevComments.map((comment) =>
-        comment.id === commentId
-          ? { ...comment, likeCount: comment.likeCount + 1 }
-          : comment
-      )
-    );
-  }, []);
+  //   setComments((prevComments) =>
+  //     prevComments.map((comment) =>
+  //       comment.id === commentId
+  //         ? { ...comment, likeCount: comment.likeCount + 1 }
+  //         : comment
+  //     )
+  //   );
+  // }, []);
 
   const loadMoreReplies = useCallback(async (parentNum: number, page = 0) => {
     try {
