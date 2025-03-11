@@ -82,6 +82,16 @@ public class MemberEntity extends BaseEntity {
 		super();
 		setId(id);
 		this.username = username;
+		this.followingCount = 0L;
+		this.followerCount = 0L;
+	}
+
+	public MemberEntity(String username, String password, String email) {
+		this.username = username;
+		this.password = password;
+		this.email = email;
+		this.followingCount = 0L;
+		this.followerCount = 0L;
 	}
 
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -133,5 +143,9 @@ public class MemberEntity extends BaseEntity {
 
 	public String getUsername() {
 		return this.username;
+	}
+
+	public String getPassword() {
+		return password;
 	}
 }
