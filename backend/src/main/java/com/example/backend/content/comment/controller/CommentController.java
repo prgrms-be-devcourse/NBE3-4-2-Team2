@@ -35,7 +35,6 @@ public class CommentController {
 		return ResponseEntity.ok(commentService.createComment(request));
 	}
 
-
 	/**
 	 * ✅ 특정 게시글의 댓글 목록 조회 (페이징 적용)
 	 */
@@ -43,7 +42,7 @@ public class CommentController {
 	public Page<CommentResponse> getComments(
 		@PathVariable Long postId,
 		@RequestParam(defaultValue = "0") int page,
-		@RequestParam(defaultValue = "10") int size
+		@RequestParam(defaultValue = "50") int size
 	) {
 		Pageable pageable = Pageable.ofSize(size).withPage(page);
 		return commentService.findAllCommentsByPostId(postId, pageable);
@@ -56,7 +55,7 @@ public class CommentController {
 	public Page<CommentResponse> getReplies(
 		@PathVariable Long parentId,
 		@RequestParam(defaultValue = "0") int page,
-		@RequestParam(defaultValue = "10") int size
+		@RequestParam(defaultValue = "50") int size
 	) {
 		Pageable pageable = Pageable.ofSize(size).withPage(page);
 		return commentService.findRepliesByParentId(parentId, pageable);

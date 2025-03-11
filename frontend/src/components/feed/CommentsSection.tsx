@@ -1,5 +1,5 @@
 import React from "react";
-import { Comment as CommentType } from "./dummyComments";
+import { Comment as CommentType } from "./useComments";
 import Comment from "./Comment";
 
 interface CommentsSectionProps {
@@ -7,6 +7,7 @@ interface CommentsSectionProps {
   onAddComment: (content: string) => void;
   onLikeComment: (commentId: number) => void;
   onReplyComment: (commentId: number, content: string) => void;
+  onLoadMoreReplies: (parentId: number) => void;
 }
 
 const CommentsSection: React.FC<CommentsSectionProps> = ({
@@ -14,6 +15,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
   onAddComment,
   onLikeComment,
   onReplyComment,
+  onLoadMoreReplies,
 }) => {
   const [newComment, setNewComment] = React.useState("");
 
@@ -30,7 +32,9 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
     <div className="w-full md:w-[420px] border-l border-gray-300 dark:border-gray-700 flex flex-col">
       {/* 댓글 헤더 */}
       <div className="p-4 border-b border-gray-300 dark:border-gray-700">
-        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">댓글</h2>
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+          댓글
+        </h2>
       </div>
 
       {/* 댓글 목록 스크롤 영역 */}
@@ -42,6 +46,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
               comment={comment}
               onLike={onLikeComment}
               onReply={onReplyComment}
+              onLoadMoreReplies={onLoadMoreReplies}
             />
           ))
         ) : (
@@ -65,7 +70,9 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({
             type="submit"
             disabled={!newComment.trim()}
             className={`text-sm font-medium ${
-              newComment.trim() ? "text-blue-500 dark:text-blue-400" : "text-blue-300 dark:text-blue-800"
+              newComment.trim()
+                ? "text-blue-500 dark:text-blue-400"
+                : "text-blue-300 dark:text-blue-800"
             }`}
           >
             게시

@@ -16,7 +16,6 @@ export default function PostCreatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  // const { user } = useAuth();
 
   const handleRequestClose = () => setIsConfirmModalOpen(true);
   const handleCloseModal = () => {
@@ -48,7 +47,7 @@ export default function PostCreatePage() {
     try {
       // JWT에서 사용자 ID 가져오기
       const userId = getCurrentUserId();
-      
+
       if (!userId) {
         setError("로그인이 필요합니다.");
         setIsLoading(false);
@@ -66,7 +65,6 @@ export default function PostCreatePage() {
         }
       }
 
-      // client.ts에서 생성한 client의 POST 메서드를 사용하여 요청 전송
       const result = await client.POST("/api-v1/post", {
         body: formData,
       });
@@ -112,13 +110,13 @@ export default function PostCreatePage() {
   // 모달이 열렸을 때 body에 overflow: hidden 추가
   useEffect(() => {
     if (isModalOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
-    
+
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isModalOpen]);
 
@@ -155,7 +153,10 @@ export default function PostCreatePage() {
 
             <hr className="border-t-2 border-gray-300 dark:border-gray-700 w-full mb-4" />
 
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+            <div
+              className="overflow-y-auto"
+              style={{ maxHeight: "calc(90vh - 180px)" }}
+            >
               {error && (
                 <div
                   className="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded relative mb-4"
@@ -203,7 +204,9 @@ export default function PostCreatePage() {
                       <div key={index} className="flex flex-col items-center">
                         <div
                           className={`w-2 h-2 rounded-full ${
-                            index === currentIndex ? "bg-white" : "bg-gray-500 dark:bg-gray-400"
+                            index === currentIndex
+                              ? "bg-white"
+                              : "bg-gray-500 dark:bg-gray-400"
                           }`}
                         />
                       </div>
@@ -215,7 +218,9 @@ export default function PostCreatePage() {
                   className="w-full h-[500px] bg-gray-200 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-md flex justify-center items-center cursor-pointer relative"
                   onClick={() => document.getElementById("fileInput")?.click()}
                 >
-                  <p className="text-gray-500 dark:text-gray-300 text-4xl font-bold">+</p>
+                  <p className="text-gray-500 dark:text-gray-300 text-4xl font-bold">
+                    +
+                  </p>
                   <input
                     type="file"
                     accept="image/*"
@@ -248,7 +253,9 @@ export default function PostCreatePage() {
       {isConfirmModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-75 dark:bg-opacity-85 z-[60]">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
-            <p className="mb-4 text-lg font-bold dark:text-white">정말로 나가시겠습니까?</p>
+            <p className="mb-4 text-lg font-bold dark:text-white">
+              정말로 나가시겠습니까?
+            </p>
             <div className="flex justify-center gap-4">
               <button
                 onClick={handleCloseModal}

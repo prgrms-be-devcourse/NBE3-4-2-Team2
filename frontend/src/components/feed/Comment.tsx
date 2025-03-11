@@ -1,15 +1,19 @@
 import React, { useState } from "react";
-import { Comment as CommentType } from "./dummyComments";
+import { Comment as CommentType } from "./useComments";
 
 interface CommentProps {
   comment: CommentType;
   onLike: (commentId: number) => void;
   onReply: (commentId: number, content: string) => void;
+  onLoadMoreReplies?:(parentId: number) => void;
 }
 
-const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
+const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply, onLoadMoreReplies, }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
+
+  // 자식 댓글(대댓글) 표시 여부
+  const [showReplies, setShowReplies] = useState(false);
 
   // 댓글 좋아요 핸들러
   const handleLike = () => {
@@ -37,18 +41,33 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
         <div className="w-8 h-8 rounded-full bg-gray-400 dark:bg-gray-600 mr-3"></div>
         <div className="flex-1">
           <div className="flex justify-between mb-1">
-            <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{comment.username}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">{comment.time}</span>
+            <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
+              {comment.username}
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {comment.time}
+            </span>
           </div>
-          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">{comment.content}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+            {comment.content}
+          </p>
+
+
           <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
             <button
               onClick={handleLike}
               className="hover:text-gray-700 dark:hover:text-gray-200 flex items-center"
             >
-              <span>{comment.likeCount} 좋아요</span>
+            {comment.likeCount && comment.likeCount > 0 ? (
+              <>좋아요 {comment.likeCount}개</>
+            ) : (
+              <>좋아요</>
+            )}
             </button>
-            <button onClick={toggleReplyForm} className="hover:text-gray-700 dark:hover:text-gray-200">
+            <button
+              onClick={toggleReplyForm}
+              className="hover:text-gray-700 dark:hover:text-gray-200"
+            >
               답글
             </button>
           </div>
@@ -71,7 +90,9 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
                 type="submit"
                 disabled={!replyContent.trim()}
                 className={`ml-2 text-sm font-medium ${
-                  replyContent.trim() ? "text-blue-500 dark:text-blue-400" : "text-blue-300 dark:text-blue-800"
+                  replyContent.trim()
+                    ? "text-blue-500 dark:text-blue-400"
+                    : "text-blue-300 dark:text-blue-800"
                 }`}
               >
                 게시
@@ -81,28 +102,52 @@ const Comment: React.FC<CommentProps> = ({ comment, onLike, onReply }) => {
         </div>
 
         {/* 좋아요 버튼 - 좋아요가 있는 경우만 표시 */}
-        {comment.likeCount > 0 && (
-          <button
-            onClick={handleLike}
-            className="ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-              />
-            </svg>
-          </button>
-        )}
+        <div className="ml-2 flex items-center">
+        <button
+          onClick={handleLike}
+          className="ml-2 text-gray-500 dark:text-gray-400 
+                     hover:text-gray-700 dark:hover:text-gray-200 
+                     flex items-center"
+        >
+          {/* 좋아요 상태에 따른 하트 아이콘 */}
+          <span className="text-lg mr-1">{comment.isLikedByMe ? "❤️" : "🤍"}</span>
+        </button>
+        </div>
       </div>
+
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="mt-3 ml-4">
+          {!showReplies ? (
+            // 아직 자식 댓글이 안 펼쳐졌을 때
+            <button
+              onClick={() => setShowReplies(true)}
+              className="text-sm text-blue-500 dark:text-blue-400 mt-2"
+            >
+              답글보기 ({comment.replies.length}개)
+            </button>
+          ) : (
+            // 펼쳐진 상태라면 자식 댓글들을 렌더링 + "숨기기" 버튼
+            <>
+              {comment.replies.map((child) => (
+                <Comment
+                  key={child.id}
+                  comment={child}
+                  onLike={onLike}
+                  onReply={onReply}
+                  onLoadMoreReplies={onLoadMoreReplies}
+                />
+              ))}
+
+              <button
+                onClick={() => setShowReplies(false)}
+                className="text-sm text-blue-500 dark:text-blue-400 mt-2"
+              >
+                답글 숨기기
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };

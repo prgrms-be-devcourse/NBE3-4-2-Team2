@@ -53,7 +53,8 @@ export default function FeedDetailModal({
     ? getLikeStatus(
         initialFeed.postId,
         !!initialFeed.likeFlag,
-        initialFeed.likeCount || 0
+        initialFeed.likeCount || 0,
+        "post"
       ).isLiked
     : false;
 
@@ -119,7 +120,7 @@ export default function FeedDetailModal({
         setLikeCount(newLikeCount);
 
         // 로컬 스토리지에 저장
-        saveLikeStatus(feed.postId, newIsLiked, newLikeCount);
+        saveLikeStatus(feed.postId, newIsLiked, newLikeCount, "post");
 
         // feed 객체 업데이트
         const updatedFeed = {
@@ -236,7 +237,8 @@ export default function FeedDetailModal({
           getLikeStatus(
             foundFeed.postId,
             !!foundFeed.likeFlag,
-            foundFeed.likeCount || 0
+            foundFeed.likeCount || 0,
+            "post"
           );
 
         // 로컬 스토리지에서 북마크 상태 가져오기
